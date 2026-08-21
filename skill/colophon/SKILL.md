@@ -1,6 +1,6 @@
 ---
 name: colophon
-description: Record, measure and disclose the human and AI contribution while writing. Use for: colophon, open the register, track this article, measure the AI contribution, provenance disclosure, method note.
+description: "Record, measure and disclose the human and AI contribution while writing. Use when the user says colophon, open the register, track this article, or measure the AI contribution."
 ---
 
 # Colophon
