@@ -1,0 +1,57 @@
+[
+ {
+  "block": 0,
+  "text": "# Why I publish a colophon",
+  "words": 6,
+  "lex": "UA",
+  "idea": "A",
+  "phase": "titling",
+  "event": "M02",
+  "note": "title proposed by the model, then rewritten",
+  "heading": true
+ },
+ {
+  "block": 1,
+  "text": "Every text I publish now carries a note saying how it was made. Not a badge, not a disclaimer bolted on at the end: a note that points at a record anyone can open.",
+  "words": 34,
+  "lex": "U",
+  "idea": "U",
+  "phase": "first_draft",
+  "event": null,
+  "note": "",
+  "heading": false
+ },
+ {
+  "block": 2,
+  "text": "The reason is narrow. I cannot prove that a text is mine, and neither can anyone else — a finished page carries no trace of the hands that shaped it. What I can do is keep the trace while the shaping happens, and hand it over.",
+  "words": 46,
+  "lex": "U",
+  "idea": "U",
+  "phase": "first_draft",
+  "event": null,
+  "note": "",
+  "heading": false
+ },
+ {
+  "block": 3,
+  "text": "The record does not settle the question of authorship.",
+  "words": 9,
+  "lex": "U",
+  "idea": "U",
+  "phase": "first_draft",
+  "event": null,
+  "note": "",
+  "heading": false
+ },
+ {
+  "block": 3,
+  "text": "It moves the question from what I claim to what I am willing to show.",
+  "words": 15,
+  "lex": "A",
+  "idea": "U",
+  "phase": "copy_revision",
+  "event": "M01",
+  "note": "closing sentence: model wording, author's point",
+  "heading": false
+ }
+]

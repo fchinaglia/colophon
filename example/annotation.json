@@ -1,0 +1,13 @@
+{
+ "source": "versions/post.md",
+ "excluded": [],
+ "blocks": {
+  "0": {"lex": "UA", "idea": "A", "phase": "titling", "event": "M02",
+        "note": "title proposed by the model, then rewritten"},
+  "1": {"lex": "U", "idea": "U", "phase": "first_draft"},
+  "2": {"lex": "U", "idea": "U", "phase": "first_draft"},
+  "3": [{"from": "The record does not settle", "lex": "U", "idea": "U", "phase": "first_draft"},
+        {"from": "It moves the question", "lex": "A", "idea": "U", "phase": "copy_revision",
+         "event": "M01", "note": "closing sentence: model wording, author's point"}]
+ }
+}

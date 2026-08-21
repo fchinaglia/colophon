@@ -1,0 +1,32 @@
+{
+ "words": 110,
+ "spans": 5,
+ "integrity": true,
+ "orphans": [],
+ "ai_lexical": 16.4,
+ "ai_ideational": 5.5,
+ "lexical": {
+  "U": 80.9,
+  "UA": 5.5,
+  "A": 13.6
+ },
+ "ideational": {
+  "U": 94.5,
+  "UA": 0.0,
+  "A": 5.5
+ },
+ "by_phase": {
+  "first_draft": {
+   "words": 89,
+   "ai": 0.0
+  },
+  "copy_revision": {
+   "words": 15,
+   "ai": 100.0
+  },
+  "titling": {
+   "words": 6,
+   "ai": 50.0
+  }
+ }
+}

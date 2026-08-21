@@ -1,0 +1,12 @@
+{
+ "source": "versions/v04_final_article.md",
+ "excluded": [1, 57, 58],
+ "blocks": {
+  "0": {"lex": "UA", "idea": "A", "phase": "titling", "event": "M11",
+        "note": "title proposed by the model, then rewritten"},
+  "2": {"lex": "U", "idea": "U", "phase": "first_draft"},
+  "3": [{"from": "A B2C services company", "lex": "U", "idea": "U", "phase": "first_draft"},
+        {"from": "In this second case", "lex": "A", "idea": "UA", "phase": "first_draft",
+         "note": "wording absorbed from the brainstorming"}]
+ }
+}
