@@ -27,7 +27,7 @@ The skill follows the [Agent Skills](https://agentskills.io) open standard.
 **Claude Code** — copy the skill folder into your personal skills directory, available across all your projects:
 
 ```bash
-git clone https://github.com/<you>/colophon.git
+git clone https://github.com/fchinaglia/colophon.git
 cp -r colophon/skill/colophon ~/.claude/skills/colophon
 ```
 
