@@ -1,0 +1,21 @@
+Come rendere trasparente il tuo uso dell'AI quando scrivi un contenuto
+
+Scritto con l'assistenza di un modello linguistico. La nota sul metodo, con le percentuali di contributo, è in fondo.
+
+Quando in rete un lettore trova un contenuto che dal titolo o dalle prime righe gli sembra interessante, ormai ha comunque il pensiero di imbattersi in AI slop: di scoprire, dopo averci perso un po' di tempo, che alla fine si tratta di aria fritta. Fritta molto bene, intendiamoci, ma senza quella forza che solo un'idea originale può avere. E usare dei detector per capire meglio è una scocciatura, e non dà informazioni accurate: sui testi già editati a mano l'accuratezza è del 39%.
+
+Per chi scrive con l'obiettivo di condividere il proprio pensiero, e non di fare puro marketing, da un lato è importante evidenziare l'originalità del proprio pensiero e anche, per chi sa scrivere, del proprio stile; dall'altro è utile usare l'AI per estendere e potenziare quel pensiero e rendere la propria forma più efficace. Dichiarare semplicemente che si è usata l'AI può confondere e sminuire il proprio contributo, e praticamente nessuno lo fa: nei paper accademici lo dichiara lo 0,1%.
+
+In sintesi: chi scrive con l'AI oggi non ha modo di dire come l'ha fatto, e chi legge rimarrà sempre con un dubbio.
+
+Per togliere quel dubbio a chi legge, e per non sminuire il contributo di chi scrive, ho messo insieme uno strumento semplice, Colophon. Registra il processo mentre accade, invece di ricostruirlo dopo: ogni intervento entra in una catena di hash, e la misura è doppia — chi ha scritto le parole, da dove vengono le idee.
+
+La differenza tra i due numeri è l'informazione utile. Trovate l'esempio qui in calce: la nota e l'icona in fondo misurano il testo che state leggendo.
+
+L'icona è quel quadrante: parole in orizzontale, idee in verticale, il testo è il punto. "Human written" non significa senza AI.
+
+Il disclaimer sta su due livelli: una riga in apertura, la nota con le percentuali in fondo.
+
+È la versione 0.1, sta su github.com/fchinaglia/colophon con licenza MIT. Provatelo e ditemi se secondo voi è efficace e come si può migliorare.
+
+Nota sul metodo. Ho scritto questo testo con l'assistenza di un modello linguistico, e ogni intervento è stato registrato mentre accadeva. Testo: 64% mio, 36% del modello. Contenuti: la misura a parole dice 100% miei, ed è il numero da leggere con più cautela — il contributo del modello qui è stato tagliare, scegliere cosa tenere e rimettere le fonti dov'erano saltate, e niente di tutto questo compare in una percentuale calcolata sulle parole. Una frase che credevo mia era invece sua, ripresa senza accorgermene dalla conversazione: conta come mista, e il misto conta metà. Non c'è una pagina di verifica pubblicata: finché non la pubblico devi fidarti della mia parola. Rispondo io di ogni affermazione.

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How this was written — provenance register</title>
+<style>
+:root { color-scheme:light;
+  --surface-1:#fcfcfb; --surface-2:#f4f3f0; --line:#e2e0da;
+  --text-primary:#0b0b0b; --text-secondary:#52514e; --text-muted:#7a7975;
+  --human:#2a78d6; --mixed:#7a7975; --ai:#e34948;
+  --bg-mixed:#eaeae8; --bg-ai:#f8dfde; }
+@media (prefers-color-scheme:dark) { :root:where(:not([data-theme="light"])) {
+  color-scheme:dark;
+  --surface-1:#1a1a19; --surface-2:#232322; --line:#3a3a37;
+  --text-primary:#fff; --text-secondary:#c3c2b7; --text-muted:#8a8983;
+  --human:#3987e5; --mixed:#8a8983; --ai:#e66767;
+  --bg-mixed:#333230; --bg-ai:#573130; } }
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface-1);color:var(--text-primary);
+ font:16px/1.65 ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:780px;margin:0 auto;padding:40px 24px 96px}
+header.top{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:32px}
+.kicker{font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+ color:var(--text-muted);margin:0 0 8px}
+h1.page{font-size:26px;line-height:1.25;margin:0 0 10px;font-weight:650}
+.sub{color:var(--text-secondary);margin:0;font-size:15px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 20px;margin-top:18px;font-size:12.5px;
+ color:var(--text-muted);font-variant-numeric:tabular-nums}
+.meta code{font-size:12px;color:var(--text-secondary)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0 0 12px}
+.tile{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;
+ padding:18px 20px}
+.tile .n{font-size:40px;font-weight:640;line-height:1;
+ font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.tile .k{font-size:13px;color:var(--text-secondary);margin-top:8px}
+.tile .d{font-size:12.5px;color:var(--text-muted);margin-top:6px;line-height:1.45}
+.note{font-size:13.5px;color:var(--text-secondary);background:var(--surface-2);
+ border-left:2px solid var(--line);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 24px}
+h2.sect{font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+ color:var(--text-muted);margin:44px 0 16px;font-weight:600}
+.row{display:grid;grid-template-columns:160px 1fr 52px 46px;align-items:center;
+ gap:12px;margin-bottom:9px}
+.label{font-size:13px;color:var(--text-secondary)}
+.bar{display:flex;gap:2px;height:20px}
+.seg{min-width:2px} .seg:first-child{border-radius:4px 0 0 4px}
+.seg:last-child{border-radius:0 4px 4px 0} .seg:only-child{border-radius:4px}
+.s-U{background:var(--human)} .s-UA{background:var(--mixed)} .s-A{background:var(--ai)}
+.value{font-size:13px;text-align:right;font-variant-numeric:tabular-nums}
+.words{font-size:12px;color:var(--text-muted);text-align:right;
+ font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:18px;margin:16px 0 0;font-size:13px;
+ color:var(--text-secondary)}
+.chip{display:inline-flex;align-items:center;gap:7px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 20px;font-size:13px}
+button{font:inherit;font-size:13px;padding:7px 13px;border-radius:7px;
+ border:1px solid var(--line);background:var(--surface-2);color:var(--text-primary);
+ cursor:pointer}
+button[aria-pressed="true"]{background:var(--text-primary);color:var(--surface-1);
+ border-color:var(--text-primary)}
+article h1{font-size:23px;line-height:1.3;margin:0 0 24px;font-weight:650}
+article h2{font-size:17px;line-height:1.35;margin:36px 0 14px;font-weight:620}
+article p{margin:0 0 16px} article ul{margin:0 0 16px;padding-left:22px}
+article li{margin-bottom:5px}
+.pv{border-radius:2px;padding:.06em 0;box-decoration-break:clone;
+ -webkit-box-decoration-break:clone}
+body[data-view="lex"] .pv[data-lex="U"],
+body[data-view="idea"] .pv[data-idea="U"]{background:transparent}
+body[data-view="lex"] .pv[data-lex="UA"],
+body[data-view="idea"] .pv[data-idea="UA"]{background:var(--bg-mixed);
+ text-decoration:underline dotted var(--mixed) 2px;text-underline-offset:.2em}
+body[data-view="lex"] .pv[data-lex="A"],
+body[data-view="idea"] .pv[data-idea="A"]{background:var(--bg-ai);
+ text-decoration:underline solid var(--ai) 2px;text-underline-offset:.2em}
+body[data-highlight="off"] .pv{background:transparent!important;text-decoration:none!important}
+.pv:focus-visible{outline:2px solid var(--text-primary);outline-offset:1px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;
+ font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-weight:600;color:var(--text-secondary);font-size:12.5px}
+td.n,th.n{text-align:right}
+details{margin-top:12px;font-size:14px;color:var(--text-secondary)}
+summary{cursor:pointer;color:var(--text-primary);font-size:13.5px}
+details p{margin:12px 0}
+#tip{position:fixed;z-index:9;max-width:330px;padding:8px 11px;font-size:12.5px;
+ line-height:1.45;background:var(--text-primary);color:var(--surface-1);
+ border-radius:7px;pointer-events:none;opacity:0;transition:opacity .1s}
+@media (max-width:620px){ .tiles{grid-template-columns:1fr}
+ .row{grid-template-columns:110px 1fr 48px} .words{display:none} }
+</style></head>
+<body data-view="lex" data-highlight="on"><div class="wrap">
+
+<header class="top">
+<p class="kicker">Provenance register</p>
+<h1 class="page">How <em>Come rendere trasparente il tuo uso dell&#x27;AI quando scrivi un contenuto</em> was written</h1>
+<p class="sub">This text was written by a person with the assistance of a language
+model. Every intervention was recorded as it happened. It is all below: how much,
+where, and whose is what.</p>
+<div class="meta">
+<span>Fabio Chinaglia</span>
+<span>21 August 2026</span>
+<span>337 words · 18 spans</span>
+<span>71 events · 26 editorial decisions</span>
+<span>hash chain root <code>6fa3e24f8dae2de7…</code></span>
+</div></header>
+
+
+<div class="tiles">
+<div class="tile"><div class="n">46.0%</div>
+<div class="k">of the words were written by the AI</div>
+<div class="d">The words you read in the final text. Includes the rephrasing of
+sentences whose content is the author's.</div></div>
+<div class="tile"><div class="n">0.0%</div>
+<div class="k">of the content comes from the AI</div>
+<div class="d">The ideas those words express, regardless of who put them into
+sentences.</div></div>
+</div>
+<p class="note">The two numbers differ by 46.0 points, and the
+difference is the most informative thing on this page. Mixed is counted as half.</p>
+
+<h2 class="sect">Where the AI came in</h2>
+<div class="row"><div class="label">First draft</div><div class="bar"><div class="seg s-U" style="flex:40.25157" data-tip="First draft · human: 40.3% (64 words)"></div><div class="seg s-UA" style="flex:9.43396" data-tip="First draft · mixed: 9.4% (15 words)"></div><div class="seg s-A" style="flex:50.31447" data-tip="First draft · AI: 50.3% (80 words)"></div></div><div class="value">55.0%</div><div class="words">159</div></div><div class="row"><div class="label">Content revision</div><div class="bar"><div class="seg s-U" style="flex:54.62185" data-tip="Content revision · human: 54.6% (65 words)"></div><div class="seg s-UA" style="flex:17.64706" data-tip="Content revision · mixed: 17.6% (21 words)"></div><div class="seg s-A" style="flex:27.73109" data-tip="Content revision · AI: 27.7% (33 words)"></div></div><div class="value">36.6%</div><div class="words">119</div></div><div class="row"><div class="label">Copy revision</div><div class="bar"><div class="seg s-UA" style="flex:100.00000" data-tip="Copy revision · mixed: 100.0% (48 words)"></div></div><div class="value">50.0%</div><div class="words">48</div></div><div class="row"><div class="label">Titling</div><div class="bar"><div class="seg s-U" style="flex:100.00000" data-tip="Titling · human: 100.0% (11 words)"></div></div><div class="value">0.0%</div><div class="words">11</div></div>
+<div class="legend">
+<span class="chip"><i class="sw" style="background:var(--human)"></i>human</span>
+<span class="chip"><i class="sw" style="background:var(--mixed)"></i>mixed</span>
+<span class="chip"><i class="sw" style="background:var(--ai)"></i>AI</span>
+<span style="color:var(--text-muted)">the percentage on the right is the AI share</span>
+</div>
+
+<h2 class="sect">The text, span by span</h2>
+<div class="ctrl">
+<button id="b-lex" aria-pressed="true">words</button>
+<button id="b-idea" aria-pressed="false">ideas</button>
+<button id="b-off" aria-pressed="false">no highlighting</button>
+<span style="color:var(--text-muted)">hover a passage to see its phase and the
+intervention</span></div>
+<article><p><span class="pv" data-lex="U" data-idea="U" data-tip="Titling — The title is the subject the user declared verbatim in the brief. Their words, their content: no AI contribution, and it is annotated rather than left as an untracked gap outside the count." tabindex="0" aria-label="origin human">Come rendere trasparente il tuo uso dell&#x27;AI quando scrivi un contenuto</span></p>
+<p><span class="pv" data-lex="U" data-idea="U" data-tip="First draft · edit R01 — Written and then compressed by the user. AI corrections across the passes are recorded as R01, R05 and R15; roughly a dozen marks over the paragraph&#x27;s life, attribution left human per the rule on diffuse lexical intervention. &#x27;Aria fritta, magari fritta bene&#x27; is the user&#x27;s own earlier line, shortened, restored at the AI&#x27;s suggestion." tabindex="0" aria-label="origin human">Quando un lettore trova in rete o in una mail un contenuto che dal titolo o dalle prime righe gli sembra interessante, ormai ha comunque il pensiero di imbattersi in AI slop: di perderci tempo e non «sentire» quella forza che solo un&#x27;idea originale può avere. Aria fritta. Magari fritta bene, ma tant&#x27;è. E usare dei detector per capire meglio è una scocciatura inefficace:</span> <span class="pv" data-lex="A" data-idea="U" data-tip="Content revision · edit R06 — Clause proposed by the AI and approved by the user, restoring the evidence removed by R04. The AI wrote the words; the figure comes from the user&#x27;s own document." tabindex="0" aria-label="origin AI">sui testi già editati a mano l&#x27;accuratezza è del 39%.</span></p>
+<p><span class="pv" data-lex="UA" data-idea="U" data-tip="Copy revision · edit R20 — ATTRIBUTION CHANGED from U to UA. The user wrote this paragraph and compressed it; the AI then rewrote the opening on the user&#x27;s instruction to split a sixty-word sentence, and the user accepted option B in full. Most of the user&#x27;s vocabulary survives, but &#x27;Ma l&#x27;AI serve proprio a estenderlo&#x27; is the AI&#x27;s construction and there is no traceable boundary inside two short sentences. Leaving this at U would have been the comfortable call and the wrong one." tabindex="0" aria-label="origin mixed">Chi scrive per condividere le proprie idee, e non per fare puro marketing, vuole mostrare l&#x27;originalità del proprio pensiero e, per chi sa scrivere, del proprio stile. Ma l&#x27;AI serve a estendere il ragionamento, e a rendere la forma più efficace per i molti che scrittori non sono.</span> <span class="pv" data-lex="U" data-idea="U" data-tip="Content revision · edit R22 — The user&#x27;s sentence. The AI changed &#x27;il proprio contributo&#x27; to &#x27;quel contributo&#x27; and added &#x27;e infatti quasi&#x27;, the last of which repaired a self-refuting claim; a handful of words, attribution left human." tabindex="0" aria-label="origin human">Dichiarare semplicemente che si è usata l&#x27;AI confonde e sminuisce il contributo umano, e infatti quasi nessuno lo fa:</span> <span class="pv" data-lex="A" data-idea="U" data-tip="Content revision · edit R09 — Clause proposed by the AI. Figure from section 1.2 of the user&#x27;s document." tabindex="0" aria-label="origin AI">nei paper accademici lo dichiara lo 0,1%.</span></p>
+<p><span class="pv" data-lex="UA" data-idea="U" data-tip="First draft — CARRY-OVER, unchanged. The core of this sentence is the AI&#x27;s opening line from v1, which the user reproduced in good faith believing it their own. The user has since added &#x27;In sintesi:&#x27; and changed the person; most of the AI phrasing survives, so lex stays UA." tabindex="0" aria-label="origin mixed">In sintesi: chi scrive con l&#x27;AI oggi non ha modo di dire come l&#x27;ha fatto,</span> <span class="pv" data-lex="U" data-idea="U" data-tip="Content revision — Clause added by the user. A real boundary exists at the comma, so the span is split rather than absorbed into UA." tabindex="0" aria-label="origin human">e chi legge rimarrà sempre con un dubbio.</span></p>
+<p><span class="pv" data-lex="U" data-idea="U" data-tip="Content revision · edit R08 — Opening supplied by the user, who also directed the change from &#x27;questo problema&#x27; to the doubt named two paragraphs earlier. The AI completed &#x27;per aiutare chi scrive...&#x27; as &#x27;per non sminuire il contributo di chi scrive&#x27;, reusing the user&#x27;s own phrasing from the paragraph above; and earlier changed &#x27;ho ideato&#x27; to &#x27;ho messo insieme&#x27; at the user&#x27;s request." tabindex="0" aria-label="origin human">Per togliere quel dubbio a chi legge, e per non sminuire il contributo di chi scrive, ho messo insieme uno strumento semplice, Colophon.</span> <span class="pv" data-lex="A" data-idea="U" data-tip="First draft — AI wording, compressing principles P1 and P2 and section 3.1 of the user&#x27;s document. Unchanged since v1." tabindex="0" aria-label="origin AI">Registra il processo mentre accade, invece di ricostruirlo dopo: ogni intervento entra in una catena di hash, e la misura è doppia — chi ha scritto le parole, da dove vengono le idee.</span></p>
+<p><span class="pv" data-lex="A" data-idea="U" data-tip="First draft — AI wording, from section 4.2 of the user&#x27;s document. Unchanged since v1." tabindex="0" aria-label="origin AI">La differenza tra i due numeri è l&#x27;informazione utile.</span> <span class="pv" data-lex="UA" data-idea="U" data-tip="Content revision · edit R17 — Assembled across passes from the user&#x27;s wording, joined by the AI." tabindex="0" aria-label="origin mixed">Trovate l&#x27;esempio qui in calce, applicato al testo che state leggendo:</span> <span class="pv" data-lex="A" data-idea="U" data-tip="Content revision · edit R19 — AI wording replacing the user&#x27;s &#x27;tutta farina del mio sacco, ma con un importante contributo AI in fase di scrittura&#x27;. The thought is the user&#x27;s — render the two axes in plain Italian inside the body — and it is theirs on the ideational axis; the words are the AI&#x27;s. Nine words in place of seventeen, and it no longer contradicts the caution stated in the note below." tabindex="0" aria-label="origin AI">le idee sono mie, le parole in buona parte no.</span> <span class="pv" data-lex="UA" data-idea="U" data-tip="Content revision · edit R13 — The user supplied &#x27;la nota e l&#x27;icona in fondo, generate da Colophon&#x27;; now a sentence of its own." tabindex="0" aria-label="origin mixed">La nota e l&#x27;icona in fondo sono generate da Colophon.</span></p>
+<p><span class="pv" data-lex="A" data-idea="U" data-tip="First draft — Reading of the quadrant, from SS6.1, including the caveat that human written does not mean without AI." tabindex="0" aria-label="origin AI">L&#x27;icona è quel quadrante: parole in orizzontale, idee in verticale, il testo è il punto. &quot;Human written&quot; non significa senza AI.</span></p>
+<p><span class="pv" data-lex="A" data-idea="U" data-tip="First draft — Two-level architecture from SS5.1. The third level, the record, was cut for length; the cut is an AI decision and is recorded as an event, not as an attribution." tabindex="0" aria-label="origin AI">Il disclaimer sta su due livelli: una riga in apertura, la nota con le percentuali in fondo.</span></p>
+<p><span class="pv" data-lex="A" data-idea="U" data-tip="Content revision · edit R11 — AI wording. The address was supplied by the user and checked live before insertion." tabindex="0" aria-label="origin AI">Sta su github.com/fchinaglia/colophon con licenza MIT.</span> <span class="pv" data-lex="U" data-idea="U" data-tip="Content revision — The ask is the user&#x27;s own phrasing, taken almost verbatim from their instruction in the conversation. Mirror image of the carry-over recorded at block 4: human phrasing flowing into AI-written text, caught for the same reason." tabindex="0" aria-label="origin human">Provatelo con Claude e ditemi se secondo voi è efficace e come si può migliorare.</span></p></article>
+
+<p class="note" style="margin-top:32px">Text that is not highlighted is the author's.
+The highlighting is not a statistical estimate: it is the record of what happened while
+the text was being written. It says nothing about the quality of what is highlighted,
+nor does it imply that the author does not answer for every word: editorial
+responsibility for the text is entirely theirs.</p>
+
+<h2 class="sect">Table</h2>
+<table><thead><tr><th>phase</th><th class="n">words</th><th class="n">human %</th>
+<th class="n">mixed %</th><th class="n">AI %</th><th class="n">AI ideational %</th>
+</tr></thead><tbody><tr><td>First draft</td><td class='n'>159</td><td class='n'>40.3</td><td class='n'>9.4</td><td class='n'>50.3</td><td class='n'>0.0</td></tr><tr><td>Content revision</td><td class='n'>119</td><td class='n'>54.6</td><td class='n'>17.6</td><td class='n'>27.7</td><td class='n'>0.0</td></tr><tr><td>Copy revision</td><td class='n'>48</td><td class='n'>0.0</td><td class='n'>100.0</td><td class='n'>0.0</td><td class='n'>0.0</td></tr><tr><td>Titling</td><td class='n'>11</td><td class='n'>100.0</td><td class='n'>0.0</td><td class='n'>0.0</td><td class='n'>0.0</td></tr></tbody></table>
+
+<details><summary>Method, and what this page does not prove</summary>
+<p><strong>How it was produced.</strong> Every request from the author and every output
+from the model was recorded in an append-only log with a hash chain: each event is bound
+to the previous one, so altering a past event invalidates every hash that follows it.
+Editorial decisions are recorded one by one. The attribution of the spans was compiled
+from that register, and the reconstruction check confirms that concatenating the spans
+reproduces the published text exactly.</p>
+<p><strong>What it does not prove.</strong> The chain proves <em>when</em> an event was
+recorded and that it has not been altered since. It does not prove that the register is
+<em>complete</em>: no voluntary system can, and the register is compiled by the AI about
+itself. The part of the work that happened outside the recorded conversation was not
+observed. Ideational attribution is a judgment, not a measurement: on judgments of this
+kind, agreement between independent annotators, in the literature, stops at around 0.66
+alpha. Take the two numbers at the top as orders of magnitude declared in good faith,
+not as exact figures.</p>
+<p>R</p><p>e</p><p>g</p><p>i</p><p>s</p><p>t</p><p>e</p><p>r</p><p> </p><p>o</p><p>p</p><p>e</p><p>n</p><p>e</p><p>d</p><p> </p><p>b</p><p>e</p><p>f</p><p>o</p><p>r</p><p>e</p><p> </p><p>w</p><p>r</p><p>i</p><p>t</p><p>i</p><p>n</p><p>g</p><p> </p><p>b</p><p>e</p><p>g</p><p>a</p><p>n</p><p>.</p><p> </p><p>C</p><p>a</p><p>s</p><p>e</p><p> </p><p>r</p><p>u</p><p>n</p><p> </p><p>i</p><p>n</p><p> </p><p>l</p><p>i</p><p>g</p><p>h</p><p>t</p><p> </p><p>m</p><p>o</p><p>d</p><p>e</p><p> </p><p>u</p><p>n</p><p>t</p><p>i</p><p>l</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>i</p><p>c</p><p>o</p><p>n</p><p> </p><p>w</p><p>a</p><p>s</p><p> </p><p>r</p><p>e</p><p>q</p><p>u</p><p>e</p><p>s</p><p>t</p><p>e</p><p>d</p><p>,</p><p> </p><p>t</p><p>h</p><p>e</p><p>n</p><p> </p><p>m</p><p>o</p><p>v</p><p>e</p><p>d</p><p> </p><p>t</p><p>o</p><p> </p><p>f</p><p>u</p><p>l</p><p>l</p><p>:</p><p> </p><p>n</p><p>o</p><p>t</p><p>h</p><p>i</p><p>n</p><p>g</p><p> </p><p>w</p><p>a</p><p>s</p><p> </p><p>l</p><p>o</p><p>s</p><p>t</p><p>,</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>r</p><p>e</p><p>g</p><p>i</p><p>s</p><p>t</p><p>e</p><p>r</p><p> </p><p>i</p><p>s</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>s</p><p>a</p><p>m</p><p>e</p><p> </p><p>f</p><p>i</p><p>l</p><p>e</p><p>.</p><p> </p><p>T</p><p>h</p><p>e</p><p> </p><p>t</p><p>e</p><p>x</p><p>t</p><p> </p><p>w</p><p>a</p><p>s</p><p> </p><p>d</p><p>r</p><p>a</p><p>f</p><p>t</p><p>e</p><p>d</p><p> </p><p>i</p><p>n</p><p> </p><p>f</p><p>u</p><p>l</p><p>l</p><p> </p><p>b</p><p>y</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>l</p><p>a</p><p>n</p><p>g</p><p>u</p><p>a</p><p>g</p><p>e</p><p> </p><p>m</p><p>o</p><p>d</p><p>e</p><p>l</p><p> </p><p>o</p><p>n</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>a</p><p>u</p><p>t</p><p>h</p><p>o</p><p>r</p><p>&#x27;</p><p>s</p><p> </p><p>i</p><p>n</p><p>s</p><p>t</p><p>r</p><p>u</p><p>c</p><p>t</p><p>i</p><p>o</p><p>n</p><p>,</p><p> </p><p>f</p><p>r</p><p>o</p><p>m</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>a</p><p>u</p><p>t</p><p>h</p><p>o</p><p>r</p><p>&#x27;</p><p>s</p><p> </p><p>o</p><p>w</p><p>n</p><p> </p><p>m</p><p>e</p><p>t</p><p>h</p><p>o</p><p>d</p><p>o</p><p>l</p><p>o</p><p>g</p><p>i</p><p>c</p><p>a</p><p>l</p><p> </p><p>d</p><p>o</p><p>c</p><p>u</p><p>m</p><p>e</p><p>n</p><p>t</p><p>;</p><p> </p><p>h</p><p>e</p><p>n</p><p>c</p><p>e</p><p> </p><p>1</p><p>0</p><p>0</p><p>%</p><p> </p><p>A</p><p>I</p><p> </p><p>w</p><p>o</p><p>r</p><p>d</p><p>s</p><p>.</p><p> </p><p>T</p><p>h</p><p>e</p><p> </p><p>r</p><p>e</p><p>g</p><p>i</p><p>s</p><p>t</p><p>e</p><p>r</p><p> </p><p>i</p><p>s</p><p> </p><p>n</p><p>o</p><p>t</p><p> </p><p>s</p><p>e</p><p>a</p><p>l</p><p>e</p><p>d</p><p>:</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>E</p><p>d</p><p>2</p><p>5</p><p>5</p><p>1</p><p>9</p><p> </p><p>s</p><p>i</p><p>g</p><p>n</p><p>a</p><p>t</p><p>u</p><p>r</p><p>e</p><p> </p><p>m</p><p>u</p><p>s</p><p>t</p><p> </p><p>b</p><p>e</p><p> </p><p>p</p><p>e</p><p>r</p><p>f</p><p>o</p><p>r</p><p>m</p><p>e</p><p>d</p><p> </p><p>b</p><p>y</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>a</p><p>u</p><p>t</p><p>h</p><p>o</p><p>r</p><p>,</p><p> </p><p>w</p><p>h</p><p>o</p><p>s</p><p>e</p><p> </p><p>k</p><p>e</p><p>y</p><p> </p><p>d</p><p>o</p><p>e</p><p>s</p><p> </p><p>n</p><p>o</p><p>t</p><p> </p><p>a</p><p>n</p><p>d</p><p> </p><p>m</p><p>u</p><p>s</p><p>t</p><p> </p><p>n</p><p>o</p><p>t</p><p> </p><p>l</p><p>i</p><p>v</p><p>e</p><p> </p><p>i</p><p>n</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>m</p><p>o</p><p>d</p><p>e</p><p>l</p><p>&#x27;</p><p>s</p><p> </p><p>e</p><p>n</p><p>v</p><p>i</p><p>r</p><p>o</p><p>n</p><p>m</p><p>e</p><p>n</p><p>t</p><p>.</p><p> </p><p>N</p><p>o</p><p>t</p><p> </p><p>p</p><p>u</p><p>b</p><p>l</p><p>i</p><p>s</p><p>h</p><p>e</p><p>d</p><p>:</p><p> </p><p>n</p><p>o</p><p> </p><p>t</p><p>h</p><p>i</p><p>r</p><p>d</p><p> </p><p>p</p><p>a</p><p>r</p><p>t</p><p>y</p><p> </p><p>c</p><p>a</p><p>n</p><p> </p><p>i</p><p>n</p><p>s</p><p>p</p><p>e</p><p>c</p><p>t</p><p> </p><p>t</p><p>h</p><p>i</p><p>s</p><p> </p><p>a</p><p>t</p><p> </p><p>t</p><p>h</p><p>e</p><p> </p><p>t</p><p>i</p><p>m</p><p>e</p><p> </p><p>o</p><p>f</p><p> </p><p>w</p><p>r</p><p>i</p><p>t</p><p>i</p><p>n</p><p>g</p><p>.</p>
+</details>
+
+</div><div id="tip" role="status"></div>
+<script>
+const b=document.body,tip=document.getElementById('tip');
+const B={lex:document.getElementById('b-lex'),idea:document.getElementById('b-idea'),
+ off:document.getElementById('b-off')};
+function set(v){b.dataset.highlight=v==='off'?'off':'on';if(v!=='off')b.dataset.view=v;
+ for(const k in B)B[k].setAttribute('aria-pressed',k===v);}
+for(const k in B)B[k].onclick=()=>set(k);
+function show(e,t){tip.textContent=t;tip.style.opacity=1;
+ const r=tip.getBoundingClientRect();let x=e.clientX+14,y=e.clientY+16;
+ if(x+r.width>innerWidth-8)x=innerWidth-r.width-8;
+ if(y+r.height>innerHeight-8)y=e.clientY-r.height-12;
+ tip.style.left=x+'px';tip.style.top=y+'px';}
+document.querySelectorAll('[data-tip]').forEach(el=>{
+ el.addEventListener('mousemove',e=>show(e,el.dataset.tip));
+ el.addEventListener('mouseleave',()=>tip.style.opacity=0);
+ el.addEventListener('focus',()=>{const r=el.getBoundingClientRect();
+  show({clientX:r.left,clientY:r.bottom},el.dataset.tip);});
+ el.addEventListener('blur',()=>tip.style.opacity=0);});
+</script></body></html>

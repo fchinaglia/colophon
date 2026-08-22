@@ -1,0 +1,52 @@
+{
+ "words": 337,
+ "spans": 18,
+ "integrity": true,
+ "orphans": [
+  "F01",
+  "R02",
+  "R03",
+  "R04",
+  "R05",
+  "R07",
+  "R10",
+  "R12",
+  "R14",
+  "R15",
+  "R16",
+  "R18",
+  "R21",
+  "R23",
+  "R24"
+ ],
+ "ai_lexical": 46.0,
+ "ai_ideational": 0.0,
+ "lexical": {
+  "U": 41.5,
+  "UA": 24.9,
+  "A": 33.5
+ },
+ "ideational": {
+  "U": 100.0,
+  "UA": 0.0,
+  "A": 0.0
+ },
+ "by_phase": {
+  "first_draft": {
+   "words": 159,
+   "ai": 55.0
+  },
+  "content_revision": {
+   "words": 119,
+   "ai": 36.6
+  },
+  "copy_revision": {
+   "words": 48,
+   "ai": 50.0
+  },
+  "titling": {
+   "words": 11,
+   "ai": 0.0
+  }
+ }
+}

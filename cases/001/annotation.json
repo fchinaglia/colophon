@@ -1,0 +1,149 @@
+{
+ "source": "versions/v22_final.txt",
+ "excluded": [
+  1,
+  10
+ ],
+ "note_on_excluded": "Block 0 is the L1 marker, block 8 the method note. The disclosure does not measure itself.",
+ "blocks": {
+  "0": {
+   "lex": "U",
+   "idea": "U",
+   "phase": "titling",
+   "note": "The title is the subject the user declared verbatim in the brief. Their words, their content: no AI contribution, and it is annotated rather than left as an untracked gap outside the count."
+  },
+  "2": [
+   {
+    "lex": "U",
+    "idea": "U",
+    "phase": "first_draft",
+    "event": "R01",
+    "note": "Written and then compressed by the user. AI corrections across the passes are recorded as R01, R05 and R15; roughly a dozen marks over the paragraph's life, attribution left human per the rule on diffuse lexical intervention. 'Aria fritta, magari fritta bene' is the user's own earlier line, shortened, restored at the AI's suggestion."
+   },
+   {
+    "from": "sui testi già editati",
+    "lex": "A",
+    "idea": "U",
+    "phase": "content_revision",
+    "event": "R06",
+    "note": "Clause proposed by the AI and approved by the user, restoring the evidence removed by R04. The AI wrote the words; the figure comes from the user's own document."
+   }
+  ],
+  "3": [
+   {
+    "lex": "UA",
+    "idea": "U",
+    "phase": "copy_revision",
+    "event": "R20",
+    "note": "ATTRIBUTION CHANGED from U to UA. The user wrote this paragraph and compressed it; the AI then rewrote the opening on the user's instruction to split a sixty-word sentence, and the user accepted option B in full. Most of the user's vocabulary survives, but 'Ma l'AI serve proprio a estenderlo' is the AI's construction and there is no traceable boundary inside two short sentences. Leaving this at U would have been the comfortable call and the wrong one."
+   },
+   {
+    "from": "Dichiarare semplicemente",
+    "lex": "U",
+    "idea": "U",
+    "phase": "content_revision",
+    "note": "The user's sentence. The AI changed 'il proprio contributo' to 'quel contributo' and added 'e infatti quasi', the last of which repaired a self-refuting claim; a handful of words, attribution left human.",
+    "event": "R22"
+   },
+   {
+    "from": "nei paper accademici",
+    "lex": "A",
+    "idea": "U",
+    "phase": "content_revision",
+    "event": "R09",
+    "note": "Clause proposed by the AI. Figure from section 1.2 of the user's document."
+   }
+  ],
+  "4": [
+   {
+    "lex": "UA",
+    "idea": "U",
+    "phase": "first_draft",
+    "note": "CARRY-OVER, unchanged. The core of this sentence is the AI's opening line from v1, which the user reproduced in good faith believing it their own. The user has since added 'In sintesi:' and changed the person; most of the AI phrasing survives, so lex stays UA."
+   },
+   {
+    "from": "e chi legge",
+    "lex": "U",
+    "idea": "U",
+    "phase": "content_revision",
+    "note": "Clause added by the user. A real boundary exists at the comma, so the span is split rather than absorbed into UA."
+   }
+  ],
+  "5": [
+   {
+    "lex": "U",
+    "idea": "U",
+    "phase": "content_revision",
+    "event": "R08",
+    "note": "Opening supplied by the user, who also directed the change from 'questo problema' to the doubt named two paragraphs earlier. The AI completed 'per aiutare chi scrive...' as 'per non sminuire il contributo di chi scrive', reusing the user's own phrasing from the paragraph above; and earlier changed 'ho ideato' to 'ho messo insieme' at the user's request."
+   },
+   {
+    "from": "Registra il processo",
+    "lex": "A",
+    "idea": "U",
+    "phase": "first_draft",
+    "note": "AI wording, compressing principles P1 and P2 and section 3.1 of the user's document. Unchanged since v1."
+   }
+  ],
+  "6": [
+   {
+    "lex": "A",
+    "idea": "U",
+    "phase": "first_draft",
+    "note": "AI wording, from section 4.2 of the user's document. Unchanged since v1."
+   },
+   {
+    "from": "Trovate l'esempio",
+    "lex": "UA",
+    "idea": "U",
+    "phase": "content_revision",
+    "event": "R17",
+    "note": "Assembled across passes from the user's wording, joined by the AI."
+   },
+   {
+    "from": "le idee sono mie",
+    "lex": "A",
+    "idea": "U",
+    "phase": "content_revision",
+    "event": "R19",
+    "note": "AI wording replacing the user's 'tutta farina del mio sacco, ma con un importante contributo AI in fase di scrittura'. The thought is the user's — render the two axes in plain Italian inside the body — and it is theirs on the ideational axis; the words are the AI's. Nine words in place of seventeen, and it no longer contradicts the caution stated in the note below."
+   },
+   {
+    "from": "La nota e l'icona",
+    "lex": "UA",
+    "idea": "U",
+    "phase": "content_revision",
+    "event": "R13",
+    "note": "The user supplied 'la nota e l'icona in fondo, generate da Colophon'; now a sentence of its own."
+   }
+  ],
+  "7": {
+   "lex": "A",
+   "idea": "U",
+   "phase": "first_draft",
+   "note": "Reading of the quadrant, from SS6.1, including the caveat that human written does not mean without AI."
+  },
+  "8": {
+   "lex": "A",
+   "idea": "U",
+   "phase": "first_draft",
+   "note": "Two-level architecture from SS5.1. The third level, the record, was cut for length; the cut is an AI decision and is recorded as an event, not as an attribution."
+  },
+  "9": [
+   {
+    "lex": "A",
+    "idea": "U",
+    "phase": "content_revision",
+    "note": "AI wording. The address was supplied by the user and checked live before insertion.",
+    "event": "R11"
+   },
+   {
+    "from": "Provatelo con Claude",
+    "lex": "U",
+    "idea": "U",
+    "phase": "content_revision",
+    "note": "The ask is the user's own phrasing, taken almost verbatim from their instruction in the conversation. Mirror image of the carry-over recorded at block 4: human phrasing flowing into AI-written text, caught for the same reason."
+   }
+  ]
+ }
+}
