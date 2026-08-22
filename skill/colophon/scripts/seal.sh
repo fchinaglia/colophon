@@ -20,7 +20,9 @@
 # then publish the public key (~/.ssh/colophon.pub) somewhere stable and
 # yours: your site, GitHub profile, LinkedIn page.
 
-set -euo pipefail
+# Works even when invoked with `sh`: pipefail is not POSIX.
+set -eu
+(set -o pipefail) 2>/dev/null && set -o pipefail || true
 
 FILE="${1:?usage: bash seal.sh <file>}"
 KEY="${COLOPHON_KEY:-$HOME/.ssh/colophon}"
@@ -34,8 +36,16 @@ shasum -a 256 "$FILE" | tee "$FILE.sha256"
 echo
 echo "== Ed25519 signature =="
 if [ -f "$KEY" ]; then
+  rm -f "$FILE.sig"                       # ssh-keygen will not overwrite: it would prompt
   ssh-keygen -Y sign -f "$KEY" -n colophon "$FILE" >/dev/null
-  echo "   $FILE.sig"
+  # self-check: a signature that does not verify is worse than no signature
+  if ssh-keygen -Y check-novalidate -n colophon -s "$FILE.sig" < "$FILE" >/dev/null 2>&1; then
+    echo "   $FILE.sig  (verified)"
+  else
+    rm -f "$FILE.sig"
+    echo "   ! the signature produced does NOT verify: stop and find out why" >&2
+    exit 1
+  fi
 else
   echo "   ! no key at $KEY — generate one with:"
   echo "     ssh-keygen -t ed25519 -f $KEY -C colophon"
