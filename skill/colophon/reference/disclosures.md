@@ -149,7 +149,13 @@ Four rules govern it. It is generated, never typed — a hand-copied root goes s
 
 `build_note.py` warns on stderr when it finds neither, because a line with no address is the failure this line exists to remove, wearing the costume of the fix.
 
-Two things follow, and neither is a detail. **Serve the page as a page**: a raw `.html` on a code host arrives as plain text and the reader is shown the markup, which is worse than sending them nowhere. And **the address is a promise**: the line is generated at render time, so a PDF or a sheet of paper freezes what it said that day and will never update. Do not move a published case, do not rename it. A dead link under a disclosure looks like evidence from a distance and is the opposite of it.
+Three things follow, and none is a detail.
+
+**Serve the page as a page.** A raw `.html` on a code host arrives as plain text and the reader is shown the markup, which is worse than sending them nowhere.
+
+**Give it an address with no underscore in it.** URL detectors cut a link at the first underscore: an address ending `pagina_di_verifica.html` is delivered to the reader as `…/pagina`, and clicking it gives a 404 while the printed line reads correctly. It is the worst shape a failure can take here — the text says one thing, the click does another. Publish the page as `index.html`, or put a redirect there, so the address ends at the folder.
+
+**The address is a promise.** The line is generated at render time, so a PDF or a sheet of paper freezes what it said that day and will never update. Do not move a published case, do not rename it. A dead link under a disclosure looks like evidence from a distance and is the opposite of it.
 
 ---
 

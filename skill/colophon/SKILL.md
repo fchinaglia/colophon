@@ -37,6 +37,8 @@ An address you cannot keep is worse than none: the line is generated at render t
 
 The page has to be **served as a page**. A raw `.html` on a code host is delivered as plain text and the reader sees the markup: publish it where HTML renders, GitHub Pages or your own site.
 
+**No underscore in the published address.** URL detectors — in mail clients, chat apps, PDF viewers — cut a link at the first underscore, so `…/cases/002/pagina_di_verifica.html` arrives at the reader as `…/cases/002/pagina`, which is a 404. Publish the page as `index.html` so the address ends at the folder, or put an `index.html` next to it that redirects. The file name inside the case can stay whatever the manifest already covers; it is the *address* that has to survive being clicked.
+
 Among the known limits, always declare at least these: that capture happens through the conversation and not through an instrumented editor; that work done outside the conversation is not observed; that the user knows they are being observed and that this may change how they write.
 
 ```bash
