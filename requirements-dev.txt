@@ -1,0 +1,3 @@
+# The harness only. The scripts themselves keep running on the standard library:
+# a case folder has to still work in ten years with no `pip install`.
+pytest>=8.0

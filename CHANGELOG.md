@@ -4,6 +4,24 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **A test suite, and CI.** 32 assertions in about a second, in three layers. The golden
+  layer earns the most for the least code: `example/` regenerates its four outputs byte
+  for byte, and nothing in that pipeline reads a clock, so the comparison needs no time
+  faking at all. The unit layer is the gates, and **every test there is an entry in this
+  file** — a regression that has already happened once. The repository layer guards the
+  silent ones: the worked example forking from the skill, a documented flag that exits
+  with an argparse error, a missing `.gitattributes` line that turns a Windows checkout
+  into a false accusation of forgery.
+- **`.gitattributes` covers `example/` and `tests/` as well as `cases/`.** The example
+  register — the one CONTRIBUTING tells every contributor to run before opening a PR —
+  was not protected, and a test now asserts that all three are.
+- CI runs on Python 3.9 and 3.13, on Ubuntu and macOS, plus a Windows job whose only
+  purpose is to fail loudly on the line-ending hazard, on the platform that causes it.
+
 ## [1.4.0] — 2026-08-23
 
 ### Added
