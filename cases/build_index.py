@@ -138,14 +138,16 @@ pubblicandolo, e nel fatto che è ispezionabile.</p>
 
 
 CAVEATS = {
-    "001": """<p class="note"><strong>Questo caso è stato riaperto il 23 agosto 2026</strong>,
+    "001": """<p class="note"><strong>Questo caso è stato riaperto due volte il 23 agosto 2026</strong>,
 dopo che il suo manifesto lo aveva dichiarato definitivo. La pagina di verifica aveva un
 difetto di resa — la nota finale spezzata in un paragrafo per carattere, per un bug nello
 script che l'ha generata — e il registro nominava sedici modifiche che nessuno span
 portava, senza dire perché. Entrambe le cose sono state corrette, e la riapertura è
 registrata: un evento che la annuncia prima di toccare qualsiasi file, un manifesto nuovo,
-una firma nuova, e il sigillo del 22 agosto conservato accanto. I numeri non sono
-cambiati.</p>
+una firma nuova, e il sigillo del 22 agosto conservato accanto. La seconda riapertura ha
+rifatto il documento pubblicato, che portava una radice battuta a mano e mai sigillata, e
+ha tolto le rese dall'elenco firmato: una resa si rigenera da ciò che è firmato, e
+congelarla obbligava a riaprire il caso ogni volta. I numeri non sono cambiati.</p>
 """
 }
 
