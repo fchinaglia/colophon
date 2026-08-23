@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Colophon Method</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* Palette taken from the project's own icon.svg, not invented for this page. */
+:root {
+  --ink:      #16171a;
+  --paper:    #fcfcfb;
+  --paper-2:  #f4f4f3;
+  --rule:     #d8d8d6;
+  --quiet:    #6f7176;
+  --quieter:  #9b9ca0;
+  --point:    #e34948;   /* the measurement point */
+  --cell:     #2a78d6;   /* the occupied cell */
+  --cell-fill: rgba(42,120,214,.09);
+  --ghost:    rgba(22,23,26,.055);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink:      #e9e8e4;
+    --paper:    #131417;
+    --paper-2:  #1b1c20;
+    --rule:     #2e3036;
+    --quiet:    #9a9ba0;
+    --quieter:  #6f7176;
+    --point:    #ff6b62;
+    --cell:     #6aa6f0;
+    --cell-fill: rgba(106,166,240,.12);
+    --ghost:    rgba(233,232,228,.06);
+  }
+}
+:root[data-theme="dark"] {
+  --ink:      #e9e8e4;
+  --paper:    #131417;
+  --paper-2:  #1b1c20;
+  --rule:     #2e3036;
+  --quiet:    #9a9ba0;
+  --quieter:  #6f7176;
+  --point:    #ff6b62;
+  --cell:     #6aa6f0;
+  --cell-fill: rgba(106,166,240,.12);
+  --ghost:    rgba(233,232,228,.06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "EB Garamond", Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  line-height: 1.58;
+  -webkit-font-smoothing: antialiased;
+}
+
+.page {
+  max-width: 42rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 6rem;
+}
+
+/* ── the palimpsest: real bytes of a real register, showing through ───────── */
+.head { position: relative; padding: 5.5rem 0 2.5rem; }
+.ghost {
+  position: absolute; inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  mask-image: linear-gradient(180deg, transparent, #000 18%, #000 55%, transparent 92%);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 18%, #000 55%, transparent 92%);
+}
+.ghost pre {
+  margin: 0;
+  font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--ghost);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.head > *:not(.ghost) { position: relative; }
+
+h1 {
+  font-size: clamp(3.4rem, 12vw, 5.2rem);
+  font-weight: 500;
+  letter-spacing: -.02em;
+  line-height: .95;
+  margin: 0;
+  text-wrap: balance;
+}
+.tagline {
+  font-style: italic;
+  font-size: 1.35rem;
+  color: var(--quiet);
+  margin: .5rem 0 1.6rem;
+}
+.standfirst {
+  font-size: 1.24rem;
+  margin: 0;
+  max-width: 34rem;
+  text-wrap: pretty;
+}
+
+/* ── structure ───────────────────────────────────────────────────────────── */
+section { border-top: 1px solid var(--rule); padding-top: 2.2rem; margin-top: 3.2rem; }
+
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: .68rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--quieter);
+  margin: 0 0 1.1rem;
+}
+h2 {
+  font-size: 1.85rem;
+  font-weight: 500;
+  letter-spacing: -.01em;
+  margin: 0 0 .9rem;
+  text-wrap: balance;
+}
+p { margin: 0 0 1.05rem; text-wrap: pretty; }
+p:last-child { margin-bottom: 0; }
+strong { font-weight: 600; }
+em { font-style: italic; }
+
+.lede { font-size: 1.12rem; }
+
+/* ── the two failures, as facts ───────────────────────────────────────────── */
+.facts { display: grid; gap: 1.6rem; margin: 1.8rem 0 0; }
+@media (min-width: 40rem) { .facts { grid-template-columns: 1fr 1fr; gap: 2rem; } }
+.fact { border-left: 2px solid var(--rule); padding-left: 1.1rem; }
+.fact .n {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 2.5rem;
+  font-weight: 500;
+  line-height: 1;
+  display: block;
+  letter-spacing: -.03em;
+}
+.fact .what { font-size: 1rem; color: var(--quiet); margin: .55rem 0 0; }
+
+/* ── the quadrant ─────────────────────────────────────────────────────────── */
+.quad-wrap {
+  display: grid;
+  gap: 2rem;
+  align-items: center;
+  margin-top: 1.9rem;
+}
+@media (min-width: 44rem) { .quad-wrap { grid-template-columns: minmax(0,1fr) minmax(0,15rem); } }
+.quad { width: 100%; height: auto; display: block; }
+.quad text { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+.readout { display: grid; gap: 1.15rem; }
+.readout .big {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 2.1rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -.03em;
+}
+.readout .lab { font-size: .98rem; color: var(--quiet); margin-top: .3rem; }
+.warn {
+  font-size: .92rem;
+  color: var(--quiet);
+  border-left: 2px solid var(--point);
+  padding-left: .85rem;
+}
+
+/* ── the phase table ──────────────────────────────────────────────────────── */
+.tablewrap { overflow-x: auto; margin-top: 1.6rem; }
+table { border-collapse: collapse; width: 100%; font-size: 1rem; }
+th, td { text-align: right; padding: .5rem .3rem; border-bottom: 1px solid var(--rule); }
+th:first-child, td:first-child { text-align: left; }
+thead th {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-weight: 400;
+  font-size: .68rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--quieter);
+}
+td.num {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+tbody tr:last-child td { border-bottom: none; }
+
+/* ── the register ─────────────────────────────────────────────────────────── */
+.chain {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  padding: 1rem 1.1rem;
+  margin-top: 1.6rem;
+  overflow-x: auto;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: .78rem;
+  line-height: 1.75;
+  color: var(--quiet);
+}
+.chain b { color: var(--ink); font-weight: 500; }
+.chain .h { color: var(--cell); }
+
+/* ── the seal ─────────────────────────────────────────────────────────────── */
+.seals { display: grid; gap: 1.3rem; margin-top: 1.7rem; }
+@media (min-width: 44rem) { .seals { grid-template-columns: repeat(3, 1fr); gap: 1.6rem; } }
+.seal .k {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: .72rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--quieter);
+  margin: 0 0 .35rem;
+}
+.seal .q { font-size: 1.3rem; margin: 0 0 .3rem; }
+.seal p { font-size: .95rem; color: var(--quiet); margin: 0; }
+
+/* ── the close ────────────────────────────────────────────────────────────── */
+.close { border-top: 2px solid var(--ink); margin-top: 3.4rem; padding-top: 2.2rem; }
+.close .pull {
+  font-size: 1.34rem;
+  font-style: italic;
+  text-wrap: pretty;
+  margin: 0 0 1.1rem;
+}
+footer {
+  margin-top: 3rem;
+  padding-top: 1.3rem;
+  border-top: 1px solid var(--rule);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: .74rem;
+  line-height: 1.9;
+  color: var(--quieter);
+  letter-spacing: .02em;
+}
+footer a { color: var(--quiet); text-underline-offset: .25em; }
+footer a:hover { color: var(--ink); }
+a:focus-visible { outline: 2px solid var(--cell); outline-offset: 3px; }
+</style>
+
+</head>
+<body>
+<div class="page">
+
+  <header class="head">
+    <div class="ghost" aria-hidden="true"><pre>{"actor": "system", "hash": "832f9dfc0738b229582c1732cb7e2fda97123d583412c8025c033edc2e665eb8", "meta": true, "payload": {"capture_method": "Events recorded by the AI through this conversation only. No instrumented editor."}, "phase": "—", "prev": "0000000000000000000000000000000000000000000000000000000000000000", "seq": 0, "ts": "2026-08-21T08:36:24+00:00", "type": "case_open"}
+{"actor": "user", "hash": "4b1c9e07a2f5d8836ca4417f0b2e59dd13c8a06f7e4b25ca9f0d3178ab5c62e1", "payload": {"subject": "come rendere trasparente il proprio uso dell'AI"}, "phase": "—", "prev": "832f9dfc0738b229582c1732cb7e2fda97123d583412c8025c033edc2e665eb8", "seq": 1, "ts": "2026-08-21T08:41:02+00:00", "type": "brief"}
+{"actor": "system", "hash": "e9b049198f2849837d8c12057e516ade674316e12efd59b876a1525b5276272b", "meta": true, "payload": {"closing": "MANIFEST — final event. The next operation on this case is the signature."}, "phase": "—", "prev": "1c7d5a83f0be24619ad7c3e08f5b1462d09ae7cb3418f5d26071ba9c8e34d5f7", "seq": 79, "ts": "2026-08-23T08:57:39+00:00", "type": "status"}</pre></div>
+
+    <h1>Colophon</h1>
+    <p class="tagline">Written over, never erased.</p>
+    <p class="standfirst">A method for recording, measuring and disclosing the human and
+    AI contribution <em>while</em> a text is being written — and publishing a record a
+    reader can check, instead of a label they have to believe.</p>
+  </header>
+
+  <section>
+    <p class="eyebrow">The problem</p>
+    <h2>There are two ways to say how a text was made, and both fail</h2>
+    <p class="lede">One asks a machine to guess after the fact. The other asks the author
+    to promise. Neither survives the case that actually matters: a text written by a
+    person and a model together.</p>
+
+    <div class="facts">
+      <div class="fact">
+        <span class="n">39%</span>
+        <p class="what">Detector accuracy on AI text edited by hand — 26% once it is
+        paraphrased, and below chance at word level on genuinely co-written text. The
+        difficulty peaks at roughly half AI contribution: the commonest case is the
+        worst one.</p>
+      </div>
+      <div class="fact">
+        <span class="n">0.1%</span>
+        <p class="what">Share of papers that disclose AI use, across more than 164,000 —
+        while 70% of journals have a policy requiring it. And the objection of principle
+        stands: a text cannot prove its own authorship.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">The third way</p>
+    <h2>Capture the process while it happens</h2>
+    <p>A <em>colophon</em> is the note that has closed books since the fifteenth century,
+    declaring how they were made: printer, typeface, paper, date. This moves that
+    function from the book to the text written together with a language model.</p>
+    <p>The payoff comes from the palimpsest — the reused manuscript in which the earlier
+    writing stays visible beneath the new. That is also the formal property of the
+    register: <strong>append-only, no event overwritten, every revision added rather than
+    substituted.</strong></p>
+  </section>
+
+  <section>
+    <p class="eyebrow">The measurement</p>
+    <h2>Two axes, because they are two different questions</h2>
+    <p><em>Who wrote the words</em> and <em>whose content is it</em> have different
+    answers, and the distance between them is the most useful thing the method produces.
+    The point below is a real one: 337 measured words, annotated span by span.</p>
+
+    <div class="quad-wrap">
+      <svg class="quad" viewBox="0 0 240 216" role="img"
+           aria-label="Quadrant: the point sits in the human written cell, at 54 per cent human words and 100 per cent human ideas.">
+        <!-- cells -->
+        <rect x="42" y="24" width="78" height="78" fill="none" stroke="var(--rule)"/>
+        <rect x="120" y="24" width="78" height="78" fill="var(--cell-fill)" stroke="var(--cell)"/>
+        <rect x="42" y="102" width="78" height="78" fill="none" stroke="var(--rule)"/>
+        <rect x="120" y="102" width="78" height="78" fill="none" stroke="var(--rule)"/>
+
+        <!-- cell names: the four classes, in English on purpose -->
+        <text x="81" y="59"  text-anchor="middle" font-size="8.5" fill="var(--quiet)">machine</text>
+        <text x="81" y="70"  text-anchor="middle" font-size="8.5" fill="var(--quiet)">polished</text>
+        <text x="159" y="59" text-anchor="middle" font-size="8.5" font-weight="500" fill="var(--cell)">human</text>
+        <text x="159" y="70" text-anchor="middle" font-size="8.5" font-weight="500" fill="var(--cell)">written</text>
+        <text x="81" y="137" text-anchor="middle" font-size="8.5" fill="var(--quiet)">machine</text>
+        <text x="81" y="148" text-anchor="middle" font-size="8.5" fill="var(--quiet)">generated</text>
+        <text x="159" y="137" text-anchor="middle" font-size="8.5" fill="var(--quiet)">human</text>
+        <text x="159" y="148" text-anchor="middle" font-size="8.5" fill="var(--quiet)">edited</text>
+
+        <!-- axes, both running AI to Me -->
+        <line x1="42" y1="180" x2="204" y2="180" stroke="var(--ink)" stroke-width="1"/>
+        <line x1="42" y1="180" x2="42" y2="18"  stroke="var(--ink)" stroke-width="1"/>
+        <path d="M204 180 l-4 -2.6 v5.2 z" fill="var(--ink)"/>
+        <path d="M42 18 l-2.6 4 h5.2 z" fill="var(--ink)"/>
+
+        <text x="42"  y="194" text-anchor="middle" font-size="8.5" font-weight="500" fill="var(--ink)">AI</text>
+        <text x="198" y="194" text-anchor="middle" font-size="8.5" font-weight="500" fill="var(--ink)">Me</text>
+        <text x="120" y="205" text-anchor="middle" font-size="8.5" fill="var(--quiet)">words</text>
+        <text x="30"  y="180" text-anchor="middle" font-size="8.5" font-weight="500" fill="var(--ink)">AI</text>
+        <text x="30"  y="26"  text-anchor="middle" font-size="8.5" font-weight="500" fill="var(--ink)">Me</text>
+        <text x="16"  y="102" text-anchor="middle" font-size="8.5" fill="var(--quiet)"
+              transform="rotate(-90 16 102)">ideas</text>
+
+        <!-- the point: 54% human words, 100% human ideas -->
+        <circle cx="126.5" cy="24" r="5.5" fill="var(--point)" stroke="var(--paper)" stroke-width="1.6"/>
+      </svg>
+
+      <div class="readout">
+        <div>
+          <div class="big">54%</div>
+          <div class="lab">of the words are the author's. 46% are the model's.</div>
+        </div>
+        <div>
+          <div class="big">100%</div>
+          <div class="lab">of the content is the author's. None of it is the model's.</div>
+        </div>
+        <p class="warn">The point sits four points from the vertical boundary. The
+        classification rounds at 50%, so the icon is published with the point and not
+        with the category name alone — near an edge the name claims more than the data
+        supports.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Why one number lies</p>
+    <h2>The aggregate is misleading in both directions</h2>
+    <p>“Forty-six per cent” reads as <em>half of it was written by the machine</em>.
+    The breakdown says something else: the model wrote most of the first draft's words,
+    and none of the title.</p>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Phase</th><th>Words</th><th>AI share</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>first draft</td><td class="num">159</td><td class="num">55%</td></tr>
+          <tr><td>content revision</td><td class="num">119</td><td class="num">37%</td></tr>
+          <tr><td>copy revision</td><td class="num">48</td><td class="num">50%</td></tr>
+          <tr><td>titling</td><td class="num">11</td><td class="num">0%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">The record</p>
+    <h2>One JSON line per event, each carrying the last one's fingerprint</h2>
+    <p>Altering a past event invalidates every hash that follows it. The register is the
+    evidence, and it is never edited — a correction is a new event, and the old one stays
+    where it was.</p>
+
+    <div class="chain">
+      <div><b>seq 0</b> &nbsp;case_open&nbsp; prev <span class="h">0000…0000</span></div>
+      <div><b>seq 1</b> &nbsp;brief&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; prev <span class="h">832f9dfc…65eb8</span></div>
+      <div style="color:var(--quieter)">&nbsp;&nbsp;⋮&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;77 events between</div>
+      <div><b>seq 79</b> manifest&nbsp;&nbsp; prev <span class="h">1c7d5a83…4d5f7</span></div>
+      <div style="margin-top:.6rem"><b>root</b> <span class="h">e9b049198f2849837d8c12057e516ade674316e12efd59b876a1525b5276272b</span></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">The seal</p>
+    <h2>Who, and when — each from a source that does not depend on the others</h2>
+    <div class="seals">
+      <div class="seal">
+        <p class="k">who</p>
+        <p class="q">Ed25519 signature</p>
+        <p>Detached, verified against a key published on a domain the author controls —
+        never one that lives inside the folder it authenticates.</p>
+      </div>
+      <div class="seal">
+        <p class="k">when</p>
+        <p class="q">RFC 3161 timestamp</p>
+        <p>A timestamp authority attests the register existed in that form on that date.
+        Verifiable against a certificate bundle a reader already has.</p>
+      </div>
+      <div class="seal">
+        <p class="k">when, again</p>
+        <p class="q">Bitcoin anchor</p>
+        <p>Submitted to OpenTimestamps. Submitted is not anchored: it proves nothing
+        until the calendars confirm, and the method says so rather than implying
+        otherwise.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="close">
+    <p class="eyebrow">What it does not prove</p>
+    <p class="pull">The chain proves an event was not altered after it was recorded. It
+    does not prove the register is complete — no voluntary system can. An author may
+    record faithfully or may omit, and cryptography does not tell the two apart.</p>
+    <p>It is said first because it is the strongest criticism that can be made of a
+    voluntary disclosure, and it is a fair one. The register is also compiled by the
+    model about its own contribution: that is the structural weak point, and it is
+    written down rather than hidden.</p>
+    <p><strong>The value is not in the proof. It is in the responsibility an author takes
+    on by publishing the record, and in the fact that it can be inspected.</strong></p>
+  </div>
+
+  <footer>
+    Figures from the validation case: 337 measured words, 18 spans, one annotator — and
+    the annotator is an interested party. Detection figures from LLM-DetectAIve
+    (EMNLP 2024) and the disclosure survey of 164,000 papers.<br>
+    MIT licence · <a href="https://colophonmethod.com">colophonmethod.com</a>
+  </footer>
+
+</div>
+
+</body>
+</html>

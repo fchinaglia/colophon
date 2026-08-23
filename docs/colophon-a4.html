@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colophon on One Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<style>
+/* This sheet commits to paper: one theme, ink on white, every colour explicit.
+   Palette taken from the project's own icon.svg. */
+:root {
+  --ink:     #16171a;
+  --paper:   #ffffff;
+  --panel:   #f4f4f2;
+  --rule:    #d4d4d1;
+  --quiet:   #63656a;
+  --quieter: #94959a;
+  --point:   #d23f3e;
+  --cell:    #2a78d6;
+  --cellfill: #eaf1fb;
+}
+
+@page { size: A4; margin: 0; }
+
+* { box-sizing: border-box; }
+
+html { background: #8d8e91; }
+body {
+  margin: 0;
+  font-family: "EB Garamond", Georgia, serif;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  display: flex; justify-content: center;
+  padding: 16px 0;
+}
+
+.sheet {
+  width: 210mm; height: 297mm;
+  background: var(--paper);
+  padding: 13mm 14mm 10mm;
+  overflow: hidden;
+  box-shadow: 0 2px 18px rgba(0,0,0,.35);
+  display: grid;
+  grid-template-rows: repeat(5, auto);
+  align-content: space-between;
+  row-gap: 5mm;
+}
+
+@media print {
+  html, body { background: #fff; padding: 0; display: block; }
+  .sheet { box-shadow: none; margin: 0; }
+}
+
+/* ── header ──────────────────────────────────────────────────────── */
+.top { display: grid; grid-template-columns: 1fr auto; align-items: end; column-gap: 8mm;
+       border-bottom: 0.5mm solid var(--ink); padding-bottom: 3.5mm; }
+h1 { font-size: 30pt; font-weight: 500; letter-spacing: -.02em; line-height: .92; margin: 0; }
+.tag { font-style: italic; color: var(--quiet); font-size: 11pt; margin: 1mm 0 0; }
+.stand { font-size: 9.4pt; line-height: 1.45; margin: 0; max-width: 78mm; text-align: right; }
+
+/* ── section furniture ───────────────────────────────────────────── */
+.lbl {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 5.6pt; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--quieter); margin: 0 0 1.6mm;
+}
+h2 { font-size: 11.5pt; font-weight: 500; margin: 0 0 2mm; line-height: 1.15; }
+p  { font-size: 8.6pt; line-height: 1.45; margin: 0 0 1.8mm; }
+p:last-child { margin-bottom: 0; }
+b { font-weight: 500; }
+svg { display: block; width: 100%; height: auto; }
+svg text { font-family: "IBM Plex Mono", ui-monospace, monospace; fill: var(--ink); }
+
+/* ── band 1 : the problem + the quadrant ─────────────────────────── */
+.band1 { display: grid; grid-template-columns: 74mm 1fr; column-gap: 8mm; }
+.facts { display: grid; row-gap: 3.5mm; margin-top: 2mm; }
+.fact { border-left: 0.4mm solid var(--rule); padding-left: 3mm; }
+.fact .n {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 19pt; font-weight: 500; line-height: 1; letter-spacing: -.03em;
+  display: block;
+}
+.fact span.t { font-size: 7.8pt; color: var(--quiet); line-height: 1.4; display: block; margin-top: 1.2mm; }
+
+/* ── bands 2 and 3 ───────────────────────────────────────────────── */
+.band { border-top: 0.25mm solid var(--rule); padding-top: 3.5mm; }
+.cap { font-size: 7.8pt; color: var(--quiet); line-height: 1.42; margin: 2mm 0 0; }
+.cap b { color: var(--ink); }
+
+/* ── close ───────────────────────────────────────────────────────── */
+.close { border-top: 0.5mm solid var(--ink); padding-top: 3.5mm;
+         display: grid; grid-template-columns: 1fr auto; column-gap: 8mm; align-items: end; }
+.close .pull { font-style: italic; font-size: 9.6pt; line-height: 1.4; margin: 0; }
+.foot { font-family: "IBM Plex Mono", ui-monospace, monospace;
+        font-size: 5.8pt; line-height: 1.7; color: var(--quieter); text-align: right; white-space: nowrap; }
+</style>
+
+</head>
+<body>
+<div class="sheet">
+
+  <!-- ── header ─────────────────────────────────────────────────── -->
+  <header class="top">
+    <div>
+      <h1>Colophon</h1>
+      <p class="tag">Written over, never erased.</p>
+    </div>
+    <p class="stand">Recording, measuring and disclosing the human and AI contribution
+    <i>while</i> a text is written — publishing a record a reader can check, instead of a
+    label they have to believe.</p>
+  </header>
+
+  <!-- ── band 1 : why, and the measurement ──────────────────────── -->
+  <div class="band1">
+    <div>
+      <p class="lbl">The problem</p>
+      <h2>Two ways to say how a text was made, and both fail</h2>
+      <p>One asks a machine to guess afterwards. The other asks the author to promise.
+      Neither survives the case that matters: a person and a model writing together.</p>
+      <div class="facts">
+        <div class="fact">
+          <span class="n">39%</span>
+          <span class="t">Detector accuracy on AI text edited by hand — 26% once
+          paraphrased, and below chance at word level on genuinely co-written text.
+          Difficulty peaks at about half AI contribution: the commonest case is the
+          worst one.</span>
+        </div>
+        <div class="fact">
+          <span class="n">0.1%</span>
+          <span class="t">Papers that disclose AI use, out of more than 164,000 — while
+          70% of journals require it. And a text cannot prove its own authorship, so a
+          voluntary statement is costless signalling.</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="lbl">The measurement</p>
+      <h2>Two axes, because two texts can differ on one and not the other</h2>
+      <svg viewBox="0 0 320 208" role="img" aria-label="A quadrant with the human share of words on the horizontal axis and of ideas on the vertical. One measured text sits in human written at 54 per cent words and 100 per cent ideas; another in machine polished at 13 per cent words and 54 per cent ideas.">
+        <rect x="46" y="16" width="82" height="68" fill="none" stroke="var(--rule)"/>
+        <rect x="128" y="16" width="82" height="68" fill="var(--cellfill)" stroke="var(--cell)"/>
+        <rect x="46" y="84" width="82" height="68" fill="none" stroke="var(--rule)"/>
+        <rect x="128" y="84" width="82" height="68" fill="none" stroke="var(--rule)"/>
+
+        <g font-size="7" fill="var(--quiet)">
+          <text x="87"  y="46"  text-anchor="middle">machine</text>
+          <text x="87"  y="55"  text-anchor="middle">polished</text>
+          <text x="87"  y="114" text-anchor="middle">machine</text>
+          <text x="87"  y="123" text-anchor="middle">generated</text>
+          <text x="169" y="114" text-anchor="middle">human</text>
+          <text x="169" y="123" text-anchor="middle">edited</text>
+        </g>
+        <text x="169" y="46" text-anchor="middle" font-size="7" font-weight="500" fill="var(--cell)">human</text>
+        <text x="169" y="55" text-anchor="middle" font-size="7" font-weight="500" fill="var(--cell)">written</text>
+
+        <line x1="46" y1="152" x2="228" y2="152" stroke="var(--ink)" stroke-width=".8"/>
+        <line x1="46" y1="152" x2="46"  y2="10"  stroke="var(--ink)" stroke-width=".8"/>
+        <polygon points="228,152 222,149.4 222,154.6" fill="var(--ink)"/>
+        <polygon points="46,10 43.4,16 48.6,16" fill="var(--ink)"/>
+        <text x="46"  y="164" text-anchor="middle" font-size="7" font-weight="500">AI</text>
+        <text x="210" y="164" text-anchor="middle" font-size="7" font-weight="500">Me</text>
+        <text x="128" y="176" text-anchor="middle" font-size="7" fill="var(--quiet)">the words</text>
+        <text x="38"  y="152" text-anchor="end" font-size="7" font-weight="500">AI</text>
+        <text x="38"  y="20"  text-anchor="end" font-size="7" font-weight="500">Me</text>
+        <text x="22"  y="84"  text-anchor="middle" font-size="7" fill="var(--quiet)" transform="rotate(-90 22 84)">the ideas</text>
+
+        <line x1="46" y1="84" x2="210" y2="84" stroke="var(--point)" stroke-opacity=".45" stroke-width=".8"/>
+
+        <circle cx="134.6" cy="16" r="3.8" fill="var(--point)"/>
+        <line x1="139" y1="16" x2="232" y2="16" stroke="var(--point)" stroke-opacity=".3" stroke-dasharray="2 2"/>
+        <text x="236" y="14" font-size="7" fill="var(--ink)">337-word post</text>
+        <text x="236" y="23" font-size="6.4" fill="var(--quiet)">54% words · 100% ideas</text>
+
+        <circle cx="66.8" cy="78.7" r="3.8" fill="var(--point)"/>
+        <line x1="71" y1="78.7" x2="232" y2="78.7" stroke="var(--point)" stroke-opacity=".3" stroke-dasharray="2 2"/>
+        <text x="236" y="77" font-size="7" fill="var(--ink)">1,096-word article</text>
+        <text x="236" y="86" font-size="6.4" fill="var(--quiet)">13% words · 54% ideas</text>
+        <text x="236" y="98" font-size="6.4" fill="var(--point)">4 points from the edge</text>
+      </svg>
+      <p class="cap">Two real measurements. The first text's words are barely more than
+      half the author's while every idea is theirs; the second is written almost entirely
+      in the model's words and is still, narrowly, the author's thinking. <b>One number
+      could not have told those apart.</b></p>
+    </div>
+  </div>
+
+  <!-- ── band 2 : the closure ───────────────────────────────────── -->
+  <div class="band">
+    <p class="lbl">The closure</p>
+    <h2>One signature, on one file, reaches the whole case</h2>
+    <svg viewBox="0 0 640 116" role="img" aria-label="The signature covers events.jsonl, whose last event is a manifest holding the SHA-256 of the source text, the annotation, the measurement, the icon and every script — so signing the register commits all of them.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <polygon points="0,0 10,5 0,10" fill="var(--ink)"/>
+        </marker>
+      </defs>
+
+      <rect x="2" y="26" width="86" height="34" fill="none" stroke="var(--point)" stroke-width="1.2"/>
+      <text x="45" y="41" text-anchor="middle" font-size="8" fill="var(--point)">Ed25519</text>
+      <text x="45" y="52" text-anchor="middle" font-size="8" fill="var(--point)">signature</text>
+      <line x1="88" y1="43" x2="118" y2="43" stroke="var(--ink)" stroke-width=".8" marker-end="url(#ar)"/>
+      <text x="103" y="37" text-anchor="middle" font-size="6.4" fill="var(--quiet)">signs</text>
+
+      <text x="122" y="12" font-size="6.8" fill="var(--quiet)">events.jsonl — each event carries the previous one's hash</text>
+      <rect x="120" y="18" width="222" height="46" fill="none" stroke="var(--rule)"/>
+      <rect x="126" y="28" width="36" height="26" fill="none" stroke="var(--rule)"/>
+      <text x="144" y="45" text-anchor="middle" font-size="6.6">seq 0</text>
+      <line x1="162" y1="41" x2="172" y2="41" stroke="var(--rule)" marker-end="url(#ar)"/>
+      <rect x="174" y="28" width="36" height="26" fill="none" stroke="var(--rule)"/>
+      <text x="192" y="45" text-anchor="middle" font-size="6.6">seq 1</text>
+      <line x1="210" y1="41" x2="220" y2="41" stroke="var(--rule)" marker-end="url(#ar)"/>
+      <text x="234" y="45" text-anchor="middle" font-size="8" fill="var(--quieter)">· · ·</text>
+      <line x1="248" y1="41" x2="258" y2="41" stroke="var(--rule)" marker-end="url(#ar)"/>
+      <rect x="260" y="28" width="76" height="26" fill="var(--cellfill)" stroke="var(--cell)" stroke-width="1.2"/>
+      <text x="298" y="45" text-anchor="middle" font-size="7.4" font-weight="500" fill="var(--cell)">MANIFEST</text>
+
+      <line x1="342" y1="41" x2="372" y2="41" stroke="var(--cell)" stroke-width=".8" marker-end="url(#ar)"/>
+      <text x="357" y="35" text-anchor="middle" font-size="6.4" fill="var(--quiet)">sha256 of</text>
+
+      <g font-size="7">
+        <rect x="376" y="14" width="126" height="20" fill="none" stroke="var(--rule)"/>
+        <text x="439" y="27" text-anchor="middle">the source text</text>
+        <rect x="510" y="14" width="126" height="20" fill="none" stroke="var(--rule)"/>
+        <text x="573" y="27" text-anchor="middle">annotation.json</text>
+        <rect x="376" y="38" width="126" height="20" fill="none" stroke="var(--rule)"/>
+        <text x="439" y="51" text-anchor="middle">kpi.json · spans.json</text>
+        <rect x="510" y="38" width="126" height="20" fill="none" stroke="var(--rule)"/>
+        <text x="573" y="51" text-anchor="middle">icon.svg</text>
+        <rect x="376" y="62" width="260" height="20" fill="none" stroke="var(--rule)"/>
+        <text x="506" y="75" text-anchor="middle">every script a reader runs to check any of it</text>
+      </g>
+
+      <text x="320" y="105" text-anchor="middle" font-size="7.4" fill="var(--quiet)">altering any one of them breaks the manifest, which breaks the chain, which breaks the signature</text>
+    </svg>
+    <p class="cap"><b>seal.sh signs one file and nothing else.</b> What makes that a claim
+    about the article is the last event: a manifest carrying the digest of every file the
+    measurement depends on. Without it the text would sit outside the signature entirely,
+    and a reader who checked it would have proved less than they think.</p>
+  </div>
+
+  <!-- ── band 3 : the reader ────────────────────────────────────── -->
+  <div class="band">
+    <p class="lbl">The reader</p>
+    <h2>Four checks, four different questions — run on their machine, not yours</h2>
+    <svg viewBox="0 0 640 96" role="img" aria-label="Four checks — the chain, the signature, the timestamp, the reconstruction — and a band beneath them stating that none answers whether the register is complete.">
+      <g font-size="7">
+        <rect x="0" y="0" width="152" height="52" fill="none" stroke="var(--rule)"/>
+        <text x="76" y="17" text-anchor="middle" font-size="8" font-weight="500">the chain</text>
+        <text x="76" y="31" text-anchor="middle" fill="var(--quiet)">was anything altered</text>
+        <text x="76" y="42" text-anchor="middle" fill="var(--quiet)">after it was recorded?</text>
+
+        <rect x="163" y="0" width="152" height="52" fill="none" stroke="var(--rule)"/>
+        <text x="239" y="17" text-anchor="middle" font-size="8" font-weight="500">the signature</text>
+        <text x="239" y="31" text-anchor="middle" fill="var(--quiet)">who is answerable</text>
+        <text x="239" y="42" text-anchor="middle" fill="var(--quiet)">for it?</text>
+
+        <rect x="326" y="0" width="152" height="52" fill="none" stroke="var(--rule)"/>
+        <text x="402" y="17" text-anchor="middle" font-size="8" font-weight="500">the timestamp</text>
+        <text x="402" y="31" text-anchor="middle" fill="var(--quiet)">did it exist in this</text>
+        <text x="402" y="42" text-anchor="middle" fill="var(--quiet)">form on that date?</text>
+
+        <rect x="489" y="0" width="151" height="52" fill="none" stroke="var(--rule)"/>
+        <text x="564" y="17" text-anchor="middle" font-size="8" font-weight="500">the reconstruction</text>
+        <text x="564" y="31" text-anchor="middle" fill="var(--quiet)">does the text match</text>
+        <text x="564" y="42" text-anchor="middle" fill="var(--quiet)">the annotation?</text>
+      </g>
+      <line x1="76"  y1="52" x2="76"  y2="64" stroke="var(--rule)"/>
+      <line x1="239" y1="52" x2="239" y2="64" stroke="var(--rule)"/>
+      <line x1="402" y1="52" x2="402" y2="64" stroke="var(--rule)"/>
+      <line x1="564" y1="52" x2="564" y2="64" stroke="var(--rule)"/>
+      <rect x="0" y="64" width="640" height="30" fill="none" stroke="var(--point)" stroke-width="1.2"/>
+      <text x="320" y="77" text-anchor="middle" font-size="8.4" fill="var(--point)">none of them answers: is the register complete?</text>
+      <text x="320" y="88" text-anchor="middle" font-size="7" fill="var(--quiet)">an author can record faithfully or omit, and cryptography does not tell the two apart</text>
+    </svg>
+  </div>
+
+  <!-- ── close ──────────────────────────────────────────────────── -->
+  <div class="close">
+    <p class="pull">The value is not in the proof. It is in the responsibility an author
+    takes on by publishing the record, and in the fact that it can be inspected.</p>
+    <p class="foot">
+      MIT licence<br>
+      colophonmethod.com
+    </p>
+  </div>
+
+</div>
+
+</body>
+</html>

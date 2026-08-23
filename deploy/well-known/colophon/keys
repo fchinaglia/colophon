@@ -1,0 +1,20 @@
+# Colophon — the keys that sign registers published by this author.
+#
+# This file IS an OpenSSH allowed_signers file. It is meant to be used verbatim:
+#
+#     curl -sO https://colophonmethod.com/.well-known/colophon/keys
+#     ssh-keygen -Y verify -f keys -I f.chinaglia@gmail.com -n colophon \
+#                -Overify-time=YYYYMMDD -s events.jsonl.sig < events.jsonl
+#
+# It is an append-only history, not a current-key file. A retired line keeps its
+# valid-before and stays; nothing is ever deleted. Because a register is timestamped,
+# rotating a key invalidates nothing: a reader asks whether the key was valid at the
+# moment the timestamp says the signature existed, which is what -Overify-time does.
+#
+# What this proves, and what it does not. It proves that whoever controlled
+# colophonmethod.com and its TLS certificate published this key. It does not prove
+# who that is, and no file can: a key is bound to a person by evidence outside the
+# artefact it signs, which is exactly why this file is not inside the repository whose
+# cases it authenticates.
+
+f.chinaglia@gmail.com namespaces="colophon",valid-after="20260821Z" ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFBuJGGXqAqAZ0PqK6Fd5743SwJIJhrYd/S2S5tHZUg1 colophon-2026

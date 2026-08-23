@@ -1,0 +1,9 @@
+{"detect": true, "line": "{\"actor\":\"system\",\"payload\":{\"ai_lexical\":94.0},\"seq\":1}", "name": "integral-float", "note": "Python writes 94.0, JS writes 94 - real, 72 times across 18 events of cases/001"}
+{"detect": true, "line": "{\"payload\":{\"human_ideas\":0.0,\"ai_ideational\":100.0},\"seq\":2}", "name": "zero-float", "note": "the same class, and the commonest one in a measurement payload"}
+{"detect": true, "line": "{\"payload\":{\"margin\":4.5},\"seq\":3}", "name": "fraction", "note": "4.5 happens to agree across the two, but no rule can promise that - refuse every float"}
+{"detect": true, "line": "{\"payload\":{\"x\":1e-07},\"seq\":4}", "name": "exp-small", "note": "Python pads the exponent to two digits, JS does not: 1e-07 against 1e-7"}
+{"detect": true, "line": "{\"payload\":{\"x\":1e+16},\"seq\":5}", "name": "exp-large", "note": "Python goes scientific from 1e16, JS only from 1e21: 1e+16 against 10000000000000000"}
+{"detect": true, "line": "{\"payload\":{\"n\":9007199254740993},\"seq\":6}", "name": "big-integer", "note": "beyond 2^53 JS loses precision SILENTLY and returns 9007199254740992"}
+{"detect": true, "line": "{\"payload\":{\"\\u00e0bc\":1},\"seq\":7}", "name": "non-ascii-key", "note": "code-point against UTF-16 key ordering; forbidden rather than specified"}
+{"detect": true, "line": "{\"payload\":{\"xs\":[1,2.0,3]},\"seq\":8}", "name": "float-in-array", "note": "numbers inside arrays are numbers too"}
+{"detect": false, "line": "{\"payload\":{\"note\":\"the value was 94.0 percent\"},\"seq\":9}", "name": "float-inside-a-string", "note": "MUST NOT be flagged: it is inside a string. A scanner that does not skip strings is wrong."}
