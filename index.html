@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colophon — written over, never erased</title>
+<style>
+:root { --bg:#fbfaf8; --fg:#1a1a1a; --dim:#6b6b6b; --line:#e2ded8; --mono:#f4f2ee; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#16161a; --fg:#e8e6e3; --dim:#9a978f; --line:#2e2e35; --mono:#24242b; }
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+  font:17px/1.6 ui-serif,Georgia,"Times New Roman",serif; }
+main { max-width:38rem; margin:0 auto; padding:4rem 1.25rem 6rem; }
+h1 { font-size:2rem; margin:0; font-weight:600; letter-spacing:-.015em; }
+.tag { font-style:italic; color:var(--dim); margin:.35rem 0 2.5rem; }
+p { margin:0 0 1.1rem; }
+a { color:inherit; text-underline-offset:.2em; }
+nav { margin-top:2.5rem; padding-top:1.5rem; border-top:1px solid var(--line);
+  font-family:ui-sans-serif,system-ui,sans-serif; font-size:.95rem; }
+nav a { display:block; padding:.5rem 0; text-decoration:none; border-bottom:1px solid var(--line); }
+nav a:hover { background:var(--mono); }
+nav a span { color:var(--dim); font-size:.88rem; display:block; }
+footer { margin-top:2.5rem; color:var(--dim); font-size:.85rem;
+  font-family:ui-sans-serif,system-ui,sans-serif; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Colophon</h1>
+  <p class="tag">Written over, never erased.</p>
+
+  <p>A method — and a skill — for recording, measuring and disclosing the human and AI
+  contribution <em>while</em> a text is being written.</p>
+
+  <p>A colophon is the note that has closed books since the fifteenth century, declaring
+  how they were made: printer, typeface, paper, date. This project moves that function
+  from the book to the text written together with a language model.</p>
+
+  <p>The payoff comes from the palimpsest, the reused manuscript in which the earlier
+  writing stays visible beneath the new — which is also the formal property of the
+  register: append-only, no event overwritten, every revision added rather than
+  substituted.</p>
+
+  <nav>
+    <a href="https://github.com/fchinaglia/colophon">The repository
+      <span>the method, the skill, the scripts, and how to install it</span></a>
+    <a href="cases/001/">Case 001
+      <span>a finished case that verifies itself</span></a>
+    <a href="https://github.com/fchinaglia/colophon/blob/main/paper/colophon-method.md">The paper
+      <span>twelve pages, with the evidence base</span></a>
+    <a href="https://github.com/fchinaglia/colophon/blob/main/CONTRIBUTING.md">Contributing
+      <span>the most valuable thing anyone can bring is a second case</span></a>
+  </nav>
+
+  <footer>
+    <p>MIT. The method does not prove a register is complete — no voluntary system can.
+    Its value is not in the proof: it is in the responsibility an author takes on by
+    publishing it, and in the fact that it can be inspected.</p>
+  </footer>
+</main>
+</body>
+</html>

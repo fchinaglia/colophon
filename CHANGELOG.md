@@ -20,7 +20,13 @@ and the project uses [semantic versioning](https://semver.org/).
   `kpi.json`, so writing them as strings loses nothing.
 - **`.nojekyll`**, because GitHub Pages runs Jekyll by default and will not serve
   dot-directories. Without it any `.well-known/` path 404s, which is a failure nobody
-  diagnoses from the symptom.
+  diagnoses from the symptom. **And `index.html` alongside it**, because turning Jekyll
+  off also stops it rendering `README.md` as the site's front page: the fix for one
+  absence opened another, and the landing page is now an artefact rather than a
+  side effect of a Markdown renderer.
+- **SKILL.md says how a number goes into a payload**, in §2: integers, or quoted. The
+  guard below refuses anything else, and a rule enforced by a script but absent from the
+  instructions is a rule the model discovers by failing.
 
 ### Fixed
 

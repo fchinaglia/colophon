@@ -56,6 +56,8 @@ Save a version in `versions/` every time the text changes substantially, and rec
 
 Mark with `"meta": true` the events that concern the design of the method and not the content: they are excluded from the denominator.
 
+**Numbers in a payload are integers, or they are strings.** A percentage goes in quoted — `"ai_lexical": "94.0"`, never `94.0` — and `record.py` refuses the event otherwise. The refusal is the point: a reader working outside Python cannot reproduce the bytes of a float, because after a JavaScript `JSON.parse` `94.0` and `94` are the same value and the distinction is destroyed by parsing rather than recoverable afterwards. A register carrying one cannot be checked in a browser at all, and it cannot be repaired later either, because the register is append-only and reopening a case adds events instead of rewriting them. Integers must stay within ±(2⁵³ − 1), because past that JavaScript loses precision silently and returns a different number without saying so; keys must be ASCII. Nothing is lost by the rule — the measurement of record is `kpi.json`, and a number in a payload is description.
+
 ### 3. Revision
 
 Print the text with **numbered blocks** (the index of the paragraph in the file, blank line as separator) so that the user can refer to `[12]`. The numbers must match those in the annotation.
