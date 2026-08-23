@@ -40,15 +40,24 @@ ssh-keygen -Y verify -f keys -I f.chinaglia@gmail.com -n colophon \
 A date before `valid-after` is refused, which is the constraint doing its job rather
 than decorating the file.
 
-## Then
+## The order, and why it is this order
 
-1. `certbot --nginx -d colophonmethod.com -d www.colophonmethod.com`
-2. `deploy/colophonmethod.conf` into `/etc/nginx/sites-enabled/`
-3. the site's `index.html` into `/srv/colophon/`
-4. `VERIFY.md` in every case gains the two-line recipe above, pointing at this URL,
+`colophonmethod.conf` names certificate files. **nginx refuses to start when a
+certificate is missing**, so it cannot be the first config installed — that is the
+chicken-and-egg every first deployment hits. `bootstrap.conf` exists to break it: HTTP
+only, enough for certbot to prove the domain, then swap.
+
+1. **`bootstrap.conf`** into `/etc/nginx/sites-enabled/`, `nginx -t`, reload
+2. **certbot, webroot mode** — not `--nginx`, which rewrites your config out from under
+   you: `certbot certonly --webroot -w /var/www/certbot -d colophonmethod.com -d www.colophonmethod.com`
+3. **`colophonmethod.conf`** replaces the bootstrap, `nginx -t`, reload
+4. **`VERIFY.md`** in every case gains the two-line recipe above, pointing at this URL,
    and `case.json` gains `key_url`
 
 Step 4 is the one that matters: an anchor nobody is told about anchors nothing.
+
+**The private key never goes on the server.** Only `keys`, which is public by design.
+A server that can sign registers is a server that can forge them.
 
 ## Not yet
 
