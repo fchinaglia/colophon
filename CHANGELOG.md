@@ -4,6 +4,51 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- **A test suite, and CI.** 32 assertions in about a second, in three layers. The golden
+  layer earns the most for the least code: `example/` regenerates its four outputs byte
+  for byte, and nothing in that pipeline reads a clock, so the comparison needs no time
+  faking at all. The unit layer is the gates, and **every test there is an entry in this
+  file** — a regression that has already happened once. The repository layer guards the
+  silent ones: the worked example forking from the skill, a documented flag that exits
+  with an argparse error, a missing `.gitattributes` line that turns a Windows checkout
+  into a false accusation of forgery.
+- **`.gitattributes` covers `example/` and `tests/` as well as `cases/`.** The example
+  register — the one CONTRIBUTING tells every contributor to run before opening a PR —
+  was not protected, and a test now asserts that all three are.
+- CI runs on Python 3.9 and 3.13, on Ubuntu and macOS, plus a Windows job whose only
+  purpose is to fail loudly on the line-ending hazard, on the platform that causes it.
+
+## [1.4.0] — 2026-08-23
+
+### Added
+
+- **The key gets an address outside the case.** `case.json` carries `key_url` and
+  `key_fingerprint`; `SKILL.md` says to publish the key on a domain you control, at
+  `/.well-known/colophon/keys`, and not inside the folder it authenticates. A key
+  published inside its own case proves only that the folder is internally consistent —
+  which anyone can arrange in ten seconds by generating a key, altering the register,
+  re-signing, and dropping in the new `.pub`. Every check then passes.
+- **`VERIFY.md` §2 is a fetch-and-verify recipe**, and it uses `-Overify-time` with the
+  sealing date rather than today's. The published file is a key *history*: asking whether
+  a key was valid **when the timestamp says the signature existed** is a stronger question
+  than whether it is valid now, and it is what makes a future rotation harmless instead of
+  retroactively breaking every seal. The in-folder copy of the key stays, described for
+  what it is — for reproduction, not for trust.
+
+### Notes
+
+The distinction the section now makes explicit: this is an **anchor, not a proof**. It
+moves the question from "is this folder internally consistent", which anyone can arrange,
+to "who controls that domain", which they cannot. No file can do more than that, and the
+method has always said so about its other claims.
+
+`cases/001` records the change in its errata: its key is published at
+colophonmethod.com, and both of its seals verify against it.
+
 ## [1.3.0] — 2026-08-23
 
 ### Added

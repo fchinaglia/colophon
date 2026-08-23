@@ -23,16 +23,28 @@ It recomputes the whole chain and reports the first broken link. It must answer
 
 ## 2. The register is mine
 
-The signature is Ed25519, detached, in the `.sig` file. My public key is published
-here: **[stable URL — your site, GitHub profile, LinkedIn page]**
+The signature is Ed25519, detached, in the `.sig` file. My public key is published at
+**[https://your-domain/.well-known/colophon/keys]** — on a domain I control, and
+deliberately not inside this folder. Fetch it and check the signature against it:
 
 ```bash
-echo '[your-email] namespaces="colophon" [public-key-contents]' > allowed_signers
-ssh-keygen -Y verify -f allowed_signers -I [your-email] \
-           -n colophon -s events.jsonl.sig < events.jsonl
+curl -sO [https://your-domain/.well-known/colophon/keys]
+ssh-keygen -Y verify -f keys -I [your-email] -n colophon \
+           -Overify-time=[YYYYMMDD] -s events.jsonl.sig < events.jsonl
 ```
 
-It must answer `Good "colophon" signature`.
+It must answer `Good "colophon" signature`. Use the date the register was sealed — the
+`.tsr` states it — rather than today's: that file is a key *history*, and asking whether
+the key was valid when the timestamp says the signature existed is a stronger question
+than whether it is valid now. It is also what makes rotation harmless.
+
+There is a copy of the key in this folder too. **It is there for reproduction, not for
+trust**: it lets the check run offline in ten years, and it proves nothing about whose
+key it is, because whoever could rewrite this folder could rewrite that copy with it.
+
+That is why the published one lives somewhere else, and it is an anchor rather than a
+proof: it moves the question from "is this folder internally consistent", which anyone
+can arrange, to "who controls that domain", which they cannot.
 
 ## 3. The register already existed on that date
 
@@ -82,7 +94,8 @@ that does not exist, and no piece of text has been left without an attribution.
 ## What all this proves, and what it does not
 
 **It proves** that the register existed in that form on that date, that it has not been
-altered since, and that it was produced by whoever holds that key.
+altered since, and that it was signed by the holder of a key which a domain I control
+published — an anchor to an identity, not a proof of one.
 
 **It does not prove** that the register is **complete**. No voluntary system can prove
 that: I can record everything faithfully, or I can leave things out, and cryptography

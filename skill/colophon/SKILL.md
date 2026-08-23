@@ -33,6 +33,13 @@ Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the s
 
 Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed, and the two addresses — `verification_url`, where the verification page will be readable, and `register_url`, the folder with the register and the files. `build_note.py` puts the first in the technical line and falls back to the second; `build_page.py` uses the second to link the files from the page. Without either, the line tells the reader what to check and not where to find it.
 
+`case.json` also carries `key_url` and `key_fingerprint`: where the author's public key
+is published, and which key to expect. **Publish it on a domain you control, not inside
+the case** — `/.well-known/colophon/keys`. A key published inside the folder it
+authenticates proves only that the folder is internally consistent, which anyone can
+arrange in ten seconds by generating a fresh key and re-signing. The copy in the folder
+stays, for offline reproduction; the published one is what binds the key to a person.
+
 An address you cannot keep is worse than none: the line is generated at render time, so a PDF freezes it forever. Do not move a case folder once it is published. If you do not know the address yet, add it before publishing — the line will pick it up at the next render.
 
 The page has to be **served as a page**. A raw `.html` on a code host is delivered as plain text and the reader sees the markup: publish it where HTML renders, GitHub Pages or your own site.

@@ -1,0 +1,54 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  suite:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.9", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python }}" }
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest tests -q
+
+      # The worked example must regenerate itself exactly. If this diff is not empty,
+      # something in the pipeline stopped being deterministic.
+      - name: the example is byte-reproducible
+        run: |
+          cd example
+          python record.py --verify
+          python measure.py && python build_icon.py && python build_page.py
+          cd .. && git diff --exit-code example/
+
+  # A checkout with core.autocrlf=true rewrites every line ending: digests change and
+  # signatures stop verifying, while `record.py --verify` still answers `chain intact`.
+  # This job exists to make that hazard fail loudly on the platform that causes it.
+  windows-line-endings:
+    runs-on: windows-latest
+    steps:
+      - run: git config --global core.autocrlf true
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - name: cases, example and tests must be excluded from normalisation
+        shell: bash
+        run: |
+          # No `tee /dev/stderr` here: Git Bash on Windows has no /dev/stderr, and this
+          # job runs on Windows precisely because that is where the hazard lives.
+          for p in cases/001/events.jsonl example/events.jsonl tests/conftest.py; do
+            out=$(git check-attr text -- "$p")
+            echo "$out"
+            echo "$out" | grep -q "text: unset"
+          done
+      - name: the chain still verifies after a CRLF checkout
+        shell: bash
+        run: cd example && python record.py --verify
