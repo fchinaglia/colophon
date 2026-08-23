@@ -43,8 +43,9 @@ versions this case was made with, and they are the ones its manifest covers.
 The signature is detached, in `events.jsonl.sig`, made with the Ed25519 key in
 [`colophon.pub`](colophon.pub) — fingerprint
 `SHA256:0woBfwGMoKA6zsd9c0701YhBa+0aqIAI03JzaRV7raQ`. Full instructions, in Italian, are
-in [`VERIFICA.md`](VERIFICA.md). The register is timestamped (RFC 3161, `.tsr`) and
-anchored to Bitcoin (`.ots`).
+in [`VERIFICA.md`](VERIFICA.md) — with one correction to them, in the errata below.
+The register is timestamped (RFC 3161, `.tsr`) and was submitted for anchoring to
+Bitcoin (`.ots`); submitted is not the same as anchored, and the errata says why.
 
 The signature covers `events.jsonl` alone. The last event, a manifest, carries the
 SHA-256 of sixteen files — the source text, the annotation, the measurement, the
@@ -122,8 +123,41 @@ against the first 72 events — the register as it stood then — and it is not 
 proves the register existed in that form on that date, which no later signature can do.
 
 The current seal covers all 80 events, root `e9b049198f2849837d8c12057e516ade674316e12efd59b876a1525b5276272b`,
-timestamped 23 August 2026 at 09:13 UTC and anchored. Both can be checked with the
-commands above, the older one against the 72-event prefix.
+timestamped 23 August 2026 at 09:13 UTC and submitted for anchoring. Both can be checked
+with the commands above, the older one against the 72-event prefix.
+
+## Errata, 23 August 2026
+
+Two corrections to the verification instructions. Neither touches the manifest, the
+signature or a single measured number: `README.md` sits outside the manifest by design —
+it is prose about the case — and `freetsa-cacert.pem` is a new file the manifest does not
+cover and does not need to. **The case has not been reopened**, because nothing the seal
+commits to has changed. Reopening is for altering what a manifest covers; this is not that.
+
+**The timestamp could not be verified with the instructions as published.**
+[`VERIFICA.md`](VERIFICA.md) prints `openssl ts -verify` with the CA file left as a
+placeholder, and that file is covered by the manifest, so filling it in would break the
+manifest to fix a sentence. The certificate is supplied instead, as
+[`freetsa-cacert.pem`](freetsa-cacert.pem), and the command that works is:
+
+```bash
+openssl ts -verify -data events.jsonl -in events.jsonl.tsr -CAfile freetsa-cacert.pem
+```
+
+It answers `Verification: OK`. It will not verify against your system's certificate
+bundle: freetsa is its own root and chains to nothing a reader already has, which is why
+the skill stopped defaulting to it on 23 August. The timestamp itself was always valid —
+only the route to checking it was missing.
+
+**The Bitcoin anchor is submitted, not confirmed.** `ots verify events.jsonl.ots` reports
+*Pending confirmation in Bitcoin blockchain* on the calendars. A `.ots` file records that
+the register was submitted; the calendars batch submissions into a transaction, and have
+been observed to accept one and never anchor it. Until `ots upgrade` succeeds, that seal
+proves nothing, and this page should not have said it did. Verifying it also needs a
+Bitcoin node or a block explorer you decide to believe — it depends on no *authority*,
+which is not the same as depending on nothing.
+
+The signature and the chain are unaffected, and both still verify.
 
 ## What this case does not prove
 
