@@ -1,0 +1,62 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel=stylesheet href=base.css>
+<style>body{width:1600px;height:740px;padding:56px 72px;display:flex;flex-direction:column}
+h2{font-size:38px;font-weight:700;letter-spacing:-.01em;margin:14px 0 10px}
+.cap{max-width:1180px;font-size:19px;margin-bottom:8px}
+.box{fill:#fff;stroke:#c9cbd0;stroke-width:2;rx:8}
+.sys{font-family:ui-sans-serif,sans-serif;font-size:16px;fill:#16171a;font-weight:600;text-anchor:middle}
+.ttl{font-family:ui-sans-serif,sans-serif;font-size:20px;fill:#16171a;font-weight:700}
+.sub{font-family:ui-sans-serif,sans-serif;font-size:16px;fill:#8a8c92}
+</style></head><body>
+<div class="kick">l'architettura del dato</div>
+<h2>Non è lo schema di un database: è chi decide qual è la fonte certa.</h2>
+<div class="cap">A sinistra ogni sistema parla con ogni altro, e la correlazione fra i dati non è più garantita. A destra tutti parlano con uno strato di accesso comune, governato da un modello semantico di riferimento.</div>
+<svg width="1456" height="460" viewBox="0 0 1456 460">
+  <text class="ttl" x="0" y="26">Oggi</text>
+  <text class="sub" x="60" y="26">integrazioni punto a punto</text>
+  <text class="ttl" x="790" y="26">Con l'architettura del dato</text>
+
+  <!-- SINISTRA -->
+  <g transform="translate(0,60)">
+    <g stroke="#e34948" stroke-width="1.8" opacity=".75">
+      <path d="M100 34 L360 128" fill="none"/><path d="M100 34 L240 236" fill="none"/>
+      <path d="M360 34 L120 128" fill="none"/><path d="M360 34 L400 236" fill="none"/>
+      <path d="M120 128 L360 236" fill="none"/><path d="M360 128 L200 236" fill="none"/>
+      <path d="M100 34 L640 130" fill="none"/><path d="M620 128 L260 236" fill="none"/>
+      <path d="M240 236 L620 236" fill="none"/><path d="M360 34 L620 128" fill="none"/>
+    </g>
+    <rect class="box" x="20" y="8" width="160" height="52"/><text class="sys" x="100" y="40">CRM</text>
+    <rect class="box" x="280" y="8" width="160" height="52"/><text class="sys" x="360" y="40">e-commerce</text>
+    <rect class="box" x="40" y="102" width="160" height="52"/><text class="sys" x="120" y="134">fatturazione</text>
+    <rect class="box" x="280" y="102" width="160" height="52"/><text class="sys" x="360" y="134">assistenza</text>
+    <rect class="box" x="540" y="102" width="180" height="52"/><text class="sys" x="630" y="134">pagamenti</text>
+    <rect class="box" x="160" y="210" width="160" height="52"/><text class="sys" x="240" y="242">delivery</text>
+    <rect class="box" x="400" y="210" width="220" height="52"/><text class="sys" x="510" y="242">data warehouse</text>
+    <text class="sub" x="20" y="316">nessuna fonte certa · duplicazioni · legami di chiave che si perdono</text>
+  </g>
+
+  <line x1="742" y1="70" x2="742" y2="400" stroke="#e2e0da" stroke-width="2"/>
+
+  <!-- DESTRA -->
+  <g transform="translate(790,60)">
+    <g stroke="#2a78d6" stroke-width="2">
+      <path d="M100 60 L100 150" fill="none"/><path d="M320 60 L320 150" fill="none"/>
+      <path d="M540 60 L540 150" fill="none"/>
+      <path d="M100 262 L100 212" fill="none"/><path d="M540 262 L540 212" fill="none"/>
+    </g>
+    <rect class="box" x="20" y="8" width="160" height="52"/><text class="sys" x="100" y="40">CRM</text>
+    <rect class="box" x="240" y="8" width="160" height="52"/><text class="sys" x="320" y="40">fatturazione</text>
+    <rect class="box" x="460" y="8" width="160" height="52"/><text class="sys" x="540" y="40">assistenza</text>
+
+    <rect x="20" y="150" width="600" height="62" rx="8" fill="#dae7f5" stroke="#2a78d6" stroke-width="2.5"/>
+    <text class="sys" x="320" y="187" font-size="18">strato di accesso ai dati</text>
+
+    <rect x="20" y="262" width="600" height="62" rx="8" fill="#fff" stroke="#2a78d6"
+          stroke-width="2.5" stroke-dasharray="7 6"/>
+    <text class="sys" x="320" y="292" font-size="18">modello semantico di riferimento</text>
+    <text class="sys" x="320" y="313" font-size="14" font-weight="400" fill="#5a5c62">quale sia la fonte certa · come ci si accede · chi decide quando cambia</text>
+
+    <rect x="20" y="150" width="600" height="174" rx="10" fill="none" stroke="none"/>
+    <text class="sub" x="20" y="368" fill="#5a5c62">governato da un team di agenti · ogni nuovo componente passa di qui</text>
+  </g>
+</svg>
+</body></html>

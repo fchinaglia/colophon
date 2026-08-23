@@ -1,0 +1,12 @@
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#fcfcfb;font-family:"Charter","Georgia",serif;color:#16171a;
+     -webkit-font-smoothing:antialiased}
+.sans{font-family:ui-sans-serif,-apple-system,"Segoe UI",Roboto,sans-serif}
+.kick{font-family:ui-sans-serif,-apple-system,sans-serif;font-size:15px;
+      letter-spacing:.14em;text-transform:uppercase;color:#8a8c92;font-weight:600}
+.cap{font-family:ui-sans-serif,-apple-system,sans-serif;font-size:17px;
+     color:#5a5c62;line-height:1.5}
+.lbl{font-family:ui-sans-serif,-apple-system,sans-serif;font-size:16px;
+     fill:#5a5c62}
+.lbl-b{font-family:ui-sans-serif,-apple-system,sans-serif;font-size:17px;
+       fill:#16171a;font-weight:650}

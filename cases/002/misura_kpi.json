@@ -1,0 +1,73 @@
+{
+ "parole": 3126,
+ "span": 75,
+ "integrita": true,
+ "orfane": [
+  "M03",
+  "M11",
+  "M12",
+  "R01",
+  "R02",
+  "R04",
+  "R05",
+  "R06",
+  "R11",
+  "R12",
+  "R13",
+  "R14",
+  "R15",
+  "R16",
+  "R17",
+  "R18",
+  "R20",
+  "R23",
+  "R24",
+  "R29",
+  "R30",
+  "R31",
+  "R32",
+  "R33",
+  "R35",
+  "R36",
+  "R37",
+  "R38"
+ ],
+ "ai_lessicale": 47.1,
+ "ai_ideativa": 30.6,
+ "lessicale": {
+  "U": 48.1,
+  "UA": 9.6,
+  "A": 42.4
+ },
+ "ideativa": {
+  "U": 61.0,
+  "UA": 16.8,
+  "A": 22.2
+ },
+ "per_fase": {
+  "ricerca": {
+   "parole": 141,
+   "ai": 100.0
+  },
+  "struttura": {
+   "parole": 174,
+   "ai": 64.7
+  },
+  "prima_stesura": {
+   "parole": 1828,
+   "ai": 14.0
+  },
+  "revisione_contenuto": {
+   "parole": 621,
+   "ai": 97.9
+  },
+  "revisione_forma": {
+   "parole": 349,
+   "ai": 100.0
+  },
+  "titolazione": {
+   "parole": 13,
+   "ai": 50.0
+  }
+ }
+}

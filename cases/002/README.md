@@ -69,6 +69,14 @@ python3 registra.py --verifica     # the chain is intact
 python3 misura.py                  # reconstruction and coverage, then the two axes
 ```
 
+`misura.py` reproduces 47.1% and 30.6% and reports `ricostruzione: OK`. Its coverage
+check lists 30 declared edits without a span. Twenty-eight of them are the ones already
+frozen in `misura_kpi.json` inside the signed register; the other two, R39 and R40,
+were recorded *after* the measurement was taken — R39 added the pointer to the published
+register in the provenance note, R40 is the sealing manifest itself. Do not regenerate
+`misura_kpi.json`: it would pick those two up and stop matching the digest the register
+carries for it.
+
 The signature is detached, in `eventi.jsonl.sig`, made with the Ed25519 key published
 at [`cases/001/colophon.pub`](../001/colophon.pub) — fingerprint
 `SHA256:0woBfwGMoKA6zsd9c0701YhBa+0aqIAI03JzaRV7raQ`. The register is timestamped
@@ -87,10 +95,21 @@ closes the chain.
 `versioni/v04_articolo_finale.md`, `registra.py`, `misura.py`, `caso.json`, `VERIFY.md`
 
 **To inspect without recomputing** — `misura_span.json`, `misura_kpi.json`,
-`pagina_di_verifica.html`, `icona.svg`, and the scripts that regenerate them
+`pagina_di_verifica.html`, `icona.svg`, and the scripts that regenerate them.
+`misura_span.json`, `misura_kpi.json` and `icona.svg` are the artefacts the manifest
+covers, byte for byte. `pagina_di_verifica.html` is not covered by it: it is a rendering,
+and it has been re-rendered since the seal so that the root it prints is the sealed one
+(81 events, `ae68ae8d…`) rather than the root of the day it was first generated. The
+percentages on it never changed.
 
-**The history** — `versioni/v01`–`v03`, each with its SHA-256 recorded in the register,
-plus the English translation `v04_article_en.md`
+**The history** — `versioni/v01`–`v03`, plus the English translation
+`v04_article_en.md`. `v01` and `v02` still hash to the value recorded for them in the
+register. **`v03` does not**, and the reason is worth stating: the second revision cycle
+(seq 33 onwards) edited that file in place instead of saving a new version, so what is
+here is the state it was left in — 2,952 words — while the register recorded it at 2,780
+words with a different digest at seq 31. The register is right and the file moved under
+it. It is published anyway, because a version whose drift is visible is worth more than
+a gap.
 
 **The published artefacts** — the PDFs, the illustrated source, `immagini/`, and the
 render scripts

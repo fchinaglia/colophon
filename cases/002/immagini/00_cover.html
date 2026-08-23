@@ -1,0 +1,33 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel=stylesheet href=base.css>
+<style>
+body{width:1200px;height:627px;display:flex;flex-direction:column;
+     justify-content:center;padding:0 78px;position:relative;overflow:hidden}
+h1{font-size:52px;line-height:1.12;font-weight:700;letter-spacing:-.02em;
+   max-width:760px;margin-bottom:26px}
+h1 .hi{color:#e34948}
+h1 .hi2{color:#2a78d6}
+.sub{font-family:ui-sans-serif,-apple-system,sans-serif;font-size:21px;
+     color:#5a5c62;line-height:1.5;max-width:640px}
+.rule{width:64px;height:4px;background:#16171a;margin-bottom:30px}
+.by{position:absolute;bottom:44px;left:78px;font-family:ui-sans-serif,sans-serif;
+    font-size:16px;color:#8a8c92}
+svg{position:absolute;right:48px;top:50%;transform:translateY(-50%)}
+</style></head><body>
+<div class="rule"></div>
+<h1>Frammentazione dei dati:<br>usare l'AI per <span class="hi">affittare</span> il<br>debito tecnologico o <span class="hi2">estinguerlo</span></h1>
+<div class="sub">L'ostacolo non è mai stato il ritorno dell'investimento.<br>È la forma della curva — e adesso la curva è cambiata.</div>
+<div class="by">Fabio Chinaglia</div>
+<svg width="330" height="330" viewBox="0 0 340 330">
+  <line x1="26" y1="298" x2="330" y2="298" stroke="#d5d7dc" stroke-width="2"/>
+  <line x1="26" y1="26" x2="26" y2="298" stroke="#d5d7dc" stroke-width="2"/>
+  <!-- affitto: cresce all'infinito -->
+  <path d="M26 296 L330 84" fill="none" stroke="#e34948" stroke-width="4.5"
+        stroke-linecap="round"/>
+  <!-- estinzione: costo una tantum poi piatto -->
+  <path d="M26 296 C64 296 74 168 118 168 L330 168" fill="none" stroke="#2a78d6"
+        stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="lbl-b" x="196" y="70" fill="#e34948">affittare</text>
+  <text class="lbl-b" x="240" y="196" fill="#2a78d6">estinguere</text>
+  <text class="lbl" x="26" y="322">tempo →</text><text class="lbl" x="0" y="0" transform="translate(16,150) rotate(-90)" text-anchor="middle">costo cumulato</text>
+</svg>
+</body></html>
