@@ -41,11 +41,10 @@ than whether it is valid now. It is also what makes rotation harmless.
 There is a copy of the key in this folder too. **It is there for reproduction, not for
 trust**: it lets the check run offline in ten years, and it proves nothing about whose
 key it is, because whoever could rewrite this folder could rewrite that copy with it.
-The published one is the claim — *whoever controlled that domain and its certificate
-published this key* — and it is the reason it lives somewhere else.
 
-That is an anchor, not a proof. It moves the question from "is this folder internally
-consistent", which anyone can arrange, to "who controls that domain", which they cannot.
+That is why the published one lives somewhere else, and it is an anchor rather than a
+proof: it moves the question from "is this folder internally consistent", which anyone
+can arrange, to "who controls that domain", which they cannot.
 
 ## 3. The register already existed on that date
 
@@ -95,7 +94,8 @@ that does not exist, and no piece of text has been left without an attribution.
 ## What all this proves, and what it does not
 
 **It proves** that the register existed in that form on that date, that it has not been
-altered since, and that it was produced by whoever holds that key.
+altered since, and that it was signed by the holder of a key which a domain I control
+published — an anchor to an identity, not a proof of one.
 
 **It does not prove** that the register is **complete**. No voluntary system can prove
 that: I can record everything faithfully, or I can leave things out, and cryptography
