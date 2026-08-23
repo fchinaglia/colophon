@@ -167,7 +167,7 @@ Every disclosure note above is followed by one more line, set smaller and quiete
 
 > signed and inspectable register
 > fchinaglia.github.io/colophon/cases/002
-> 81 events · root ae68ae8d…88312793
+> root ae68ae8dc078c46c6ac85b349ae08d2d104fea77767dce18a7b38a5388312793
 
 `--form full` gives the sentence it replaced, naming each seal and printing the root whole:
 
@@ -181,7 +181,7 @@ This is why level 3 is a level and not an appendix: the record only counts as di
 
 Four rules govern it. It is generated, never typed — a hand-copied root goes stale at the next event, and a stale root looks like evidence while being none. It is generated last, after the final event and after sealing. Adding it is not recorded as an event: a new event would change the root and the line would contradict itself. And if the register is not sealed, the line says so — that sentence stays in.
 
-**The root goes in whole when the line stands alone.** An abbreviation can be recognised but not compared, and comparing is the reader's job: they recompute the chain and hold their value against yours. In the compact form the root is abbreviated on purpose — the line names an address, the page at that address prints the root in full, and a reader who is comparing is already there. `--full-root` overrides it, `--form full` prints it whole by default.
+**The root goes in whole.** An abbreviation can be recognised but not compared, and comparing is the reader's job: they recompute the chain and hold their value against yours. Both forms print it whole by default. `--short-root` abbreviates it to `ae68ae8d…88312793` for a layout that genuinely cannot hold sixty-four characters — a social card, a slide — and it is a concession to the column, never the default.
 
 **And it carries an address.** A line ending in *verification instructions in VERIFY.md* helps a reader standing in the case folder — the one reader who did not need help. Everyone else is on a post, a PDF, a printed page, and for them a filename is not a place. `case.json` holds two addresses and the line prints one of them:
 

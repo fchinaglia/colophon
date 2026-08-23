@@ -26,9 +26,12 @@ set -eu
 
 FILE="${1:?usage: bash seal.sh <file>}"
 KEY="${COLOPHON_KEY:-$HOME/.ssh/colophon}"
-# Free TSA, no account needed. It carries no eIDAS presumption: for that you
-# need a qualified TSA and prepaid credentials.
-TSA_URL="${COLOPHON_TSA:-https://freetsa.org/tsr}"
+# Free, no account needed, and — the part that matters — its chain verifies against the
+# certificate bundle a reader already has, so `openssl ts -verify` works with no setup.
+# freetsa.org also grants tokens, but nothing verifies one without first hunting down its
+# CA certificate, which is how a case shipped a timestamp no reader could check.
+# Neither carries an eIDAS presumption: that needs a qualified TSA and prepaid credentials.
+TSA_URL="${COLOPHON_TSA:-http://timestamp.digicert.com}"
 
 echo "== digest =="
 shasum -a 256 "$FILE" | tee "$FILE.sha256"
@@ -86,7 +89,14 @@ echo
 echo "== OpenTimestamps anchoring =="
 if command -v ots >/dev/null 2>&1; then
   rm -f "$FILE.ots"                       # never keep an anchor of an older register
-  ots stamp "$FILE" && echo "   $FILE.ots (confirmed on Bitcoin within a few hours)"
+  # `ots stamp` submits; it does not anchor. Calendars batch submissions into a Bitcoin
+  # transaction, and they have been observed to accept a submission and then never anchor
+  # it, silently. On its own a .ots file proves nothing, so do not let it sound like proof.
+  if ots stamp "$FILE"; then
+    echo "   $FILE.ots  (submitted — NOT yet anchored)"
+    echo "   ! tomorrow, before publishing, run:"
+    echo "       ots upgrade $FILE.ots && ots verify $FILE.ots"
+  fi
 else
   echo "   ! ots not installed — pip install opentimestamps-client"
 fi
@@ -94,3 +104,7 @@ fi
 echo
 echo "Done. Keep together: $FILE, .sig, .tsr, .ots, .sha256"
 echo "and publish VERIFY.md alongside, with your public key."
+if [ -f "$FILE.ots" ]; then
+  echo "The Bitcoin anchor is only submitted. Run 'ots upgrade $FILE.ots' before you"
+  echo "publish anything that claims one."
+fi

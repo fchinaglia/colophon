@@ -4,6 +4,49 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [1.3.0] — 2026-08-23
+
+### Added
+
+- **`record.py` refuses an event it cannot let a second implementation check.** No floats,
+  integers within ±(2**53 − 1), ASCII keys — enforced at `append()`, refusing rather than
+  warning. A reader outside Python cannot reproduce these bytes: after a JavaScript
+  `JSON.parse`, `94.0` and `94` are the same value, and the distinction is destroyed by
+  parsing rather than recoverable afterwards; past 2**53 JavaScript loses precision
+  silently and returns a different number without saying so. None of it is repairable
+  after the fact — the register is append-only and reopening a case adds events rather
+  than rewriting them — so the check has to be at the door. The values that provoked it
+  are descriptive payload; nothing reads them as numbers and the measurement of record is
+  `kpi.json`, so writing them as strings loses nothing.
+- **`.nojekyll`**, because GitHub Pages runs Jekyll by default and will not serve
+  dot-directories. Without it any `.well-known/` path 404s, which is a failure nobody
+  diagnoses from the symptom.
+
+### Fixed
+
+- **The published timestamp could not be verified by anyone.** `seal.sh` defaulted to
+  `freetsa.org`, whose tokens chain to nothing a reader already has: measured,
+  `openssl ts -verify` against the system certificate bundle answers
+  `Verification: FAILED`. The default is now `timestamp.digicert.com`, which answers
+  `Verification: OK` with no setup, at the same cost, in the same format, and accepts the
+  SHA-512 query the script already sends. `VERIFY.md` carried `-CAfile [TSA-cacert].pem`,
+  a placeholder that was never resolved and that no reader could fill in; it now names the
+  system bundle, and says what to do when the authority sits outside it. Neither authority
+  carries an eIDAS presumption — that still needs a qualified TSA.
+- **`seal.sh` promised an anchor it cannot deliver.** It printed
+  `confirmed on Bitcoin within a few hours`. OpenTimestamps calendars batch submissions
+  and have been observed to accept one and never anchor it, silently; a `.ots` file on its
+  own therefore proves nothing. It now says *submitted — NOT yet anchored* and tells the
+  author to run `ots upgrade` and `ots verify` before publishing anything that claims an
+  anchor. `VERIFY.md` said the Bitcoin seal *requires trusting no authority at all*: it
+  requires a node or a block explorer you decide to believe, which depends on no
+  *authority* but is not the same as depending on nothing.
+- **`disclosures.md` documented a flag that does not exist.** `--full-root` exits with an
+  argparse error; the real flag is `--short-root` and it works the other way round, since
+  both forms print the root whole by default. The sample compact line also showed an event
+  count the code deliberately stopped printing in 1.2.0, and an abbreviated root the code
+  does not abbreviate. All three read as instructions and none of them worked.
+
 ## [1.2.0] — 2026-08-23
 
 ### Added

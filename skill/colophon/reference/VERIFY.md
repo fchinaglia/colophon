@@ -38,22 +38,34 @@ It must answer `Good "colophon" signature`.
 
 Two independent timestamps, so as not to depend on a single guarantor.
 
-**RFC 3161** — `events.jsonl.tsr`:
+**RFC 3161** — `events.jsonl.tsr`. The second command is the one that verifies; the first
+only prints what the token claims.
 
 ```bash
 openssl ts -reply -in events.jsonl.tsr -text | grep "Time stamp"
 openssl ts -verify -data events.jsonl -in events.jsonl.tsr \
-           -CAfile [TSA-cacert].pem
+           -CAfile "$(openssl version -d | sed 's/.*"\(.*\)"/\1/')/cert.pem"
 ```
 
-**OpenTimestamps** — `events.jsonl.ots`, anchored to the Bitcoin blockchain:
+It must answer `Verification: OK`. That `-CAfile` is your own system's certificate bundle:
+the default timestamp authority chains to it, so there is nothing to download. If the
+register was stamped by an authority outside it, the CA certificate is published in the
+case folder and named here instead — and if neither is true, say so rather than leaving a
+command that cannot run.
+
+**OpenTimestamps** — `events.jsonl.ots`, submitted for anchoring in the Bitcoin blockchain:
 
 ```bash
 pip install opentimestamps-client
-ots verify events.jsonl.ots
+ots upgrade events.jsonl.ots && ots verify events.jsonl.ots
 ```
 
-This one requires trusting no authority at all.
+Two honest qualifications, because this seal is the one most easily overstated. A `.ots`
+file means the register was *submitted*; the calendars batch submissions into a Bitcoin
+transaction and have been observed to accept one and never anchor it, so `ots upgrade` is
+what turns a submission into evidence. And verifying the result needs a Bitcoin node, or a
+block explorer you decide to believe: it depends on no *authority*, which is not the same
+as depending on nothing.
 
 ## 4. The text matches the annotation
 
