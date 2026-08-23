@@ -4,6 +4,35 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [1.2.0] — 2026-08-23
+
+### Changed
+
+- **The disclosure block is short by default, everywhere, PDFs included.** Five lines
+  instead of a paragraph — what it is, how much, what the gap means, how firm the
+  classification is, who answers for it — in that order, because the order is the
+  argument. Two of the five are conditional: the gap sentence drops when the two
+  percentages are close, and the boundary warning appears only when `build_icon.py`
+  reports the point within five points of an edge. One treatment for all of them: same
+  face, same size, same colour, only the percentages in bold. Nothing is coloured to
+  stand out — a block that raises its voice at the foot of an article puts the reader on
+  the defensive at the moment the method is trying to do the opposite.
+- **The technical line is three short lines by default**: whether the register is
+  signed, where it lives, how many events and the root. `--form full` restores the
+  sentence that names each seal, for a printed sheet or an archive copy where nobody
+  will follow a link.
+- **The root is abbreviated in the compact form.** The line names an address, the page
+  at that address prints it whole, and a reader who is comparing is already there.
+  `--full-root` overrides it; `--form full` prints it whole as before.
+- The paragraph note stays as **the full form**, for a page with room to explain itself:
+  it is the only one that carries the breakdown by phase in words. And an **essential
+  form** is documented for a card or a slide, with the warning that it drops the line
+  about responsibility, which is the one that only exists if it is said.
+
+This is the detail-on-demand shape the research the method cites asks for: two thirds of
+readers want the detail, and among those who prefer one line most want it a click away.
+Now they get the numbers where they are and the rest at an address written for them.
+
 ## [1.1.1] — 2026-08-23
 
 ### Fixed

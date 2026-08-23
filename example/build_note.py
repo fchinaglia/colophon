@@ -109,6 +109,18 @@ TAIL = {
     },
 }
 
+# The compact form: three short lines instead of a sentence. It is the default because
+# it is what goes under an article, where a paragraph of prose in a monospace face is
+# not read. The long form stays available for a page that has room to explain itself.
+COMPACT = {
+    "en": {"sealed": "signed and inspectable register",
+           "unsealed": "register not sealed yet — no signature or timestamp",
+           "count": "{n} events · root {root}"},
+    "it": {"sealed": "registro firmato e ispezionabile",
+           "unsealed": "registro non ancora sigillato — nessuna firma né marca temporale",
+           "count": "{n} eventi · radice {root}"},
+}
+
 # The verification page is named by the author, in the author's language. Look for
 # what is actually on disk instead of asserting a filename that may not exist.
 DOC_NAMES = {
@@ -157,12 +169,23 @@ def find_url(base_dir, keys):
     return None
 
 
+def warn_no_address(lang):
+    print("build_note.py: " + TAIL[lang]["no_address"].format(
+        keys=" / ".join(PAGE_KEYS + URL_KEYS), files=" or ".join(CASE_FILES)),
+          file=sys.stderr)
+
+
+def html_escape(s):
+    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def shown(url):
     """What the reader sees: the address without the scheme, which they do not type."""
     return url.split("://", 1)[-1].rstrip("/")
 
 
-def line(log="events.jsonl", lang="en", html=False, url=None, short_root=False):
+def line(log="events.jsonl", lang="en", html=False, url=None,
+         short_root=None, form="compact"):
     if lang not in LANGS:
         raise SystemExit(f"unknown language {lang!r}: choose one of {', '.join(LANGS)}")
     if not os.path.exists(log):
@@ -182,6 +205,11 @@ def line(log="events.jsonl", lang="en", html=False, url=None, short_root=False):
         raise SystemExit(f"{log}: the last event has no hash — is this a register?")
 
     root = events[-1]["hash"]
+    # The whole root when the line stands alone, because comparing is the reader's job.
+    # The short one in the compact form: there the line names an address, and the page
+    # at that address prints the root in full, one click away.
+    if short_root is None:
+        short_root = form == "compact"
     printed_root = f"{root[:8]}…{root[-8:]}" if short_root else root
     base_dir = os.path.dirname(os.path.abspath(log))
     t = TAIL[lang]
@@ -192,21 +220,35 @@ def line(log="events.jsonl", lang="en", html=False, url=None, short_root=False):
     url = url or page or find_url(base_dir, URL_KEYS)
     doc = find_doc(base_dir, lang)
 
+    where = shown(url) if url else doc
+
+    if form == "compact":
+        c = COMPACT[lang]
+        rows = [c["sealed"] if present else c["unsealed"]]
+        if url:
+            rows.append(where)
+        rows.append(c["count"].format(n=len(events), root=printed_root))
+        if not url and not doc:
+            warn_no_address(lang)
+        if html:
+            body = "<br>".join(
+                f'<a href="{url}">{r}</a>' if url and r == where else html_escape(r)
+                for r in rows)
+            return f'<p class="technical">{body}</p>'
+        return "\n".join(rows)
+
     text = HEAD[lang].format(n=len(events), root=printed_root)
     text += (t["seals"].format(seals=upper_first(join(present, lang))) if present
              else t["unsealed"])
 
     # An address beats a filename: the filename only helps a reader who already has
     # the folder, which is the one reader who did not need telling.
-    where = shown(url) if url else doc
     if url:
         text += t["at_page" if page else "at_url"].format(where=where)
     elif doc:
         text += t["at_doc"].format(where=where)
     else:
-        print("build_note.py: " + t["no_address"].format(
-            keys=" / ".join(PAGE_KEYS + URL_KEYS), files=" or ".join(CASE_FILES)),
-              file=sys.stderr)
+        warn_no_address(lang)
 
     if html:
         out = text.replace(printed_root, f"<code>{printed_root}</code>")
@@ -230,10 +272,15 @@ def main():
                    help="wording language (default: en)")
     p.add_argument("--url", default=None,
                    help="where the register is published; overrides the case metadata")
-    p.add_argument("--short-root", action="store_true",
-                   help="abbreviate the root — for a social card or a slide, not for a page")
+    p.add_argument("--short-root", action="store_true", default=None,
+                   help="abbreviate the root (the default in the compact form)")
+    p.add_argument("--full-root", dest="short_root", action="store_false",
+                   help="print the root in full even in the compact form")
+    p.add_argument("--form", choices=("compact", "full"), default="compact",
+                   help="compact: three short lines, the default. full: one sentence "
+                        "naming every seal, with the root in full")
     a = p.parse_args()
-    print(line(a.log, a.lang, a.html, a.url, a.short_root))
+    print(line(a.log, a.lang, a.html, a.url, a.short_root, a.form))
 
 
 if __name__ == "__main__":
