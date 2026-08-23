@@ -123,7 +123,10 @@ warning = ("<p class=\"note\" style=\"border-left-color:var(--ai)\">Warning: thi
 # not a check a reader can rely on, and this method is not entitled to one of those.
 orphans = kpi.get("orphans") or []
 explained = kpi.get("explained") or {}
-unexplained = kpi.get("unexplained") or []
+# Derived here, not read from kpi.json: a measurement file written before the field
+# existed has no "unexplained" key, and trusting its absence would print "all declared"
+# over a table of changes nobody declared.
+unexplained = [o for o in orphans if not explained.get(o)]
 if not orphans:
     coverage_meta = "coverage: every declared change has a span"
     coverage_block = ""
