@@ -4,6 +4,38 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [1.5.0] — 2026-08-23
+
+Two deliverables now live in this repository and they are versioned separately.
+`v1.5.0` is the skill; the prototype is tagged `server/v0.1.0` and marked pre-release,
+which is both accurate and what keeps the skill the one GitHub calls *latest*.
+
+### Added — the specification
+
+- **`spec/canonical.md`**, with 31 conformance vectors and a checker. The chain hashes
+  bytes while an event is an object, so the mapping between them is part of the format,
+  and a second implementation now needs it written down: `record.py --verify`
+  re-serializes with the same function it wrote with, so it agrees with itself whatever
+  that function does.
+- The rule turned out not to be a choice. `cases/001` carries **72 non-integer numbers
+  across 18 of its 80 events**, and after a JavaScript `JSON.parse` `94.0` and `94` are
+  the same value. RFC 8785 formats `94.0` as `94` too, so **JCS is not backward
+  compatible with the registers this project has already sealed.** The format forbids
+  what JavaScript cannot hold, and the verifier refuses what came before rather than
+  guessing at it.
+- **`case_uid` in `case.json`.** Where a case is deposited, its address derives from it,
+  so it must exist before the manifest — which covers `case.json`. An address derived
+  from the register's root could not: the root is the hash of the manifest event.
+
+### Added — tests
+
+- **32 assertions and CI**, on Python 3.9 and 3.13 across Ubuntu and macOS, plus a
+  Windows job whose only purpose is to fail loudly on the line-ending hazard, on the
+  platform that causes it. Every unit test is an entry in this file — a regression that
+  has already happened once.
+- Writing them found something this file had not recorded: **`.gitattributes` did not
+  cover `example/`**, the register every contributor is told to run before opening a PR.
+
 ## [Unreleased]
 
 ### Added
