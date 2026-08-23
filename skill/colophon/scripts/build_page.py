@@ -20,6 +20,7 @@ import html
 import json
 import os
 import re
+import sys
 
 spans = json.load(open("spans.json", encoding="utf-8"))
 kpi = json.load(open("kpi.json", encoding="utf-8"))
@@ -126,6 +127,22 @@ warning = ("<p class=\"note\" style=\"border-left-color:var(--ai)\">Warning: thi
 reg_url = case.get("register_url") or case.get("url_registro") or ""
 reg_link = (f'<span><a href="{html.escape(reg_url, quote=True)}">the register and '
             f'every file</a></span>') if reg_url else ""
+
+def refuse_if_ungated(kpi, path="kpi.json"):
+    """A caller that ignores an exit status must not get past this.
+
+    measure.py refuses to write a measurement that failed its checks, so a kpi.json
+    saying otherwise means someone kept an old one, or edited it. Publishing from it
+    would put numbers on a page that the checks never passed.
+    """
+    if kpi.get("unexplained"):
+        sys.exit(f"{path}: {len(kpi['unexplained'])} declared changes with no span and "
+                 f"no reason ({', '.join(kpi['unexplained'])}) — run measure.py first")
+    if kpi.get("integrity") is False:
+        sys.exit(f"{path}: the reconstruction check failed — run measure.py first")
+
+
+refuse_if_ungated(kpi)
 
 orphans = kpi.get("orphans") or []
 explained = kpi.get("explained") or {}

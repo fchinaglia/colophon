@@ -155,9 +155,6 @@ def main():
     # edit that has since been annotated, and a stale exception hides the next one.
     stale = sorted(k for k in explained if k not in orphans)
 
-    json.dump(spans, open("spans.json", "w", encoding="utf-8"),
-              ensure_ascii=False, indent=1)
-
     tot = sum(s["words"] for s in spans) or 1
 
     def share(key, sel=None):
@@ -182,8 +179,6 @@ def main():
               f"or the register never declared it. Remove it from \"explained\"")
     if unexplained:
         print(f"  ! no span and no explanation: {', '.join(unexplained)}")
-        print('    annotate them, or say why in "explained" in ' + ANN_FILE +
-              ': {"R12": "superseded by R19"}')
     print(f"spans {len(spans)} · words {tot}\n")
     print(f"AI lexical    {100*ai_lex:5.1f}%   (A {100*lex_q['A']:.1f} · "
           f"UA {100*lex_q['UA']:.1f} · U {100*lex_q['U']:.1f})")
@@ -199,7 +194,7 @@ def main():
             by_phase[f] = {"words": t, "ai": round(100 * v, 1)}
             print(f"{f:22}{t:>8}{100*v:>9.1f}%")
 
-    json.dump({"words": tot, "spans": len(spans), "integrity": ok,
+    kpi = {"words": tot, "spans": len(spans), "integrity": ok,
                "orphans": orphans,
                "explained": {k: v for k, v in explained.items() if k in orphans},
                "unexplained": unexplained,
@@ -207,16 +202,42 @@ def main():
                "ai_ideational": round(100 * ai_idea, 1),
                "lexical": {k: round(100 * v, 1) for k, v in lex_q.items()},
                "ideational": {k: round(100 * v, 1) for k, v in idea_q.items()},
-               "by_phase": by_phase},
-              open("kpi.json", "w", encoding="utf-8"),
-              ensure_ascii=False, indent=1)
+           "by_phase": by_phase}
 
     # Both checks gate the numbers, which is what the skill and the paper have always
     # said and what the script did not do: an unexplained orphan is the signature of
     # the incident this check was written for — an annotation that fell behind while
     # the reconstruction stayed green.
+    #
+    # A failing run writes nothing. The figures above are printed because they are how
+    # you diagnose the problem, but leaving them in kpi.json would let build_icon.py and
+    # build_page.py publish numbers that did not pass — and an exit status is a signal
+    # only for whoever thinks to look at one. The last thing on screen has to be the
+    # reason, not a table of percentages that reads like success.
     if not ok or unexplained or stale:
+        # stdout is block-buffered when piped: without this the reason lands above the
+        # table it is supposed to close, which is where nobody reads it.
+        sys.stdout.flush()
+        print("\n  NOT WRITTEN — kpi.json and spans.json are unchanged.", file=sys.stderr)
+        if not ok:
+            print("  reconstruction failed: the spans do not reproduce the text.",
+                  file=sys.stderr)
+        for k in stale:
+            print(f"  stale exception {k}: it is not an unmatched change any more.",
+                  file=sys.stderr)
+        if unexplained:
+            print(f"  {len(unexplained)} declared change"
+                  f"{'s' if len(unexplained) > 1 else ''} with no span and no reason: "
+                  f"{', '.join(unexplained)}", file=sys.stderr)
+            print('  annotate them, or say why in "explained" inside ' + ANN_FILE +
+                  ': {"R12": "superseded by R19"}', file=sys.stderr)
+        print("  nothing downstream will run on these numbers.\n", file=sys.stderr)
         sys.exit(1)
+
+    json.dump(spans, open("spans.json", "w", encoding="utf-8"),
+              ensure_ascii=False, indent=1)
+    json.dump(kpi, open("kpi.json", "w", encoding="utf-8"),
+              ensure_ascii=False, indent=1)
 
 
 if __name__ == "__main__":

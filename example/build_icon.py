@@ -46,6 +46,20 @@ HALO = 'paint-order="stroke" stroke="#fcfcfb" stroke-width="3" stroke-linejoin="
 
 
 
+def refuse_if_ungated(kpi, path="kpi.json"):
+    """A caller that ignores an exit status must not get past this.
+
+    measure.py refuses to write a measurement that failed its checks, so a kpi.json
+    saying otherwise means someone kept an old one, or edited it. Publishing from it
+    would put numbers on a page that the checks never passed.
+    """
+    if kpi.get("unexplained"):
+        sys.exit(f"{path}: {len(kpi['unexplained'])} declared changes with no span and "
+                 f"no reason ({', '.join(kpi['unexplained'])}) — run measure.py first")
+    if kpi.get("integrity") is False:
+        sys.exit(f"{path}: the reconstruction check failed — run measure.py first")
+
+
 def icon(x, y):
     """x, y = human shares of words and ideas, in 0..1."""
     c = S / 2
@@ -107,6 +121,7 @@ def main():
     if not os.path.exists(src):
         sys.exit(f"missing {src} — run measure.py first")
     k = json.load(open(src, encoding="utf-8"))
+    refuse_if_ungated(k, src)
     x = 1 - k["ai_lexical"] / 100
     y = 1 - k["ai_ideational"] / 100
     svg, name = icon(x, y)

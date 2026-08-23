@@ -4,6 +4,19 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [1.1.1] — 2026-08-23
+
+### Fixed
+
+- **The coverage gate could be walked past.** `measure.py` exited non-zero, and then
+  printed the percentages anyway, wrote `kpi.json` and `spans.json` anyway, and left
+  `build_icon.py` and `build_page.py` free to publish from them. The failure sat eight
+  lines above a table that reads like success, and an exit status is a signal only for
+  whoever thinks to look at one. A failing run now writes nothing, and closes with the
+  reason instead of the numbers. `build_icon.py` and `build_page.py` refuse a `kpi.json`
+  that reports undeclared changes or a failed reconstruction, so a caller that ignores
+  exit codes is stopped too.
+
 ## [1.1.0] — 2026-08-23
 
 A day of using the method on its own cases, which is where all of this came from.
