@@ -127,7 +127,7 @@ Also worth stating plainly: ideational attribution is a judgement, not a measure
 | [`skill/colophon/reference/protocol.md`](skill/colophon/reference/protocol.md) | attribution rules and the hard cases |
 | [`skill/colophon/reference/disclosures.md`](skill/colophon/reference/disclosures.md) | ready-to-publish disclosure texts, with the reasons behind their wording |
 | [`skill/colophon/reference/VERIFY.md`](skill/colophon/reference/VERIFY.md) | the template you publish next to a register so readers can check it |
-| [`paper/colophon-method.pdf`](paper/colophon-method.pdf) | the method paper, 12 pages, with the evidence base |
+| [`paper/colophon-method.md`](paper/colophon-method.md) · [`.pdf`](paper/colophon-method.pdf) | the method paper, 12 pages, with the evidence base. The Markdown is the source; the PDF is a rendering of it and can lag behind |
 | [`example/`](example/) | a small worked case you can run end to end |
 
 ---

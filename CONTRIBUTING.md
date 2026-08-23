@@ -46,6 +46,17 @@ If you think one of these is wrong, that is a conversation worth having — open
   python3 record.py --verify && python3 measure.py && python3 build_icon.py && python3 build_page.py && python3 build_note.py
   ```
 
+- **The paper.** `paper/colophon-method.md` is the source; `paper/colophon-method.pdf` is
+  a rendering of it. Change the Markdown, never the PDF. The two can drift, and today
+  nothing catches it.
+
+  The PDF currently in the repository was printed by headless Chrome on Linux from an
+  intermediate `colophon-method.html` — that is what its metadata says — and neither
+  that HTML nor its stylesheet is in this repository, so the render cannot be
+  reproduced exactly. Whoever regenerates it next: commit the HTML, or the script that
+  produces it, alongside the paper, and write the command in here. A rendering nobody
+  can reproduce is a document that will keep drifting from its source.
+
 - **Commits and PRs.** Say what changed and why. If the change alters a measurement, say what the number was before and what it is now.
 
 ## Conduct
