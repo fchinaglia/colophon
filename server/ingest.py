@@ -305,6 +305,15 @@ def store(tmp, submission, pub_line, fingerprint, prespec):
     staging = dest + ".incoming"
     shutil.rmtree(staging, ignore_errors=True)
     shutil.copytree(tmp, staging)
+    # A staging tree copied from mkdtemp inherits 0700, and the read container runs as
+    # a different user: nginx then answers 404 on a file that is sitting right there,
+    # with `Permission denied` only in its error log. Make the tree readable.
+    os.chmod(staging, 0o755)
+    for base, dirs, files in os.walk(staging):
+        for d in dirs:
+            os.chmod(os.path.join(base, d), 0o755)
+        for f in files:
+            os.chmod(os.path.join(base, f), 0o644)
     os.remove(os.path.join(staging, "submission.json"))
     with open(os.path.join(staging, "submission.json"), "w", encoding="utf-8") as f:
         json.dump({"submission": submission, "public_key": pub_line.strip()},

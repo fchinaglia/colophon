@@ -86,10 +86,40 @@ Writes are gated by an invite for the trial. That does not betray the principle:
 **not being a gatekeeper is a property of the format and the software, not of one
 operator's trial instance.** The container anyone downloads has no invite file.
 
-## Untested
+## Run against the real stack
 
-**The compose stack has not been run** — it needs a Docker daemon, and none was
-available. `nginx.conf` is unexercised: the tests stand a plain static file server in
-for it, which proves the bytes survive storage and transport, not that the nginx
-configuration is right. Run `docker compose up --build` and re-check a fetched
-`events.jsonl` against its digest before trusting it.
+Measured, `docker compose up --build`, depositing `cases/001` and reading it back:
+
+```
+/c/<id>/                    200  text/html
+/c/<id>/events.jsonl        200  application/octet-stream   byte-identical
+/c/<id>/bundle.tar          200  application/octet-stream
+/c/<id>/verification.html   200  text/html
+/c/<id>/icon.svg            200  image/svg+xml
+/observations.jsonl         200  application/octet-stream
+/owners.jsonl               404      <- private, and not under public/
+/../owners.jsonl            404
+/c/                         404      <- no listing
+```
+
+`Cache-Control: public, max-age=31536000, immutable`, and no `Content-Encoding` even
+when the client asks for one. The bundle fetched through nginx verifies: chain refused
+as pre-spec rather than broken, signature valid, 16 of 16 manifest digests, measurement
+declined.
+
+**Two bugs only the real stack could show.**
+
+*The container crash-looped while reporting itself healthy.* `USER nobody` with a named
+volume: Docker creates the volume root-owned, `nobody` could not create `/data/public`,
+and `restart: unless-stopped` kept `docker compose ps` saying `running`. The image now
+creates and owns `/data` **before** dropping privileges, so the empty volume is seeded
+with that ownership.
+
+*nginx answered 404 on a file that was sitting right there.* A staging tree copied from
+`mkdtemp` inherits `0700`, and the read container runs as a different user, so nginx
+could not traverse the directory — with `Permission denied` visible only in its error
+log, and a plain 404 for the reader. The stored tree is now explicitly `0755`/`0644`.
+
+And one thing the logs showed rather than the tests: **nginx writes an access log by
+default**, reader IPs included. A disclosure tool that logs its readers is self-refuting,
+so `access_log off` — errors are kept, readers are not.
