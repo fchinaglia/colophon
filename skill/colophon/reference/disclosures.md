@@ -172,7 +172,7 @@ stacked in a column to its right**, in that order down the page.
 .note        { font-style: italic; font-size: 9pt; line-height: 1.55;
                text-align: justify; }
 .technical   { font-family: ui-monospace, monospace; font-size: 7pt;
-               color: #7a7975; margin-top: 3.5mm; }
+               color: #7a7975; margin-top: 3.5mm; overflow-wrap: anywhere; }
 ```
 
 The reading order is deliberate. The icon answers the question in one glance; the
@@ -192,6 +192,8 @@ rule holds only if the size does not depend on the width of the container. At a
 percentage, a narrow column makes the four labels illegible, which is the one
 failure the icon cannot survive: an unreadable quadrant is worse than no icon,
 because it looks like a claim while being none.
+
+**Let the root break.** `overflow-wrap: anywhere` on the technical line: the root is a sixty-four-character word with nowhere to hyphenate, and without it a narrow column pushes it straight out of the block. With it the root usually lands whole on a line of its own, which is also the easiest form to compare against.
 
 **Use a table, not flexbox.** This block has to render in HTML, in PDF and inside
 an image. Older rendering engines — including the ones behind common HTML-to-PDF
