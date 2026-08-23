@@ -123,7 +123,11 @@ def main():
     # --- check 1: reconstruction ---
     rebuilt = norm(" ".join(s["text"] for s in spans))
     original = norm(" ".join(b for i, b in enumerate(blocks) if i not in excluded))
-    ok = rebuilt == original
+    # An error found while cutting the spans — a marker that is missing, ambiguous, or
+    # out of order — has to fail the run, not merely be mentioned. An ambiguous marker
+    # moves a span boundary onto the wrong occurrence, and the text still reconstructs:
+    # that is the whole danger of it, and it is why reporting is not enough.
+    ok = rebuilt == original and not errors
     # An empty span set must never pass. Comparing nothing with nothing is not
     # evidence of anything, and it is exactly what happens when the source file
     # has been truncated: the check would report OK on a destroyed text.

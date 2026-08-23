@@ -6,6 +6,15 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [1.2.0] — 2026-08-23
 
+### Fixed
+
+- **A span marker that is ambiguous, missing or out of order now fails the run.** It was
+  detected and reported, and the run carried on to print `reconstruction: OK` and exit
+  zero — which is precisely the shape of the danger: an ambiguous marker moves a span
+  boundary onto the wrong occurrence and the text still reconstructs, so the report was
+  the only signal and nothing acted on it. Found by testing issue #2 against the current
+  code rather than assuming it had been closed.
+
 ### Changed
 
 - **The disclosure block is short by default, everywhere, PDFs included.** Five lines
