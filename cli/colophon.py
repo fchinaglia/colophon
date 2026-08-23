@@ -76,18 +76,29 @@ def b58encode(data: bytes) -> str:
     return "1" * (len(data) - len(data.lstrip(b"\0"))) + out
 
 
-def case_id(author_secret_hex: str, root: str) -> str:
+def case_id(author_secret_hex: str, case_uid: str) -> str:
     """The address a case lives at.
 
-        case_id = base58( HMAC-SHA256(author_secret, root_ascii)[:16] )   padded to 22
+        case_id = base58( HMAC-SHA256(author_secret, case_uid)[:16] )   padded to 22
 
-    HMAC rather than a random id, so the author can recompute any case's address from
-    the root and their secret and never has to store a URL. To anyone else it is
-    indistinguishable from 128 random bits, so holding one address is no help in
-    finding another — and there is no author component, so two cases by the same
-    person cannot be linked from their addresses.
+    Derived from an identifier the author fixes when the case is OPENED, not from the
+    register's root. That is what makes the address exist before the case is sealed, so
+    it can go into case.json and be covered by the manifest — a root-derived address
+    cannot, because the root is the hash of the manifest event and the manifest covers
+    case.json.
+
+    HMAC rather than a random id, so the author recomputes any case's address from its
+    uid and their secret and never has to store a URL. To anyone else it is
+    indistinguishable from 128 random bits: holding one address is no help in finding
+    another, and there is no author component, so two cases by the same person cannot be
+    linked from their addresses.
+
+    What it gives up is that the address no longer commits to the content — but that was
+    already given up when the root left the path, and link substitution stays detectable
+    from a better anchor: the note prints the root, so the reader compares against the
+    article in their hands rather than against the URL somebody sent them.
     """
-    mac = hmac.new(bytes.fromhex(author_secret_hex), root.encode("ascii"),
+    mac = hmac.new(bytes.fromhex(author_secret_hex), case_uid.encode("utf-8"),
                    hashlib.sha256).digest()
     return b58encode(mac[:16]).rjust(CASE_ID_LEN, "1")
 
@@ -405,7 +416,19 @@ def cmd_deposit(a):
         return 1
 
     root = rows[-1]["hash"]
-    cid = case_id(cfg["author_secret"], root)
+    try:
+        case_json = json.load(open(os.path.join(case_dir, "case.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        case_json = {}
+    uid = a.uid or case_json.get("case_uid")
+    if not uid:
+        print("! this case has no `case_uid` in case.json, and none was given with --uid.",
+              file=sys.stderr)
+        print("  The address is derived from it, and it must be fixed when the case is",
+              file=sys.stderr)
+        print("  opened — before the manifest, which covers case.json.", file=sys.stderr)
+        return 1
+    cid = case_id(cfg["author_secret"], uid)
     manifest = manifest_of(rows)
     keep, refused = collect(case_dir, manifest)
 
@@ -436,6 +459,7 @@ def cmd_deposit(a):
 
     submission = {
         "case_id": cid,
+        "case_uid": uid,
         "mirror": bool(a.mirror),
         "root": root,
         "sha256_events": hashlib.sha256(raw).hexdigest(),
@@ -517,12 +541,32 @@ def build_tar(path, envelope, keep, case_dir):
     os.replace(tmp, path)
 
 
+def cmd_address(a):
+    """Print where a case will live, given its uid. Run this when the case is opened:
+    the answer goes into case.json, and the manifest then covers it."""
+    cfg = load_config()
+    if not cfg:
+        print("! not set up yet — run `colophon setup` first.", file=sys.stderr)
+        return 1
+    cid = case_id(cfg["author_secret"], a.uid)
+    base = (cfg.get("base_url") or "").rstrip("/")
+    print(f"  uid      {a.uid}")
+    print(f"  case_id  {cid}")
+    if base:
+        print(f"  url      {base}/c/{cid}/")
+    return 0
+
+
 # --------------------------------------------------------------------------- cli
 
 def main(argv=None):
     p = argparse.ArgumentParser(prog="colophon", description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
+
+    a2 = sub.add_parser("address", help="the address a case will live at, before it exists")
+    a2.add_argument("uid")
+    a2.set_defaults(func=cmd_address)
 
     s = sub.add_parser("setup", help="once, before the first case")
     s.add_argument("--force", action="store_true", help="replace an existing config")
@@ -539,6 +583,7 @@ def main(argv=None):
     d.add_argument("case_dir")
     d.add_argument("--to", help="instance base URL")
     d.add_argument("--invite", help="invite code, while an instance is invite-only")
+    d.add_argument("--uid", help="the case uid, if case.json does not carry one")
     d.add_argument("--mirror", action="store_true",
                    help="ask the instance to push a copy to a public archive. Permanent "
                         "and public: it is what makes the instance one location rather "

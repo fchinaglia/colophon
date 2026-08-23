@@ -107,7 +107,7 @@ try:
 
     case = os.path.join(home, "case")
     shutil.copytree(os.path.join(REPO, "cases", "001"), case)
-    r = subprocess.run([sys.executable, CLI, "deposit", case, "--to", base],
+    r = subprocess.run([sys.executable, CLI, "deposit", case, "--uid", "srv-test", "--to", base],
                        env=env, capture_output=True, text=True)
     ok(r.returncode == 0, "deposit --to succeeds", r.stdout + r.stderr)
 
@@ -210,7 +210,7 @@ try:
     json.dump(cfg2, open(os.path.join(home2, ".config", "colophon", "author.json"), "w"))
     case2 = os.path.join(home2, "case")
     shutil.copytree(os.path.join(REPO, "cases", "001"), case2)
-    r = subprocess.run([sys.executable, CLI, "deposit", case2, "--to", base],
+    r = subprocess.run([sys.executable, CLI, "deposit", case2, "--uid", "srv-test", "--to", base],
                        env=env2, capture_output=True, text=True)
     ok(r.returncode != 0 and "another key" in (r.stdout + r.stderr),
        "a second key cannot overwrite the first's address", (r.stdout + r.stderr)[-200:])
@@ -237,7 +237,7 @@ try:
                    env=env3, capture_output=True, check=True)
     case3 = os.path.join(home3, "case")
     shutil.copytree(os.path.join(REPO, "cases", "001"), case3)
-    r = subprocess.run([sys.executable, CLI, "deposit", case3, "--to", base, "--mirror",
+    r = subprocess.run([sys.executable, CLI, "deposit", case3, "--uid", "srv-mirror", "--to", base, "--mirror",
                         "--invite", "LETMEIN"], env=env3, capture_output=True, text=True)
     ok(r.returncode == 0, "a deposit with --mirror still succeeds", r.stdout[-300:])
     ok("permanent" in r.stdout,

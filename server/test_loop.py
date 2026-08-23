@@ -97,7 +97,7 @@ try:
     case = os.path.join(home, "case")
     shutil.copytree(os.path.join(REPO, "cases", "001"), case)
 
-    r = subprocess.run([sys.executable, CLI, "deposit", case,
+    r = subprocess.run([sys.executable, CLI, "deposit", case, "--uid", "loop-case",
                         "--to", f"http://127.0.0.1:{write_port}"],
                        env=env, capture_output=True, text=True)
     if r.returncode:

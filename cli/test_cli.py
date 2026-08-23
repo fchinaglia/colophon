@@ -49,12 +49,12 @@ ok(C.b58encode(b"\x00\x00\x01") == "112", "base58 keeps leading zero bytes",
 ok(C.b58encode(bytes([255] * 16)), "base58 encodes 16 bytes")
 
 SECRET = "11" * 32
-cid1 = C.case_id(SECRET, "a" * 64)
-cid2 = C.case_id(SECRET, "a" * 64)
-cid3 = C.case_id(SECRET, "b" * 64)
-cid4 = C.case_id("22" * 32, "a" * 64)
-ok(cid1 == cid2, "the same secret and root give the same address")
-ok(cid1 != cid3, "a different root gives a different address")
+cid1 = C.case_id(SECRET, "my-first-piece")
+cid2 = C.case_id(SECRET, "my-first-piece")
+cid3 = C.case_id(SECRET, "my-second-piece")
+cid4 = C.case_id("22" * 32, "my-first-piece")
+ok(cid1 == cid2, "the same secret and uid give the same address")
+ok(cid1 != cid3, "a different uid gives a different address")
 ok(cid1 != cid4, "a different secret gives a different address")
 ok(len(cid1) == 22, "22 characters", f"got {len(cid1)}: {cid1}")
 ok(all(ch in C.B58 for ch in cid1), "base58 alphabet only")
@@ -124,6 +124,10 @@ if not os.path.isdir(case_src):
 else:
     case = os.path.join(home, "case")
     shutil.copytree(case_src, case)
+    cj = os.path.join(case, "case.json")
+    d = json.load(open(cj, encoding="utf-8"))
+    d["case_uid"] = "test-loop-case"          # fixed when a case is opened
+    json.dump(d, open(cj, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
     r = run_cli("deposit", case)
     tar_path = os.path.join(case, "deposit.tar")
     ok(os.path.exists(tar_path), "deposit.tar written")
@@ -141,8 +145,9 @@ else:
     rows = [json.loads(l) for l in open(os.path.join(case, "events.jsonl"),
                                         encoding="utf-8") if l.strip()]
     ok(sub["root"] == rows[-1]["hash"], "root is the last event's hash")
-    ok(sub["case_id"] == C.case_id(cfg["author_secret"], sub["root"]),
-       "address is recomputable from the root and the secret")
+    ok(sub["case_id"] == C.case_id(cfg["author_secret"], sub["case_uid"]),
+       "address is recomputable from the uid and the secret")
+    ok(sub["case_uid"] == "test-loop-case", "the uid travels in the submission")
     ok(sub["key_fingerprint"] == cfg["key_fingerprint"], "carries the fingerprint")
 
     files = sub["files"]
