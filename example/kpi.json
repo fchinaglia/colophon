@@ -3,6 +3,8 @@
  "spans": 5,
  "integrity": true,
  "orphans": [],
+ "explained": {},
+ "unexplained": [],
  "ai_lexical": 16.4,
  "ai_ideational": 5.5,
  "lexical": {

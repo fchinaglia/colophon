@@ -118,6 +118,33 @@ warning = ("<p class=\"note\" style=\"border-left-color:var(--ai)\">Warning: thi
 # extra_notes is a string in every example and every case written so far. Iterating
 # it as if it were a list yields one paragraph per character, which is what shipped:
 # accept both shapes and let a plain string stay one note.
+# The coverage result has lived in kpi.json and in the terminal of whoever ran the
+# script, which is to say nowhere a reader could reach it. A check nobody can see is
+# not a check a reader can rely on, and this method is not entitled to one of those.
+orphans = kpi.get("orphans") or []
+explained = kpi.get("explained") or {}
+unexplained = kpi.get("unexplained") or []
+if not orphans:
+    coverage_meta = "coverage: every declared change has a span"
+    coverage_block = ""
+else:
+    coverage_meta = (f"coverage: {len(orphans)} changes without a span, "
+                     + ("all declared" if not unexplained
+                        else f"{len(unexplained)} undeclared"))
+    rows = "".join(
+        f"<tr><td><code>{html.escape(k)}</code></td><td>"
+        f"{html.escape(explained.get(k) or '— not declared')}</td></tr>"
+        for k in orphans)
+    coverage_block = (
+        '<h2 class="sect">Changes without a span</h2>'
+        '<p class="note">The register declares these interventions and the annotation '
+        'attaches none of them to a piece of the final text. That is expected for an '
+        'edit a later one replaced, and for a diffuse pass recorded as an event without '
+        'touching the attributions. Each is listed with the reason the author gave; '
+        'anything marked as not declared is an open question about this measurement.</p>'
+        f'<table><thead><tr><th>change</th><th>why it has no span</th></tr></thead>'
+        f'<tbody>{rows}</tbody></table>')
+
 notes = case.get("extra_notes") or []
 if isinstance(notes, str):
     notes = [notes]
@@ -226,6 +253,7 @@ where, and whose is what.</p>
 <span>{total} words · {len(spans)} spans</span>
 <span>{len(events)} events · {n_decisions} editorial decisions</span>
 <span>hash chain root <code>{root[:16]}…</code></span>
+<span>{coverage_meta}</span>
 </div></header>
 
 {warning}
@@ -270,6 +298,8 @@ responsibility for the text is entirely theirs.</p>
 <table><thead><tr><th>phase</th><th class="n">words</th><th class="n">human %</th>
 <th class="n">mixed %</th><th class="n">AI %</th><th class="n">AI ideational %</th>
 </tr></thead><tbody>{''.join(table_rows)}</tbody></table>
+
+{coverage_block}
 
 <details><summary>Method, and what this page does not prove</summary>
 <p><strong>How it was produced.</strong> Every request from the author and every output

@@ -101,7 +101,9 @@ Three names come from the classes of LLM-DetectAIve (Abassy et al., EMNLP 2024 S
 `measure.py` runs both, and both must pass before any number is published.
 
 1. **reconstruction** — concatenating the annotated spans must reproduce the text exactly.
-2. **coverage** — every change declared in the register must appear in at least one span.
+2. **coverage** — every change declared in the register must appear in at least one span, or be declared in `explained`, with the reason, which the verification page then shows the reader.
+
+`measure.py` stops with a non-zero status when either fails, so nothing downstream runs on a number that has not passed. The two cases in `cases/` predate the rule and keep their own copies of the scripts, as every case folder does: they are unaffected by it, and they are not evidence that it passes.
 
 The second was added after an incident during validation: an annotation update failed silently, the text came out right, the reconstruction check passed, and the KPI reported a wrong value for several minutes. The risk is not manipulation. It is drift.
 

@@ -90,9 +90,17 @@ The complete rules, with the edge cases, are in `reference/protocol.md`. **Read 
 `measure.py` runs both of them and they must **always** pass before you publish any number:
 
 1. **Reconstruction check** — concatenating the spans must reproduce the text exactly, excluding the declared blocks.
-2. **Coverage check** — every edit declared in the register must appear in at least one span, or else be explainable (superseded by a later intervention, or diffuse).
+2. **Coverage check** — every edit declared in the register must appear in at least one span, or be declared in `explained`.
 
 The first check on its own is not enough: the text can be right while the annotation has fallen behind. It has already happened.
+
+`measure.py` exits non-zero when either fails, so the pipeline stops before a number is published. An edit with no span is often legitimate — one a later edit replaced, or a diffuse pass the protocol tells you to record as an event without touching the attributions — so the check does not forbid it. It requires that you name it:
+
+```json
+"explained": {"R12": "superseded by R19", "R25": "diffuse, attributions unchanged"}
+```
+
+in `annotation.json`, next to the annotation it qualifies. Write the reason, not a placeholder: it is published on the verification page beside the edit it refers to, and a reader will judge the measurement by it. An exception that no longer matches an unmatched edit also stops the run — a stale one hides the next real gap.
 
 ## How the numbers are reported
 

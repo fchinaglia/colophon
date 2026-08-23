@@ -121,6 +121,7 @@ Split a block when the attribution changes. Do not split it for five words set i
 {
   "source": "versions/v04_final_article.md",
   "excluded": [1, 57, 58],
+  "explained": {"R12": "superseded by R19"},
   "blocks": {
     "0": {"lex": "UA", "idea": "A", "phase": "titling",
           "event": "M11", "note": "title proposed by the AI, then rewritten"},
@@ -137,12 +138,20 @@ Split a block when the attribution changes. Do not split it for five words set i
 
 In the lists, `from` is the start of the span: a short string that occurs only once inside the block. The first element starts at the beginning of the block, and its `from` is not used to cut anything.
 
+`explained` holds the edits that the register declares and no span carries, with the reason for each:
+
+```json
+"explained": {"R12": "superseded by R19", "R25": "diffuse pass, attributions unchanged"}
+```
+
+Without it `measure.py` stops and publishes nothing. The two cases it exists for are the ones described above — an edit a later one replaced, and a diffuse intervention recorded as an event on purpose — and both are legitimate. What is not legitimate is leaving them unsaid: an unmatched edit is also what an annotation looks like when it has fallen behind, and from the outside the two are identical.
+
 ---
 
 ## Before publishing any number
 
 1. `measure.py` must say **reconstruction: OK**.
-2. The coverage check must not report unexplained orphan edits.
+2. It must exit zero: no unmatched edit left undeclared, and no stale entry in `explained`.
 3. The percentages must be accompanied by the breakdown by phase.
 4. The section on the limits gets written **before** the results, not after.
 

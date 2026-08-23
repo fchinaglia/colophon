@@ -65,6 +65,12 @@ def main():
     ann = json.load(open(ANN_FILE, encoding="utf-8"))
     src = ann["source"]
     excluded = set(ann.get("excluded", []))
+    # Declared exceptions to the coverage check: {"R12": "superseded by R19"}. A
+    # legitimate orphan is common — the protocol tells you to record a diffuse
+    # intervention as an event and leave the attributions alone, which produces one by
+    # design — so the check cannot be a blind gate. What it can require is that the
+    # author say which ones they mean, in the annotated file, where a reader sees it.
+    explained = {str(k): v for k, v in (ann.get("explained") or {}).items()}
     mapping = {int(k): v for k, v in ann["blocks"].items()}
 
     text = open(src, encoding="utf-8").read()
@@ -136,6 +142,10 @@ def main():
                     declared.add(d)
         present = {e for s in spans for e in s["events"]}
         orphans = sorted(declared - present)
+    unexplained = [o for o in orphans if not explained.get(o)]
+    # An explanation for something that is not an orphan is stale: it points at an
+    # edit that has since been annotated, and a stale exception hides the next one.
+    stale = sorted(k for k in explained if k not in orphans)
 
     json.dump(spans, open("spans.json", "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
@@ -156,8 +166,16 @@ def main():
     for e in errors:
         print("  !", e)
     if orphans:
-        print(f"  coverage: {len(orphans)} declared changes without a span "
-              f"(check they were superseded or diffused): {', '.join(orphans)}")
+        done = len(orphans) - len(unexplained)
+        print(f"  coverage: {len(orphans)} declared changes without a span, "
+              f"{done} explained, {len(unexplained)} not")
+    for k in stale:
+        print(f"  ! stale exception: {k} is not an unmatched change — it has a span, "
+              f"or the register never declared it. Remove it from \"explained\"")
+    if unexplained:
+        print(f"  ! no span and no explanation: {', '.join(unexplained)}")
+        print('    annotate them, or say why in "explained" in ' + ANN_FILE +
+              ': {"R12": "superseded by R19"}')
     print(f"spans {len(spans)} · words {tot}\n")
     print(f"AI lexical    {100*ai_lex:5.1f}%   (A {100*lex_q['A']:.1f} · "
           f"UA {100*lex_q['UA']:.1f} · U {100*lex_q['U']:.1f})")
@@ -175,6 +193,8 @@ def main():
 
     json.dump({"words": tot, "spans": len(spans), "integrity": ok,
                "orphans": orphans,
+               "explained": {k: v for k, v in explained.items() if k in orphans},
+               "unexplained": unexplained,
                "ai_lexical": round(100 * ai_lex, 1),
                "ai_ideational": round(100 * ai_idea, 1),
                "lexical": {k: round(100 * v, 1) for k, v in lex_q.items()},
@@ -183,7 +203,11 @@ def main():
               open("kpi.json", "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
 
-    if not ok:
+    # Both checks gate the numbers, which is what the skill and the paper have always
+    # said and what the script did not do: an unexplained orphan is the signature of
+    # the incident this check was written for — an annotation that fell behind while
+    # the reconstruction stayed green.
+    if not ok or unexplained or stale:
         sys.exit(1)
 
 
