@@ -6,6 +6,21 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [1.2.0] — 2026-08-23
 
+### Added
+
+- **The closing manifest is part of the method**, in SKILL.md: the last event of a case
+  carries the SHA-256 of every file the measurement depends on and every script a reader
+  runs, because `seal.sh` signs the register and nothing else — a signed register that
+  does not commit the text it describes proves less than it appears to. With it, what
+  the manifest deliberately leaves out (the renderings and the prose), the rule that it
+  is computed last when every hand-edited file is final, and the rule that the only
+  operation after it is the signature. Both were learned by reopening a sealed case
+  twice in one day and had never been written down.
+- **Line endings.** `cases/** -text` in `.gitattributes` before publishing, and why: a
+  checkout with `core.autocrlf=true` changes every digest and the signature stops
+  verifying, while `record.py --verify` still says `chain intact` — so the first check
+  passes, the second fails, and an honest reader concludes the signature is forged.
+
 ### Fixed
 
 - **A span marker that is ambiguous, missing or out of order now fails the run.** It was

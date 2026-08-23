@@ -74,9 +74,69 @@ Annotate, measure, generate, seal. See reference/protocol.md for the attribution
 python3 measure.py          # integrity check + computes the two axes
 python3 build_page.py       # HTML verification page
 python3 build_icon.py       # quadrant icon, from kpi.json
+                            # then the closing manifest — see below
 bash seal.sh events.jsonl   # Ed25519 signature + timestamp + anchoring
 python3 build_note.py       # the technical line of the note
 ```
+
+### The closing manifest
+
+`seal.sh` signs `events.jsonl` and nothing else. On its own, that is a signed register
+that does not commit the text it describes: the final version, the annotation, the
+measurement and the icon all sit outside the signature, and a reader who checks it has
+proved less than they think.
+
+So the **last event of every case is a manifest**: the SHA-256 of each file the
+measurement depends on, and of each script a reader runs to check it.
+
+```bash
+python3 record.py '{"type":"status","actor":"system","phase":"—","meta":true,"payload":{
+  "closing":"MANIFEST — final event. The next operation on this case is the signature.",
+  "algorithm":"sha256","sha256":{ "…":"…" }}}'
+```
+
+**What it covers**: the source version, `annotation.json`, `kpi.json`, `spans.json`,
+`case.json`, `icon.svg`, `verification.html`, and every script in the folder. Hashing
+those and finding them inside the signed register is what closes the chain from the
+signature to the published text.
+
+**What it leaves out, deliberately**: the renderings for publication — the article as
+HTML or PDF, and whatever script makes them — and any prose about the case, a README or
+a landing page. A rendering is derivable from what is covered and carries a technical
+line that can only be generated *after* the seal, so freezing it would forbid the very
+step the method requires. Freeze one and you will be reopening a sealed case to correct
+a rendering.
+
+**Two rules of order, and the second is where people trip.**
+
+The manifest is computed **last**, when every file that is edited by hand is final —
+`VERIFY.md` above all, which the author fills in with a key URL and a contact. Filling it
+in *after* the manifest invalidates the manifest that covers it, and the verification
+page then fails its own check. In the validation case this was learned by redoing the
+manifest three times.
+
+After the manifest, **the only permitted operation is the signature**. If anything else
+has to change, the case is reopened: a new event says why, before any file is touched, a
+new manifest supersedes the old one, and the register is signed again. The old seal is
+kept — rename it `events.jsonl.v1.*` — because it still proves what the register looked
+like on its own date, which no later signature can do.
+
+One consequence to declare rather than hide: **a rendering made before the seal carries
+the root of the event preceding the manifest**, not the sealed root. It cannot be
+otherwise — a document cannot contain the fingerprint of a chain that then fingerprints
+the document. Generate the renderings *after* sealing, with `build_note.py`, and the
+problem disappears; if one was made earlier, say so.
+
+### Line endings
+
+Git normalises line endings on checkout. A clone on Windows with `core.autocrlf=true`
+turns every `\n` into `\r\n`: the files still read, **every digest changes, and the
+signature stops verifying**. Worse, `record.py --verify` still answers `chain intact`,
+because it recomputes from parsed JSON — so the first check passes, the second fails, and
+an honest reader concludes the signature is forged.
+
+Put `cases/** -text` in the repository's `.gitattributes` before publishing a case, and
+check it is there before telling anyone to verify.
 
 ## The annotation
 
