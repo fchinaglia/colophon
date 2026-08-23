@@ -40,6 +40,11 @@ GREY, BLACK, LINE = "#7a7975", "#16171a", "#8f9196"
 NAMES = {(0, 0): ("machine", "polished"), (1, 0): ("human", "written"),
         (0, 1): ("machine", "generated"), (1, 1): ("human", "edited")}
 
+# A halo in the page colour, painted under the glyphs: it keeps a label legible where
+# the point passes close to it, which moving the label alone cannot always prevent.
+HALO = 'paint-order="stroke" stroke="#fcfcfb" stroke-width="3" stroke-linejoin="round"'
+
+
 
 def icon(x, y):
     """x, y = human shares of words and ideas, in 0..1."""
@@ -64,11 +69,17 @@ def icon(x, y):
         cx, cy = X0 + k[0] * c, Y0 + k[1] * c
         on = k == att
         col, pes = (BLACK, "700") if on else ("#9b9ca0", "500")
+        # The label sits low in its cell, except in the lit one when the point would
+        # land on it: then it moves to the top. The point is drawn last and cannot be
+        # moved — it is the datum — so the label is what gives way. A text with a dot
+        # through it reads as neither.
         base = cy + c - 22
+        if on and py > cy + c / 2:
+            base = cy + 18
         p.append(f'<text x="{cx+c/2}" y="{base}" text-anchor="middle" font-size="10.5"'
-                 f' font-weight="{pes}" fill="{col}" letter-spacing="-.1">{a}</text>'
+                 f' font-weight="{pes}" fill="{col}" letter-spacing="-.1" {HALO}>{a}</text>'
                  f'<text x="{cx+c/2}" y="{base+12}" text-anchor="middle" font-size="10.5"'
-                 f' font-weight="{pes}" fill="{col}" letter-spacing="-.1">{b}</text>')
+                 f' font-weight="{pes}" fill="{col}" letter-spacing="-.1" {HALO}>{b}</text>')
 
     p.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="6.5" fill="{DOT}" fill-opacity=".72"/>'
              f'<circle cx="{px:.1f}" cy="{py:.1f}" r="6.5" fill="none" stroke="{DOT}"'
