@@ -98,4 +98,69 @@ Four rules govern it. It is generated, never typed — a hand-copied root goes s
 
 ---
 
+## The shape of the block
+
+Icon, note and technical line are three parts of one object, and they are always
+arranged the same way: **the icon on the left, the note and the technical line
+stacked in a column to its right**, in that order down the page.
+
+```html
+<table class="colophon">
+  <tr>
+    <td class="icon"><img src="icon.svg" alt="…"></td>
+    <td class="body">
+      <p class="note">Method note. …</p>
+      <p class="technical">Register: 72 events, root 4179f3f0…3a522b33. …</p>
+    </td>
+  </tr>
+</table>
+```
+
+```css
+.colophon    { width: 100%; border-collapse: collapse; }
+.colophon td { vertical-align: top; padding: 0; }
+.icon        { width: 56mm; padding-right: 8mm; }
+.icon img    { width: 54mm; }
+.note        { font-style: italic; font-size: 9pt; line-height: 1.55;
+               text-align: justify; }
+.technical   { font-family: ui-monospace, monospace; font-size: 7pt;
+               color: #7a7975; margin-top: 3.5mm; }
+```
+
+The reading order is deliberate. The icon answers the question in one glance; the
+note says in words what the icon says as a position; the technical line says where
+to go and check. A reader who stops after the first has still been told something
+true, and one who reads all three has been told everything.
+
+Three rules are not matters of taste.
+
+**Align to the top, never centre.** The icon and the first line of the note must
+start on the same line, so the eye finds them together. With vertical centring, a
+note of a different length shifts the icon up or down and the block stops looking
+like the same object across cases.
+
+**Set the icon in absolute units, not a percentage.** The hundred-pixels-a-side
+rule holds only if the size does not depend on the width of the container. At a
+percentage, a narrow column makes the four labels illegible, which is the one
+failure the icon cannot survive: an unreadable quadrant is worse than no icon,
+because it looks like a claim while being none.
+
+**Use a table, not flexbox.** This block has to render in HTML, in PDF and inside
+an image. Older rendering engines — including the ones behind common HTML-to-PDF
+tools — ignore `gap`, and a flex row silently collapses into overlapping text. A
+table is duller and more predictable, and this block must be predictable.
+
+### When the layout will not fit
+
+On a narrow column, stack the three parts instead: icon, then note, then technical
+line, in the same order. Do not shrink the icon below a hundred pixels a side to
+keep them side by side.
+
+When the disclosure travels as a single image — a social card, a slide — the same
+order applies, and the note may be shortened, but **the technical line is never
+dropped**: it is the part that turns the numbers into something a reader can check.
+If there is no room for it, there is no room for the numbers either.
+
+---
+
 *MIT License — Copyright (c) 2026 Fabio Chinaglia. See the LICENSE file.*
