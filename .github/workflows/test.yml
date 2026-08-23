@@ -42,8 +42,12 @@ jobs:
       - name: cases, example and tests must be excluded from normalisation
         shell: bash
         run: |
-          for p in cases/001/events.jsonl example/events.jsonl; do
-            git check-attr text -- "$p" | tee /dev/stderr | grep -q "text: unset"
+          # No `tee /dev/stderr` here: Git Bash on Windows has no /dev/stderr, and this
+          # job runs on Windows precisely because that is where the hazard lives.
+          for p in cases/001/events.jsonl example/events.jsonl tests/conftest.py; do
+            out=$(git check-attr text -- "$p")
+            echo "$out"
+            echo "$out" | grep -q "text: unset"
           done
       - name: the chain still verifies after a CRLF checkout
         shell: bash
