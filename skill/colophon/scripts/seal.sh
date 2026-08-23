@@ -68,18 +68,24 @@ fi
 echo
 echo "== timestamp (RFC 3161) =="
 openssl ts -query -data "$FILE" -sha512 -no_nonce -cert -out "$FILE.tsq"
-if curl -sS -H "Content-Type: application/timestamp-query" \
+# With no deadline this call can hang for as long as the TSA feels like taking, and a
+# sealing script that never returns is one nobody finishes running.
+if curl -sS --max-time "${COLOPHON_TSA_TIMEOUT:-30}" \
+        -H "Content-Type: application/timestamp-query" \
         --data-binary "@$FILE.tsq" "$TSA_URL" -o "$FILE.tsr"; then
   echo "   $FILE.tsr  ($TSA_URL)"
   openssl ts -reply -in "$FILE.tsr" -text 2>/dev/null | grep -E "Time stamp|Status" || true
 else
-  echo "   ! TSA unreachable"
+  rm -f "$FILE.tsr"
+  echo "   ! TSA unreachable or too slow — the signature above stands; run the" >&2
+  echo "     timestamp again later, it is a claim about when, not about who" >&2
 fi
 rm -f "$FILE.tsq"
 
 echo
 echo "== OpenTimestamps anchoring =="
 if command -v ots >/dev/null 2>&1; then
+  rm -f "$FILE.ots"                       # never keep an anchor of an older register
   ots stamp "$FILE" && echo "   $FILE.ots (confirmed on Bitcoin within a few hours)"
 else
   echo "   ! ots not installed — pip install opentimestamps-client"
