@@ -158,7 +158,7 @@ The second check was added **after an incident during the validation**: an updat
 | Level | Addressee | Content |
 |---|---|---|
 | **L1 — marker** | the reader skimming past | one line, no numbers, with a pointer to L2 |
-| **L2 — note** | the reader who wants to understand | the two percentages with their semantic unit, the explanation of the difference, the breakdown, the assumption of responsibility |
+| **L2 — note** | the reader who wants to understand | three parts: the icon, the note — the two percentages with their semantic unit, the explanation of the difference, the breakdown, the assumption of responsibility — and the technical line that points to L3 |
 | **L3 — record** | whoever wants to verify | signed register, annotation, verification page |
 
 The structure is not arbitrary. Three empirical results determine it.
@@ -245,7 +245,7 @@ The method is distributed as a reusable skill, in two modes.
 
 **Light** — register with chain, no per-span annotation, closing note with percentages declared as estimates. Almost no friction, suited to short content.
 
-**Full** — the whole cycle: register, annotation, measurement on the two axes, verification page, two-level disclosure, seal.
+**Full** — the whole cycle: register, annotation, measurement on the two axes, verification page, three-level disclosure, seal.
 
 Moving from light to full loses nothing, because the register is the same.
 

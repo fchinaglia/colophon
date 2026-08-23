@@ -21,7 +21,7 @@ Ask the user which one, if it is not obvious from the context. When in doubt: pi
 
 **Light mode.** Event register with a hash chain, no span-level annotation, closing note with coarse-grained estimated percentages declared as estimates. Almost no friction.
 
-**Full mode.** The whole cycle: register, span-by-span annotation, measurement along the two axes, verification page, two-level disclosure, cryptographic seal.
+**Full mode.** The whole cycle: register, span-by-span annotation, measurement along the two axes, verification page, three-level disclosure, cryptographic seal.
 
 You can move from light to full at any moment without losing anything: the register is the same.
 
