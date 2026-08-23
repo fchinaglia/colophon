@@ -56,12 +56,18 @@ If you think one of these is wrong, that is a conversation worth having — open
   a rendering of it. Change the Markdown, never the PDF. The two can drift, and today
   nothing catches it.
 
-  The PDF currently in the repository was printed by headless Chrome on Linux from an
-  intermediate `colophon-method.html` — that is what its metadata says — and neither
-  that HTML nor its stylesheet is in this repository, so the render cannot be
-  reproduced exactly. Whoever regenerates it next: commit the HTML, or the script that
-  produces it, alongside the paper, and write the command in here. A rendering nobody
-  can reproduce is a document that will keep drifting from its source.
+  To re-render it after changing the Markdown:
+
+  ```bash
+  cd paper && python3 build_paper.py --pdf
+  ```
+
+  `build_paper.py` converts the Markdown to `colophon-method.html` and prints that
+  through headless Chrome. Both outputs are committed. It is standard library only,
+  like everything else here, and deliberately not a general Markdown implementation:
+  it covers what the paper uses and leaves anything else visible as literal text,
+  which is the failure worth having. Commit the HTML along with the PDF — a rendering
+  nobody else can reproduce is how the first one drifted from its source.
 
 - **Commits and PRs.** Say what changed and why. If the change alters a measurement, say what the number was before and what it is now.
 
