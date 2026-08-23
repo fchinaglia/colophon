@@ -42,7 +42,7 @@ Three parts: the icon, the note, the technical line. This section is about the n
 
 In italics, after a separator. It says what, how much, why, and who answers for it.
 
-> *Method note. I wrote this article with the assistance of a language model, and every intervention was recorded as it happened. Content: X% mine, Y% the AI's. Text: Z% mine, W% the AI's. The two numbers measure different things — the first the ideas, the second the words that express them — and the gap between them is the interesting part: the AI wrote more words than it brought ideas, because it came in mostly at [phases]. The first draft is K% mine. I stand behind every statement in it.*
+> *I wrote this article with the assistance of a language model, and every intervention was recorded as it happened. Content: X% mine, Y% the AI's. Text: Z% mine, W% the AI's. The two numbers measure different things — the first the ideas, the second the words that express them — and the gap between them is the interesting part: the AI wrote more words than it brought ideas, because it came in mostly at [phases]. The first draft is K% mine. I stand behind every statement in it.*
 
 Four elements, all of them necessary:
 
@@ -55,11 +55,11 @@ If there is a published verification page, the note ends with the link.
 
 ### Variant for light mode
 
-> *Method note. I wrote this piece with the assistance of a language model. As a rough estimate, the content is about X% mine and the text about Y% mine; the AI came in mostly at [phases]. These are declared estimates, not measurements: the process was recorded, but not annotated step by step. I stand behind every statement in it.*
+> *I wrote this piece with the assistance of a language model. As a rough estimate, the content is about X% mine and the text about Y% mine; the AI came in mostly at [phases]. These are declared estimates, not measurements: the process was recorded, but not annotated step by step. I stand behind every statement in it.*
 
 ### Variant for retroactive application
 
-> *Method note. This text was written with the assistance of a language model. The percentages given are a reconstruction made after the fact, not a record of the process: read them as orders of magnitude declared in good faith.*
+> *This text was written with the assistance of a language model. The percentages given are a reconstruction made after the fact, not a record of the process: read them as orders of magnitude declared in good faith.*
 
 ### The same texts in Italian
 
@@ -71,15 +71,15 @@ Marker, level 1:
 
 Note, level 2:
 
-> *Nota sul metodo. Ho scritto questo articolo con l'assistenza di un modello linguistico, e ogni intervento è stato registrato mentre accadeva con il metodo Colophon. Contenuto: X% mio, Y% dell'AI. Testo: Z% mio, W% dell'AI. I due numeri misurano cose diverse — il primo le idee, il secondo le parole che le esprimono — e la differenza è la parte interessante: l'AI ha scritto più parole di quante idee abbia portato, perché è intervenuta soprattutto in [fasi]. La prima stesura è mia all'K%. Il quadrante qui accanto colloca il testo sui due assi. Di ogni affermazione rispondo io.*
+> *Ho scritto questo articolo con l'assistenza di un modello linguistico, e ogni intervento è stato registrato mentre accadeva con il metodo Colophon. Contenuto: X% mio, Y% dell'AI. Testo: Z% mio, W% dell'AI. I due numeri misurano cose diverse — il primo le idee, il secondo le parole che le esprimono — e la differenza è la parte interessante: l'AI ha scritto più parole di quante idee abbia portato, perché è intervenuta soprattutto in [fasi]. La prima stesura è mia all'K%. Il quadrante qui accanto colloca il testo sui due assi. Di ogni affermazione rispondo io.*
 
 Light mode:
 
-> *Nota sul metodo. Ho scritto questo pezzo con l'assistenza di un modello linguistico. A stima, il contenuto è mio per circa X% e il testo per circa Y%; l'AI è intervenuta soprattutto in [fasi]. Sono stime dichiarate, non misure: il processo è stato registrato, ma non annotato passo per passo. Di ogni affermazione rispondo io.*
+> *Ho scritto questo pezzo con l'assistenza di un modello linguistico. A stima, il contenuto è mio per circa X% e il testo per circa Y%; l'AI è intervenuta soprattutto in [fasi]. Sono stime dichiarate, non misure: il processo è stato registrato, ma non annotato passo per passo. Di ogni affermazione rispondo io.*
 
 Retroactive application:
 
-> *Nota sul metodo. Questo testo è stato scritto con l'assistenza di un modello linguistico. Le percentuali indicate sono una ricostruzione fatta a posteriori, non la registrazione del processo: leggetele come ordini di grandezza dichiarati in buona fede.*
+> *Questo testo è stato scritto con l'assistenza di un modello linguistico. Le percentuali indicate sono una ricostruzione fatta a posteriori, non la registrazione del processo: leggetele come ordini di grandezza dichiarati in buona fede.*
 
 Two things that are not translation choices. **The phase names stay as the protocol writes them** — `first_draft`, `content_revision` — inside the files, and become plain Italian words only in the sentence a reader sees. And the note published with case 002 also carried the address of the register in prose; that sentence is gone here, because the technical line now does that work, and saying it twice weakens both.
 
@@ -153,7 +153,7 @@ stacked in a column to its right**, in that order down the page.
   <tr>
     <td class="icon"><img src="icon.svg" alt="…"></td>
     <td class="body">
-      <p class="note">Method note. …</p>
+      <p class="note">I wrote this article with…</p>
       <p class="technical">Register: 72 events, root 4179f3f0…3a522b33. …</p>
     </td>
   </tr>
