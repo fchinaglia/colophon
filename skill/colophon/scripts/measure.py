@@ -136,10 +136,18 @@ def main():
     if os.path.exists(LOG):
         declared = set()
         for r in open(LOG, encoding="utf-8"):
-            if r.strip():
-                d = json.loads(r).get("payload", {}).get("change")
-                if d:
-                    declared.add(d)
+            if not r.strip():
+                continue
+            e = json.loads(r)
+            # A meta event concerns the method, not the content — the skill already keeps
+            # those out of the denominator. One cannot leave a span behind in the text,
+            # so counting it as an uncovered change would demand an explanation for
+            # something that never touched a word.
+            if e.get("meta"):
+                continue
+            d = e.get("payload", {}).get("change")
+            if d:
+                declared.add(d)
         present = {e for s in spans for e in s["events"]}
         orphans = sorted(declared - present)
     unexplained = [o for o in orphans if not explained.get(o)]

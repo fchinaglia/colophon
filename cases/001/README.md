@@ -1,7 +1,8 @@
 # Case 001 — *Come rendere trasparente il tuo uso dell'AI* (Italian)
 
 The first case run with the method: a short post, 337 measured words, written in session
-with the register open from the first line, then measured, sealed, and left as it was.
+with the register open from the first line, then measured and sealed — and reopened once,
+which the register records.
 
 | | |
 |---|---|
@@ -9,7 +10,7 @@ with the register open from the first line, then measured, sealed, and left as i
 | Author | Fabio Chinaglia |
 | Written | 21–22 August 2026 |
 | Language | Italian, on the English schema |
-| Register | 72 events, root `4179f3f0f88ee7286fa17bf4eb3d84e77bb04285ab106727884511423a522b33` |
+| Register | 78 events, root `61ab43258a5703e5549312878c04461c178a6b1fa4e0618c3fb9c290623f8652` |
 | **AI lexical share** | **46.0%** |
 | **AI ideational share** | **0.0%** |
 | Reconstructed after the fact? | No. Recorded live. |
@@ -46,48 +47,64 @@ in [`VERIFICA.md`](VERIFICA.md). The register is timestamped (RFC 3161, `.tsr`) 
 anchored to Bitcoin (`.ots`).
 
 The signature covers `events.jsonl` alone. The last event, a manifest, carries the
-SHA-256 of seventeen files — the text, the annotation, the measurement, the page, the
+SHA-256 of eighteen files — the text, the annotation, the measurement, the page, the
 icon and every script — so hashing those and finding them inside the signed register
-closes the chain to the published artefacts. All seventeen match.
+closes the chain to the published artefacts. All eighteen match. `README.md` and
+`index.html` are deliberately outside it: they are prose about the case, and freezing
+them would mean reopening the case to correct a sentence.
 
 ---
 
-## What is wrong with this case
+## What was wrong with it, and what was done
 
-Four things. None of them is being corrected, and the reason is the same for all four:
-they are inside the signed manifest, and reopening a sealed case to tidy it would cost
-more than the tidying is worth. A case that says what went wrong is worth more than one
-that looks clean — which is what `CONTRIBUTING.md` asks of anyone contributing a second
-one.
+The case was sealed on 22 August 2026 and **reopened on 23 August**, after its own manifest
+had declared that nothing further could be recorded on it. The register is append-only, so
+that declaration is superseded and still visible: an event announces the reopening and its
+reasons *before* any file is touched, and a fourth manifest closes it.
 
-**`verification.html` is broken.** It renders one paragraph per character for the
-closing note: five hundred and thirty-seven of them. The cause was a bug in
-`build_page.py` — `extra_notes` is a string in every case file ever written and the code
-iterated it as a list — fixed in the skill on 23 August 2026, in commit `6a2852f`. The
-copy in this folder still has the bug, because both the script and the page it produced
-are covered by the manifest. The numbers on that page are correct; the layout of one
-paragraph is not.
+Four things were wrong.
 
-**`case.json` has gone stale in two places.** It says the register is not sealed — it
-was sealed afterwards, on 22 August — and that the case is not published, which this
-repository has since made untrue. It also says the model drafted the text in full,
-"hence 100% AI words", where the measurement says 46%: the note was written before the
-annotation, and the annotation is the thing that was checked.
+**The verification page was broken.** It rendered the closing note as one paragraph per
+character — five hundred and thirty-seven of them — because `build_page.py` iterated
+`extra_notes` as a list where every case writes a string. The bug was fixed in the skill on
+23 August, in commit `6a2852f`; the fixed script is now in this folder and the page is
+regenerated. Twelve paragraphs, the note intact.
 
-**Sixteen declared changes have no span, and none of them is declared.** The register
-names them — `F01`, `R02`, `R03`, `R04`, `R05`, `R07`, `R10`, `R12`, `R14`, `R15`,
-`R16`, `R18`, `R21`, `R23`, `R24`, `R25` — and the annotation attaches them to no piece
-of the final text. Most are edits a later edit replaced. The rule that requires each one
-to be named, in `explained` inside `annotation.json`, was written on 23 August, after
-this case was sealed; the current `measure.py` in the skill stops on a case like this
-one, and the copy here does not. Read the number as what it is: sixteen interventions
-whose trace in the final text cannot be pointed at.
+**`case.json` had three false statements.** That the register was not sealed and the case
+not published — both true when written, both overtaken — and that the model drafted the
+text in full, "hence 100% AI words", where the annotation measures 46.0%. The note has been
+rewritten, and it now says what the measurement says.
 
-**`kpi.json` records fifteen of them, not sixteen.** It was written before `R25`, the
-last editorial change, and never regenerated. It is the same drift the coverage check
-exists to catch, preserved here in the state it was caught in.
+**Sixteen declared changes had no span and no explanation.** They now have one each, in
+`explained` inside `annotation.json`, reconstructed from the register rather than from
+memory. Four kinds: an edit inside a block excluded from the count (`F01`, `R25`); a
+deletion whose text is not in the final version (`R03`, `R04`, `R14`, `R21`); an edit that
+left the attribution exactly where it was (`R02`, `R05`, `R07`, `R12`, `R23`, `R24`); and
+an edit that a later one replaced (`R10`, `R15`, `R16`, `R18`). The rule requiring this was
+written on 23 August, after the case was sealed — the information existed all along and had
+never been written down. The verification page now shows all sixteen with their reasons.
 
----
+**`kpi.json` had gone stale**, recording fifteen of those sixteen because it was never
+regenerated after the last edit. Regenerated.
+
+**No attribution was touched, and no number moved.** 46.0% lexical, 0.0% ideational, 18
+spans, 337 words — identical to what the seal of 22 August attested. Declaring where the
+coverage gaps are is not the same as measuring differently, and if it had been, this case
+would have been left alone.
+
+Two more things the reopening produced, both recorded. The coverage check stopped the run
+on the reopening's own script-update event, because it counted a `meta` event as a change to
+the text: a defect in the tool, fixed in the skill and noted in the register. And an event
+written during the work named a change `R18b`, which does not exist; append-only means it
+was corrected by a later event and not erased.
+
+## The two seals
+
+The seal of 22 August is kept as `events.jsonl.v1.{sig,tsr,ots,sha256}` and still verifies
+against the register as it stood then. The current one — `events.jsonl.{sig,tsr,ots}` —
+covers 78 events, root `61ab43258a5703e5549312878c04461c178a6b1fa4e0618c3fb9c290623f8652`, timestamped 23 August 2026 at 08:47 UTC. The
+first is not obsolete: it proves the register existed in its earlier form on its own date,
+which no later signature can do.
 
 ## What this case does not prove
 

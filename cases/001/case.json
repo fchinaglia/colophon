@@ -3,5 +3,7 @@
  "author": "Fabio Chinaglia",
  "date": "21 August 2026",
  "reconstructed": false,
- "extra_notes": "Register opened before writing began. Case run in light mode until the icon was requested, then moved to full: nothing was lost, the register is the same file. The text was drafted in full by the language model on the author's instruction, from the author's own methodological document; hence 100% AI words. The register is not sealed: the Ed25519 signature must be performed by the author, whose key does not and must not live in the model's environment. Not published: no third party can inspect this at the time of writing."
+ "extra_notes": "Register opened before writing began. Case run in light mode until the icon was requested, then moved to full: nothing was lost, the register is the same file. The text was drafted by the language model on the author's instruction, from the author's own methodological document, and then revised with him across twenty-two versions — the measurement says the words are 46.0 per cent the model's and the ideas none of them, which is the shape of a text whose content existed before its sentences did. Sealed on 22 August 2026. Reopened on 23 August to repair the verification page, to correct this note, and to declare the sixteen changes the register names and no span carries; the seal of 22 August is kept as events.jsonl.v1.* and a new one follows the manifest recorded at the end of the register. Published at the address below, where the earlier version of this note said it was not.",
+ "register_url": "https://github.com/fchinaglia/colophon/tree/main/cases/001",
+ "verification_url": "https://fchinaglia.github.io/colophon/cases/001/"
 }

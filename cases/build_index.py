@@ -138,14 +138,14 @@ pubblicandolo, e nel fatto che è ispezionabile.</p>
 
 
 CAVEATS = {
-    "001": """<p class="note" style="border-top-color:#e34948"><strong>La pagina di
-verifica di questo caso ha un difetto di resa</strong> — la nota finale è spezzata in un
-paragrafo per carattere. La causa è un bug nello script che l'ha generata, corretto il
-23 agosto 2026. La pagina non è stata rigenerata: è coperta dal manifesto firmato in
-fondo al registro, e riaprire un caso sigillato per un difetto estetico costa più di
-quanto valga. I numeri su quella pagina sono corretti; l'impaginazione di un paragrafo
-no. Il README del caso lo dichiara, con le altre tre cose che in questo caso non
-tornano.</p>
+    "001": """<p class="note"><strong>Questo caso è stato riaperto il 23 agosto 2026</strong>,
+dopo che il suo manifesto lo aveva dichiarato definitivo. La pagina di verifica aveva un
+difetto di resa — la nota finale spezzata in un paragrafo per carattere, per un bug nello
+script che l'ha generata — e il registro nominava sedici modifiche che nessuno span
+portava, senza dire perché. Entrambe le cose sono state corrette, e la riapertura è
+registrata: un evento che la annuncia prima di toccare qualsiasi file, un manifesto nuovo,
+una firma nuova, e il sigillo del 22 agosto conservato accanto. I numeri non sono
+cambiati.</p>
 """
 }
 

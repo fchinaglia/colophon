@@ -65,6 +65,12 @@ def main():
     ann = json.load(open(ANN_FILE, encoding="utf-8"))
     src = ann["source"]
     excluded = set(ann.get("excluded", []))
+    # Declared exceptions to the coverage check: {"R12": "superseded by R19"}. A
+    # legitimate orphan is common — the protocol tells you to record a diffuse
+    # intervention as an event and leave the attributions alone, which produces one by
+    # design — so the check cannot be a blind gate. What it can require is that the
+    # author say which ones they mean, in the annotated file, where a reader sees it.
+    explained = {str(k): v for k, v in (ann.get("explained") or {}).items()}
     mapping = {int(k): v for k, v in ann["blocks"].items()}
 
     text = open(src, encoding="utf-8").read()
@@ -87,8 +93,19 @@ def main():
                 p = find(b, m["from"])
                 if p is None:
                     errors.append(f"block {i}: marker not found: {m['from'][:40]}")
-                else:
-                    cuts.append(p)
+                    continue
+                # A marker that occurs more than once silently moves the span
+                # boundary when the text is edited, producing a wrong span that
+                # still passes both checks. Refuse it instead.
+                if norm(b).count(norm(m["from"])) > 1:
+                    errors.append(
+                        f"block {i}: marker is ambiguous, it occurs "
+                        f"{norm(b).count(norm(m['from']))} times: {m['from'][:40]}")
+                    continue
+                cuts.append(p)
+            if cuts != sorted(cuts):
+                errors.append(f"block {i}: markers are out of order, spans would overlap")
+                cuts = sorted(cuts)
             edges = [0] + cuts + [len(b)]
             for k in range(len(edges) - 1):
                 seg = b[edges[k]:edges[k + 1]].strip()
@@ -99,24 +116,44 @@ def main():
                 "block": i, "text": seg, "words": len(seg.split()),
                 "lex": meta["lex"], "idea": meta["idea"], "phase": meta["phase"],
                 "event": meta.get("event"), "note": meta.get("note", ""),
+                "events": ([meta["event"]] if isinstance(meta.get("event"), str)
+                           else list(meta.get("event") or [])),
                 "heading": b.startswith("#")})
 
     # --- check 1: reconstruction ---
     rebuilt = norm(" ".join(s["text"] for s in spans))
     original = norm(" ".join(b for i, b in enumerate(blocks) if i not in excluded))
     ok = rebuilt == original
+    # An empty span set must never pass. Comparing nothing with nothing is not
+    # evidence of anything, and it is exactly what happens when the source file
+    # has been truncated: the check would report OK on a destroyed text.
+    if not spans or not original:
+        ok = False
+        errors.append("nothing to reconstruct: the span set or the source text is empty")
 
     # --- check 2: coverage ---
     orphans = []
     if os.path.exists(LOG):
         declared = set()
         for r in open(LOG, encoding="utf-8"):
-            if r.strip():
-                d = json.loads(r).get("payload", {}).get("change")
-                if d:
-                    declared.add(d)
-        present = {s["event"] for s in spans if s["event"]}
+            if not r.strip():
+                continue
+            e = json.loads(r)
+            # A meta event concerns the method, not the content — the skill already keeps
+            # those out of the denominator. One cannot leave a span behind in the text,
+            # so counting it as an uncovered change would demand an explanation for
+            # something that never touched a word.
+            if e.get("meta"):
+                continue
+            d = e.get("payload", {}).get("change")
+            if d:
+                declared.add(d)
+        present = {e for s in spans for e in s["events"]}
         orphans = sorted(declared - present)
+    unexplained = [o for o in orphans if not explained.get(o)]
+    # An explanation for something that is not an orphan is stale: it points at an
+    # edit that has since been annotated, and a stale exception hides the next one.
+    stale = sorted(k for k in explained if k not in orphans)
 
     json.dump(spans, open("spans.json", "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
@@ -137,8 +174,16 @@ def main():
     for e in errors:
         print("  !", e)
     if orphans:
-        print(f"  coverage: {len(orphans)} declared changes without a span "
-              f"(check they were superseded or diffused): {', '.join(orphans)}")
+        done = len(orphans) - len(unexplained)
+        print(f"  coverage: {len(orphans)} declared changes without a span, "
+              f"{done} explained, {len(unexplained)} not")
+    for k in stale:
+        print(f"  ! stale exception: {k} is not an unmatched change — it has a span, "
+              f"or the register never declared it. Remove it from \"explained\"")
+    if unexplained:
+        print(f"  ! no span and no explanation: {', '.join(unexplained)}")
+        print('    annotate them, or say why in "explained" in ' + ANN_FILE +
+              ': {"R12": "superseded by R19"}')
     print(f"spans {len(spans)} · words {tot}\n")
     print(f"AI lexical    {100*ai_lex:5.1f}%   (A {100*lex_q['A']:.1f} · "
           f"UA {100*lex_q['UA']:.1f} · U {100*lex_q['U']:.1f})")
@@ -156,6 +201,8 @@ def main():
 
     json.dump({"words": tot, "spans": len(spans), "integrity": ok,
                "orphans": orphans,
+               "explained": {k: v for k, v in explained.items() if k in orphans},
+               "unexplained": unexplained,
                "ai_lexical": round(100 * ai_lex, 1),
                "ai_ideational": round(100 * ai_idea, 1),
                "lexical": {k: round(100 * v, 1) for k, v in lex_q.items()},
@@ -164,7 +211,11 @@ def main():
               open("kpi.json", "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
 
-    if not ok:
+    # Both checks gate the numbers, which is what the skill and the paper have always
+    # said and what the script did not do: an unexplained orphan is the signature of
+    # the incident this check was written for — an annotation that fell behind while
+    # the reconstruction stayed green.
+    if not ok or unexplained or stale:
         sys.exit(1)
 
 
