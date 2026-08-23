@@ -46,6 +46,12 @@ If you think one of these is wrong, that is a conversation worth having — open
   python3 record.py --verify && python3 measure.py && python3 build_icon.py && python3 build_page.py && python3 build_note.py
   ```
 
+- **The package.** `colophon.zip` is what people install from the release;
+  `skill/colophon/` is what you edit. Run `python3 check_package.py` before releasing:
+  it fails if the two have drifted, or if the zip carries junk, and prints the command
+  that rebuilds it. Copy that command rather than writing the `zip` flags by hand — the
+  exclusion list is exactly where a `.DS_Store` slipped into a published package once.
+
 - **The paper.** `paper/colophon-method.md` is the source; `paper/colophon-method.pdf` is
   a rendering of it. Change the Markdown, never the PDF. The two can drift, and today
   nothing catches it.
