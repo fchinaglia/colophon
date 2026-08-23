@@ -157,6 +157,30 @@ proves nothing, and this page should not have said it did. Verifying it also nee
 Bitcoin node or a block explorer you decide to believe — it depends on no *authority*,
 which is not the same as depending on nothing.
 
+**And the key now has an address outside this repository.** It is published at
+<https://colophonmethod.com/.well-known/colophon/keys>, on a domain the author controls.
+Until 23 August it lived only in [`colophon.pub`](colophon.pub), inside the very folder
+it authenticates — so a reader who checked the signature had proved that this folder is
+internally consistent, and nothing more. Anyone can arrange that: generate a key, alter
+the register, re-sign, drop in the new `.pub`, and every check passes.
+
+```bash
+curl -sO https://colophonmethod.com/.well-known/colophon/keys
+ssh-keygen -Y verify -f keys -I f.chinaglia@gmail.com -n colophon \
+           -Overify-time=20260822 -s events.jsonl.sig < events.jsonl
+```
+
+`Good "colophon" signature ... SHA256:0woBfwGMoKA6zsd9c0701YhBa+0aqIAI03JzaRV7raQ`. Use
+the sealing date rather than today's: that file is a key history, and asking whether the
+key was valid *when the timestamp says the signature existed* is the stronger question —
+it is also what will make a future rotation harmless. The seal of 22 August verifies the
+same way, against the first 72 events.
+
+The copy in this folder stays, and it is still worth having: it lets the check run
+offline in ten years. It is for reproduction, not for trust. **This is an anchor, not a
+proof** — it moves the question from "is this folder consistent" to "who controls that
+domain", which is not the same as answering it.
+
 The signature and the chain are unaffected, and both still verify.
 
 ## What this case does not prove
