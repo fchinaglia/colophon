@@ -61,6 +61,28 @@ If there is a published verification page, the note ends with the link.
 
 > *Method note. This text was written with the assistance of a language model. The percentages given are a reconstruction made after the fact, not a record of the process: read them as orders of magnitude declared in good faith.*
 
+### The same texts in Italian
+
+The wording below is the one published with case 002, not a translation made for this document. Use `build_note.py --lang it` for the technical line that follows the note. The quadrant stays in English in any language: see *The icon* in SKILL.md for why.
+
+Marker, level 1:
+
+> *Scritto con l'assistenza di un modello linguistico e tracciato con il metodo Colophon. La nota sul metodo, con le percentuali di contributo, è in fondo.*
+
+Note, level 2:
+
+> *Nota sul metodo. Ho scritto questo articolo con l'assistenza di un modello linguistico, e ogni intervento è stato registrato mentre accadeva con il metodo Colophon. Contenuto: X% mio, Y% dell'AI. Testo: Z% mio, W% dell'AI. I due numeri misurano cose diverse — il primo le idee, il secondo le parole che le esprimono — e la differenza è la parte interessante: l'AI ha scritto più parole di quante idee abbia portato, perché è intervenuta soprattutto in [fasi]. La prima stesura è mia all'K%. Il quadrante qui accanto colloca il testo sui due assi. Di ogni affermazione rispondo io.*
+
+Light mode:
+
+> *Nota sul metodo. Ho scritto questo pezzo con l'assistenza di un modello linguistico. A stima, il contenuto è mio per circa X% e il testo per circa Y%; l'AI è intervenuta soprattutto in [fasi]. Sono stime dichiarate, non misure: il processo è stato registrato, ma non annotato passo per passo. Di ogni affermazione rispondo io.*
+
+Retroactive application:
+
+> *Nota sul metodo. Questo testo è stato scritto con l'assistenza di un modello linguistico. Le percentuali indicate sono una ricostruzione fatta a posteriori, non la registrazione del processo: leggetele come ordini di grandezza dichiarati in buona fede.*
+
+Two things that are not translation choices. **The phase names stay as the protocol writes them** — `first_draft`, `content_revision` — inside the files, and become plain Italian words only in the sentence a reader sees. And the note published with case 002 also carried the address of the register in prose; that sentence is gone here, because the technical line now does that work, and saying it twice weakens both.
+
 ---
 
 ## Level 3 — the record

@@ -17,6 +17,11 @@ The quadrant the point falls into gives it a name:
     human edited       the AI's ideas, my words
     machine generated  the AI's words and ideas
 
+Labels are English in every language, and there is deliberately no option to change
+that: three of the four names are the classes of LLM-DetectAIve, and a translated
+label stops pointing at the taxonomy it is quoting. build_note.py takes --lang, this
+does not.
+
 The point stays visible on top of the lit quadrant: the classification rounds
 at 50%, the point shows how close to the boundary the text actually is.
 

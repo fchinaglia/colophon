@@ -113,6 +113,8 @@ In material addressed to the public use whole numbers. The precise value stays i
 
 Three of the names come from the classes of LLM-DetectAIve (EMNLP 2024); `human edited` replaces their fourth class, which describes a different case.
 
+**The labels stay in English, whatever language the text is in.** The four names are the classes of a published taxonomy: translated, they stop pointing at it, and two people reading two icons in two languages would no longer be reading the same scale. An Italian article with an Italian note and an English quadrant is the intended result, not an oversight — the icon is a mark, and marks are not translated. The script has no language option for this reason.
+
 **Never generate it by hand and never touch it up.** It comes from the measurement file, so it cannot diverge from the declared number: that is what makes it useful.
 
 **Publish it with the point, not with the name of the category alone.** The classification rounds at 50% on both axes. The script warns when the point is less than five points from an edge: in that case the name on its own is a stronger claim than the data.
