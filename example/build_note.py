@@ -26,10 +26,20 @@ and nowhere else.
 
 AND WITH AN ADDRESS. A line that names VERIFY.md tells a reader standing in the case
 folder where to look, and tells a reader on a social post nothing at all: "alongside
-the register" presupposes that they have the register. Put the published location in
-case.json as "register_url" (or "url_registro"), or pass --url, and the line carries
-it. Without one the line still prints, and the script says on stderr what the reader
-will be missing.
+the register" presupposes that they have the register. Put the addresses in case.json
+and the line carries one of them:
+
+    "verification_url"  the published verification page — preferred, it is the artefact
+                        written for a reader, and the register is reachable from it
+    "register_url"      the case folder, used when there is no page
+
+--url overrides both. Without any of them the line still prints, and the script says on
+stderr what the reader will be missing.
+
+THE ADDRESS IS A PROMISE. This line is generated at render time, so a PDF or a printed
+page freezes whatever it said that day and will never update it. Choose an address you
+are prepared to keep: do not move a case folder, do not rename it. A dead link under a
+disclosure is worse than no link, because it looks like evidence from a distance.
 
 ONE RULE ABOUT ORDER. This line prints the root of the register as it stands.
 Generate it AFTER the last event and after sealing, and generate it at render time,
@@ -60,6 +70,10 @@ HEAD = {
 # Where the register is published. Read from the case metadata, so that the line stays
 # generated and the address is written once, in the file that already describes the case.
 CASE_FILES = ("case.json", "caso.json")
+# Two addresses, and the line prints one. The verification page comes first: it is the
+# artefact written for a reader, and the register is reachable from it. A reader sent
+# straight to the raw files has been handed the evidence and not the door.
+PAGE_KEYS = ("verification_url", "url_verifica")
 URL_KEYS = ("register_url", "url_registro")
 
 # Named only when the corresponding file is present.
@@ -74,6 +88,7 @@ TAIL = {
     "en": {
         "seals": " {seals} alongside the register.",
         "unsealed": " The register is not sealed: no signature or timestamp yet.",
+        "at_page": " Verification page, with the register alongside it: {where}.",
         "at_url": " Register and verification instructions: {where}.",
         "at_doc": " Verification instructions in {where}.",
         "and": " and ",
@@ -84,6 +99,7 @@ TAIL = {
     "it": {
         "seals": " {seals} accanto al registro.",
         "unsealed": " Il registro non è sigillato: nessuna firma né marca temporale.",
+        "at_page": " Pagina di verifica, con il registro accanto: {where}.",
         "at_url": " Registro e istruzioni di verifica: {where}.",
         "at_doc": " Istruzioni di verifica in {where}.",
         "and": " e ",
@@ -125,8 +141,8 @@ def find_doc(base_dir, lang):
     return None
 
 
-def find_url(base_dir):
-    """The published address of the case, from its metadata file."""
+def find_url(base_dir, keys):
+    """An address of the case, from its metadata file."""
     for name in CASE_FILES:
         path = os.path.join(base_dir, name)
         if not os.path.exists(path):
@@ -135,7 +151,7 @@ def find_url(base_dir):
             case = json.load(open(path, encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             continue
-        for key in URL_KEYS:
+        for key in keys:
             if case.get(key):
                 return str(case[key]).strip()
     return None
@@ -172,7 +188,8 @@ def line(log="events.jsonl", lang="en", html=False, url=None, short_root=False):
 
     present = [SEALS[lang][k] for k in ("sig", "tsr", "ots")
                if os.path.exists(f"{log}.{k}")]
-    url = url or find_url(base_dir)
+    page = None if url else find_url(base_dir, PAGE_KEYS)
+    url = url or page or find_url(base_dir, URL_KEYS)
     doc = find_doc(base_dir, lang)
 
     text = HEAD[lang].format(n=len(events), root=printed_root)
@@ -183,12 +200,13 @@ def line(log="events.jsonl", lang="en", html=False, url=None, short_root=False):
     # the folder, which is the one reader who did not need telling.
     where = shown(url) if url else doc
     if url:
-        text += t["at_url"].format(where=where)
+        text += t["at_page" if page else "at_url"].format(where=where)
     elif doc:
         text += t["at_doc"].format(where=where)
     else:
         print("build_note.py: " + t["no_address"].format(
-            keys=" / ".join(URL_KEYS), files=" or ".join(CASE_FILES)), file=sys.stderr)
+            keys=" / ".join(PAGE_KEYS + URL_KEYS), files=" or ".join(CASE_FILES)),
+              file=sys.stderr)
 
     if html:
         out = text.replace(printed_root, f"<code>{printed_root}</code>")

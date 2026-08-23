@@ -4,5 +4,6 @@
  "date": "2026-08",
  "reconstructed": false,
  "register_url": "https://example.com/where/this/case/is/published",
+ "verification_url": "https://example.com/where/this/case/is/published/verification.html",
  "extra_notes": "Anything a reader needs to know that the register does not say."
 }

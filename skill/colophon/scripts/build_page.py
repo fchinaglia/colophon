@@ -121,6 +121,12 @@ warning = ("<p class=\"note\" style=\"border-left-color:var(--ai)\">Warning: thi
 # The coverage result has lived in kpi.json and in the terminal of whoever ran the
 # script, which is to say nowhere a reader could reach it. A check nobody can see is
 # not a check a reader can rely on, and this method is not entitled to one of those.
+# The technical line sends the reader here; here has to send them on to the files, or
+# the door opens onto a wall. Nothing to show if the case does not say where it lives.
+reg_url = case.get("register_url") or case.get("url_registro") or ""
+reg_link = (f'<span><a href="{html.escape(reg_url, quote=True)}">the register and '
+            f'every file</a></span>') if reg_url else ""
+
 orphans = kpi.get("orphans") or []
 explained = kpi.get("explained") or {}
 # Derived here, not read from kpi.json: a measurement file written before the field
@@ -257,6 +263,7 @@ where, and whose is what.</p>
 <span>{len(events)} events · {n_decisions} editorial decisions</span>
 <span>hash chain root <code>{root[:16]}…</code></span>
 <span>{coverage_meta}</span>
+{reg_link}
 </div></header>
 
 {warning}
