@@ -18,12 +18,13 @@ and the project uses [semantic versioning](https://semver.org/).
   stand out — a block that raises its voice at the foot of an article puts the reader on
   the defensive at the moment the method is trying to do the opposite.
 - **The technical line is three short lines by default**: whether the register is
-  signed, where it lives, how many events and the root. `--form full` restores the
-  sentence that names each seal, for a printed sheet or an archive copy where nobody
-  will follow a link.
-- **The root is abbreviated in the compact form.** The line names an address, the page
-  at that address prints it whole, and a reader who is comparing is already there.
-  `--full-root` overrides it; `--form full` prints it whole as before.
+  signed, where it lives, and the root — in that order, each more specific than the one
+  above it. The event count is gone: the page at the address carries it, and dropping it
+  gives the root the room to sit on a single line instead of wrapping. The word `root`
+  stays, because without it the last line is an unidentified string. `--form full`
+  restores the sentence that names each seal, for a printed sheet or an archive copy
+  where nobody will follow a link, and `--short-root` abbreviates the hash for a card or
+  a slide.
 - The paragraph note stays as **the full form**, for a page with room to explain itself:
   it is the only one that carries the breakdown by phase in words. And an **essential
   form** is documented for a card or a slide, with the warning that it drops the line

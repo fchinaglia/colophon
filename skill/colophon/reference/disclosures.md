@@ -211,8 +211,12 @@ stacked in a column to its right**, in that order down the page.
   <tr>
     <td class="icon"><img src="icon.svg" alt="…"></td>
     <td class="body">
-      <p class="note">I wrote this article with…</p>
-      <p class="technical">Register: 81 events, root ae68ae8dc078…8312793. …</p>
+      <p class="line">human written · 3,126 words · 75 spans</p>
+      <p class="line">human words <b>53%</b> · human ideas <b>69%</b></p>
+      <p class="line">The model wrote more words than it brought ideas.</p>
+      <p class="line">I stand behind every statement in it.</p>
+      <p class="technical">signed and inspectable register<br>
+        <a href="…">example.com/cases/002</a><br>root ae68ae8d…8312793</p>
     </td>
   </tr>
 </table>
@@ -223,8 +227,8 @@ stacked in a column to its right**, in that order down the page.
 .colophon td { vertical-align: top; padding: 0; }
 .icon        { width: 56mm; padding-right: 8mm; }
 .icon img    { width: 54mm; }
-.note        { font-style: italic; font-size: 9pt; line-height: 1.55;
-               text-align: justify; }
+.line        { font-size: 9pt; line-height: 1.5; margin: 0 0 1.2mm; }
+.line b      { font-weight: 700; }
 .technical   { font-family: ui-monospace, monospace; font-size: 7pt;
                color: #7a7975; margin-top: 3.5mm; overflow-wrap: anywhere; }
 ```
@@ -247,7 +251,9 @@ percentage, a narrow column makes the four labels illegible, which is the one
 failure the icon cannot survive: an unreadable quadrant is worse than no icon,
 because it looks like a claim while being none.
 
-**Let the root break.** `overflow-wrap: anywhere` on the technical line: the root is a sixty-four-character word with nowhere to hyphenate, and without it a narrow column pushes it straight out of the block. With it the root usually lands whole on a line of its own, which is also the easiest form to compare against.
+**Let the root break.** `overflow-wrap: anywhere` on the technical line: the root is a sixty-four-character word with nowhere to hyphenate, and without it a narrow column pushes it straight out of the block. It fits on one line in a column of about sixty millimetres, which is why the event count is not printed beside it — the page at the address above carries that, and the room is better spent on the hash a reader compares.
+
+**One treatment for the note, a quieter one for the technical line.** Every line of the note shares a face, a size and a colour, with only the percentages in bold: nothing is coloured to stand out, including the warning about the boundary. The technical line is smaller and grey, in a monospace face, because it is read character by character and not as prose. That is the only distinction the block makes, and it is enough.
 
 **Use a table, not flexbox.** This block has to render in HTML, in PDF and inside
 an image. Older rendering engines — including the ones behind common HTML-to-PDF

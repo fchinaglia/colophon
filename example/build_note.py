@@ -16,6 +16,7 @@ than no root.
     python3 build_note.py --html          an HTML fragment to inject at render time
     python3 build_note.py --lang it       Italian wording
     python3 build_note.py --short-root    the root abbreviated, for a cramped layout
+    python3 build_note.py --form full     one sentence naming every seal
     python3 build_note.py --url URL       where the register is published
 
 THE ROOT IS PRINTED IN FULL. All sixty-four characters, because the reader's job is
@@ -115,10 +116,10 @@ TAIL = {
 COMPACT = {
     "en": {"sealed": "signed and inspectable register",
            "unsealed": "register not sealed yet — no signature or timestamp",
-           "count": "{n} events · root {root}"},
+           "root": "root {root}"},
     "it": {"sealed": "registro firmato e ispezionabile",
            "unsealed": "registro non ancora sigillato — nessuna firma né marca temporale",
-           "count": "{n} eventi · radice {root}"},
+           "root": "radice {root}"},
 }
 
 # The verification page is named by the author, in the author's language. Look for
@@ -185,7 +186,7 @@ def shown(url):
 
 
 def line(log="events.jsonl", lang="en", html=False, url=None,
-         short_root=None, form="compact"):
+         short_root=False, form="compact"):
     if lang not in LANGS:
         raise SystemExit(f"unknown language {lang!r}: choose one of {', '.join(LANGS)}")
     if not os.path.exists(log):
@@ -205,11 +206,9 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
         raise SystemExit(f"{log}: the last event has no hash — is this a register?")
 
     root = events[-1]["hash"]
-    # The whole root when the line stands alone, because comparing is the reader's job.
-    # The short one in the compact form: there the line names an address, and the page
-    # at that address prints the root in full, one click away.
-    if short_root is None:
-        short_root = form == "compact"
+    # The whole root, in either form: an abbreviation can be recognised but not
+    # compared, and comparing is the reader's job. --short-root is for a card or a
+    # slide, where the line has to survive at any cost.
     printed_root = f"{root[:8]}…{root[-8:]}" if short_root else root
     base_dir = os.path.dirname(os.path.abspath(log))
     t = TAIL[lang]
@@ -227,7 +226,10 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
         rows = [c["sealed"] if present else c["unsealed"]]
         if url:
             rows.append(where)
-        rows.append(c["count"].format(n=len(events), root=printed_root))
+        # The event count is not here: the page at the address above prints it, and
+        # the word that qualifies the hash matters more than the number that precedes
+        # it. Without "root", the last line is an unidentified string.
+        rows.append(c["root"].format(root=printed_root))
         if not url and not doc:
             warn_no_address(lang)
         if html:
@@ -272,10 +274,8 @@ def main():
                    help="wording language (default: en)")
     p.add_argument("--url", default=None,
                    help="where the register is published; overrides the case metadata")
-    p.add_argument("--short-root", action="store_true", default=None,
-                   help="abbreviate the root (the default in the compact form)")
-    p.add_argument("--full-root", dest="short_root", action="store_false",
-                   help="print the root in full even in the compact form")
+    p.add_argument("--short-root", action="store_true",
+                   help="abbreviate the root — for a card or a slide, not for a page")
     p.add_argument("--form", choices=("compact", "full"), default="compact",
                    help="compact: three short lines, the default. full: one sentence "
                         "naming every seal, with the root in full")
