@@ -15,6 +15,21 @@ than no root.
     python3 build_note.py                 plain text
     python3 build_note.py --html          an HTML fragment to inject at render time
     python3 build_note.py --lang it       Italian wording
+    python3 build_note.py --short-root    the root abbreviated, for a cramped layout
+    python3 build_note.py --url URL       where the register is published
+
+THE ROOT IS PRINTED IN FULL. All sixty-four characters, because the reader's job is
+to compare it with what they compute themselves, and an abbreviation cannot be
+compared — it can only be recognised. At 7pt it takes about ninety millimetres, so
+it fits the column the note sits in. --short-root exists for a social card or a slide
+and nowhere else.
+
+AND WITH AN ADDRESS. A line that names VERIFY.md tells a reader standing in the case
+folder where to look, and tells a reader on a social post nothing at all: "alongside
+the register" presupposes that they have the register. Put the published location in
+case.json as "register_url" (or "url_registro"), or pass --url, and the line carries
+it. Without one the line still prints, and the script says on stderr what the reader
+will be missing.
 
 ONE RULE ABOUT ORDER. This line prints the root of the register as it stands.
 Generate it AFTER the last event and after sealing, and generate it at render time,
@@ -28,7 +43,7 @@ anchor are detected separately, and each is named only if its file is on disk. A
 disclosure that announces a signature nobody can find is worse than one that admits
 there is none: the first is caught by the reader, the second by the author.
 
-Usage: python3 build_note.py [--html] [--lang it|en] [events.jsonl]
+Usage: python3 build_note.py [--html] [--lang it|en] [--url URL] [--short-root] [events.jsonl]
 """
 import argparse
 import json
@@ -42,6 +57,11 @@ HEAD = {
     "it": "Registro: {n} eventi, radice {root}.",
 }
 
+# Where the register is published. Read from the case metadata, so that the line stays
+# generated and the address is written once, in the file that already describes the case.
+CASE_FILES = ("case.json", "caso.json")
+URL_KEYS = ("register_url", "url_registro")
+
 # Named only when the corresponding file is present.
 SEALS = {
     "en": {"sig": "Ed25519 signature", "tsr": "RFC 3161 timestamp",
@@ -52,20 +72,24 @@ SEALS = {
 
 TAIL = {
     "en": {
-        "sealed": " {seals} alongside the register; verification instructions in {doc}.",
-        "unsealed": " The register is not sealed: no signature or timestamp yet."
-                    " Verification instructions in {doc}.",
-        "nodoc": " The register is not sealed: no signature or timestamp yet.",
-        "sealed_nodoc": " {seals} alongside the register.",
+        "seals": " {seals} alongside the register.",
+        "unsealed": " The register is not sealed: no signature or timestamp yet.",
+        "at_url": " Register and verification instructions: {where}.",
+        "at_doc": " Verification instructions in {where}.",
         "and": " and ",
+        "no_address": "no {keys} in {files}, and --url not given: the line names no place"
+                      " to go. A reader who is not already inside the case folder cannot"
+                      " reach the register.",
     },
     "it": {
-        "sealed": " {seals} accanto al registro; istruzioni di verifica in {doc}.",
-        "unsealed": " Il registro non è sigillato: nessuna firma né marca temporale."
-                    " Istruzioni di verifica in {doc}.",
-        "nodoc": " Il registro non è sigillato: nessuna firma né marca temporale.",
-        "sealed_nodoc": " {seals} accanto al registro.",
+        "seals": " {seals} accanto al registro.",
+        "unsealed": " Il registro non è sigillato: nessuna firma né marca temporale.",
+        "at_url": " Registro e istruzioni di verifica: {where}.",
+        "at_doc": " Istruzioni di verifica in {where}.",
         "and": " e ",
+        "no_address": "nessun {keys} in {files}, e --url non passato: la riga non indica"
+                      " nessun posto dove andare. Un lettore che non sia già dentro la"
+                      " cartella del caso non può raggiungere il registro.",
     },
 }
 
@@ -101,7 +125,28 @@ def find_doc(base_dir, lang):
     return None
 
 
-def line(log="events.jsonl", lang="en", html=False):
+def find_url(base_dir):
+    """The published address of the case, from its metadata file."""
+    for name in CASE_FILES:
+        path = os.path.join(base_dir, name)
+        if not os.path.exists(path):
+            continue
+        try:
+            case = json.load(open(path, encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            continue
+        for key in URL_KEYS:
+            if case.get(key):
+                return str(case[key]).strip()
+    return None
+
+
+def shown(url):
+    """What the reader sees: the address without the scheme, which they do not type."""
+    return url.split("://", 1)[-1].rstrip("/")
+
+
+def line(log="events.jsonl", lang="en", html=False, url=None, short_root=False):
     if lang not in LANGS:
         raise SystemExit(f"unknown language {lang!r}: choose one of {', '.join(LANGS)}")
     if not os.path.exists(log):
@@ -121,27 +166,35 @@ def line(log="events.jsonl", lang="en", html=False):
         raise SystemExit(f"{log}: the last event has no hash — is this a register?")
 
     root = events[-1]["hash"]
-    short = f"{root[:8]}…{root[-8:]}"
+    printed_root = f"{root[:8]}…{root[-8:]}" if short_root else root
     base_dir = os.path.dirname(os.path.abspath(log))
+    t = TAIL[lang]
 
     present = [SEALS[lang][k] for k in ("sig", "tsr", "ots")
                if os.path.exists(f"{log}.{k}")]
+    url = url or find_url(base_dir)
     doc = find_doc(base_dir, lang)
 
-    text = HEAD[lang].format(n=len(events), root=short)
-    t = TAIL[lang]
-    if present and doc:
-        text += t["sealed"].format(seals=upper_first(join(present, lang)), doc=doc)
-    elif present:
-        text += t["sealed_nodoc"].format(seals=upper_first(join(present, lang)))
+    text = HEAD[lang].format(n=len(events), root=printed_root)
+    text += (t["seals"].format(seals=upper_first(join(present, lang))) if present
+             else t["unsealed"])
+
+    # An address beats a filename: the filename only helps a reader who already has
+    # the folder, which is the one reader who did not need telling.
+    where = shown(url) if url else doc
+    if url:
+        text += t["at_url"].format(where=where)
     elif doc:
-        text += t["unsealed"].format(doc=doc)
+        text += t["at_doc"].format(where=where)
     else:
-        text += t["nodoc"]
+        print("build_note.py: " + t["no_address"].format(
+            keys=" / ".join(URL_KEYS), files=" or ".join(CASE_FILES)), file=sys.stderr)
 
     if html:
-        out = text.replace(short, f"<code>{short}</code>")
-        if doc:
+        out = text.replace(printed_root, f"<code>{printed_root}</code>")
+        if url:
+            out = out.replace(where, f'<a href="{url}">{where}</a>')
+        elif doc:
             out = out.replace(doc, f"<code>{doc}</code>")
         return f'<p class="technical">{out}</p>'
     return text
@@ -157,8 +210,12 @@ def main():
                    help="emit an HTML fragment instead of plain text")
     p.add_argument("--lang", choices=LANGS, default="en",
                    help="wording language (default: en)")
+    p.add_argument("--url", default=None,
+                   help="where the register is published; overrides the case metadata")
+    p.add_argument("--short-root", action="store_true",
+                   help="abbreviate the root — for a social card or a slide, not for a page")
     a = p.parse_args()
-    print(line(a.log, a.lang, a.html))
+    print(line(a.log, a.lang, a.html, a.url, a.short_root))
 
 
 if __name__ == "__main__":

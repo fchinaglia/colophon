@@ -31,6 +31,8 @@ You can move from light to full at any moment without losing anything: the regis
 
 Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `seal.sh`. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
 
+Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed, and `register_url` — where the case will be published. The URL is what `build_note.py` puts in the technical line, and without it the line tells the reader what to check but not where to find it. If you do not know it yet, add it before publishing: the line is generated at render time, so it will pick it up.
+
 Among the known limits, always declare at least these: that capture happens through the conversation and not through an instrumented editor; that work done outside the conversation is not observed; that the user knows they are being observed and that this may change how they write.
 
 ```bash
