@@ -26,7 +26,7 @@ set -eu
 FILE="${1:?uso: bash sigilla.sh <file>}"
 KEY="${COLOPHON_KEY:-$HOME/.ssh/colophon}"
 # TSA gratuita, senza account. Non dà presunzione eIDAS: per quella serve una
-# TSA qualificata (Aruba, InfoCert, Namirial) e credenziali a lotto prepagato.
+# TSA qualificata e credenziali a lotto prepagato.
 TSA_URL="${COLOPHON_TSA:-https://freetsa.org/tsr}"
 
 echo "== impronta =="
