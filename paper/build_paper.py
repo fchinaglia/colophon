@@ -189,7 +189,10 @@ th, td { border-top: .4pt solid #d8d7d3; padding: 1.6mm 2.5mm; text-align: left;
 thead th { border-bottom: .8pt solid #a9a8a4; border-top: 0; font-size: 8.5pt;
            letter-spacing: .03em; }
 tbody tr:last-child td { border-bottom: .4pt solid #d8d7d3; }
-img { max-width: 42mm; height: auto; }
+/* An explicit width, not max-width: the figures are SVGs with a viewBox and no
+   intrinsic size, and inside a table cell max-width leaves the used width undefined,
+   so the column collapses to nothing and the image silently disappears. */
+img { width: 40mm; height: auto; }
 a { color: inherit; text-decoration: none; }
 """
 
