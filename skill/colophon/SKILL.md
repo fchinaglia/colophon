@@ -33,6 +33,12 @@ Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the s
 
 Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed, and the two addresses — `verification_url`, where the verification page will be readable, and `register_url`, the folder with the register and the files. `build_note.py` puts the first in the technical line and falls back to the second; `build_page.py` uses the second to link the files from the page. Without either, the line tells the reader what to check and not where to find it.
 
+`case.json` also carries **`case_uid`**: a short, stable name for this case, fixed now
+and never changed. It is not decoration — where a case is deposited, its address is
+derived from it, so it has to exist *before* the manifest, which covers `case.json`. An
+address derived from the register's root could not: the root is the hash of the manifest
+event, and the manifest covers the file the address would have to live in.
+
 `case.json` also carries `key_url` and `key_fingerprint`: where the author's public key
 is published, and which key to expect. **Publish it on a domain you control, not inside
 the case** — `/.well-known/colophon/keys`. A key published inside the folder it
