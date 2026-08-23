@@ -16,6 +16,12 @@ and the project uses [semantic versioning](https://semver.org/).
   reason instead of the numbers. `build_icon.py` and `build_page.py` refuse a `kpi.json`
   that reports undeclared changes or a failed reconstruction, so a caller that ignores
   exit codes is stopped too.
+- **The stop said nothing to the person who wrote the text.** Every line of it was
+  addressed to whoever annotates — spans, declarations, a JSON file the author has never
+  opened — and none of it said the thing that matters to them: the register is intact,
+  nothing recorded is lost, and this is the closing step being repeated, not the work.
+  That line is now printed, and SKILL.md says to lead with it, along with the order in
+  which to fix the rest and the one question worth asking the user.
 
 ## [1.1.0] — 2026-08-23
 

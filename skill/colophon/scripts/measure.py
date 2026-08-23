@@ -231,7 +231,11 @@ def main():
                   f"{', '.join(unexplained)}", file=sys.stderr)
             print('  annotate them, or say why in "explained" inside ' + ANN_FILE +
                   ': {"R12": "superseded by R19"}', file=sys.stderr)
-        print("  nothing downstream will run on these numbers.\n", file=sys.stderr)
+        print("  nothing downstream will run on these numbers.", file=sys.stderr)
+        # The person who wrote the text is standing here too, and the lines above are
+        # addressed to whoever annotates. This one is for them.
+        print("  The register is untouched: nothing recorded is lost, and this step can"
+              " be run again.\n", file=sys.stderr)
         sys.exit(1)
 
     json.dump(spans, open("spans.json", "w", encoding="utf-8"),
