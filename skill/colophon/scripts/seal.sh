@@ -35,20 +35,34 @@ shasum -a 256 "$FILE" | tee "$FILE.sha256"
 
 echo
 echo "== Ed25519 signature =="
-if [ -f "$KEY" ]; then
-  rm -f "$FILE.sig"                       # ssh-keygen will not overwrite: it would prompt
-  ssh-keygen -Y sign -f "$KEY" -n colophon "$FILE" >/dev/null
-  # self-check: a signature that does not verify is worse than no signature
-  if ssh-keygen -Y check-novalidate -n colophon -s "$FILE.sig" < "$FILE" >/dev/null 2>&1; then
-    echo "   $FILE.sig  (verified)"
-  else
-    rm -f "$FILE.sig"
-    echo "   ! the signature produced does NOT verify: stop and find out why" >&2
-    exit 1
-  fi
+# Whatever happens here, an old signature must not survive it. A .sig from an earlier
+# sealing sits next to the register looking exactly like a fresh one, and it verifies —
+# against a shorter register. That is the one failure this script must not leave behind.
+rm -f "$FILE.sig"
+if [ ! -f "$KEY" ]; then
+  echo "   ! no key at $KEY — generate one with:" >&2
+  echo "     ssh-keygen -t ed25519 -f $KEY -C colophon" >&2
+  echo "   ! any earlier signature has been removed: it did not cover this register" >&2
+  exit 1
+fi
+# A passphrase-protected key makes ssh-keygen prompt, and a prompt in a script that is
+# not attached to a terminal simply hangs. Say so before it happens.
+if ! ssh-keygen -y -P "" -f "$KEY" >/dev/null 2>&1 && ! ssh-add -l 2>/dev/null | grep -q .; then
+  echo "   the key has a passphrase and the agent is empty: ssh-keygen will ask for it." >&2
+  echo "   to avoid the prompt:  ssh-add ${SSH_ADD_FLAGS:---apple-use-keychain} $KEY" >&2
+fi
+if ! ssh-keygen -Y sign -f "$KEY" -n colophon "$FILE" >/dev/null; then
+  rm -f "$FILE.sig"
+  echo "   ! signing failed — wrong passphrase, or no terminal to ask on" >&2
+  exit 1
+fi
+# self-check: a signature that does not verify is worse than no signature
+if ssh-keygen -Y check-novalidate -n colophon -s "$FILE.sig" < "$FILE" >/dev/null 2>&1; then
+  echo "   $FILE.sig  (verified)"
 else
-  echo "   ! no key at $KEY — generate one with:"
-  echo "     ssh-keygen -t ed25519 -f $KEY -C colophon"
+  rm -f "$FILE.sig"
+  echo "   ! the signature produced does NOT verify: stop and find out why" >&2
+  exit 1
 fi
 
 echo
