@@ -9,7 +9,7 @@ Writes verification.html: a self-contained document, no external dependencies.
 
 case.json:
   {"title": "...", "author": "...", "date": "19 August 2026",
-   "reconstructed": false, "extra_notes": ["..."]}
+   "reconstructed": false, "extra_notes": "..."}          # a string, or a list of them
 
 Validated palette: blue #2a78d6 / grey #7a7975 / red #e34948 on a light #fcfcfb
 and a dark #1a1a19 surface. CVD (protanopia) separation dE 21.6 light / 19.2
@@ -115,7 +115,13 @@ warning = ("<p class=\"note\" style=\"border-left-color:var(--ai)\">Warning: thi
            "register was compiled <strong>after</strong> the text was written. The "
            "percentages are a reconstruction, not a measurement of the process: read "
            "them as orders of magnitude declared in good faith.</p>") if reconstructed else ""
-extra = "".join(f"<p>{html.escape(n)}</p>" for n in case.get("extra_notes", []))
+# extra_notes is a string in every example and every case written so far. Iterating
+# it as if it were a list yields one paragraph per character, which is what shipped:
+# accept both shapes and let a plain string stay one note.
+notes = case.get("extra_notes") or []
+if isinstance(notes, str):
+    notes = [notes]
+extra = "".join(f"<p>{html.escape(n)}</p>" for n in notes)
 
 HTML = f"""<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
