@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Colophon — verify a case</title>
+<style>
+:root {
+  --bg:#fbfaf8; --fg:#1a1a1a; --dim:#6b6b6b; --line:#e2ded8;
+  --ok:#1f6f43; --bad:#a62222; --warn:#8a5a00; --card:#fff; --mono:#f4f2ee;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#16161a; --fg:#e8e6e3; --dim:#9a978f; --line:#2e2e35;
+    --ok:#5fbf8a; --bad:#e08585; --warn:#d9a441; --card:#1e1e24; --mono:#24242b;
+  }
+}
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif; }
+main { max-width:52rem; margin:0 auto; padding:2.5rem 1.25rem 5rem; }
+h1 { font-size:1.5rem; margin:0 0 .25rem; font-weight:650; letter-spacing:-.01em; }
+.sub { color:var(--dim); margin:0 0 2rem; font-size:.95rem; }
+code, pre, .mono { font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+code { background:var(--mono); padding:.1em .35em; border-radius:3px; font-size:.88em; }
+
+#drop { border:2px dashed var(--line); border-radius:12px; padding:2.5rem 1.5rem; text-align:center; transition:border-color .15s,background .15s; }
+#drop.over { border-color:var(--ok); background:var(--mono); }
+#drop p { margin:.4rem 0; color:var(--dim); font-size:.95rem; }
+.pickers { display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap; margin-top:1rem; }
+label.btn { display:inline-block; border:1px solid var(--line); background:var(--card); padding:.45rem .9rem; border-radius:7px; cursor:pointer; font-size:.9rem; }
+label.btn:hover { border-color:var(--dim); }
+input[type=file] { display:none; }
+
+section.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:1.1rem 1.25rem; margin:1rem 0; }
+section.card h2 { margin:0 0 .6rem; font-size:1rem; font-weight:640; display:flex; align-items:center; gap:.5rem; }
+.badge { font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; padding:.15rem .5rem; border-radius:20px; border:1px solid currentColor; font-weight:600; }
+.b-ok { color:var(--ok); } .b-bad { color:var(--bad); } .b-warn { color:var(--warn); } .b-dim { color:var(--dim); }
+dl { display:grid; grid-template-columns:auto 1fr; gap:.3rem 1rem; margin:.5rem 0 0; font-size:.9rem; }
+dt { color:var(--dim); } dd { margin:0; word-break:break-all; }
+.note { color:var(--dim); font-size:.88rem; margin:.7rem 0 0; }
+pre.cmd { background:var(--mono); border-radius:7px; padding:.65rem .8rem; overflow-x:auto; font-size:.84rem; margin:.6rem 0 0; }
+ul.tight { margin:.4rem 0 0; padding-left:1.1rem; font-size:.9rem; }
+footer { margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--line); color:var(--dim); font-size:.85rem; }
+footer p { margin:.4rem 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Verify a Colophon case</h1>
+  <p class="sub">Everything runs in this page, on your machine. Nothing is uploaded, and this
+  file works with no network at all — save it and it keeps working.</p>
+
+  <div id="drop">
+    <p><strong>Drop a case folder here</strong></p>
+    <p>or a <code>bundle.tar</code>, or the files themselves</p>
+    <div class="pickers">
+      <label class="btn">Choose a folder<input type="file" id="dir" webkitdirectory multiple></label>
+      <label class="btn">Choose files<input type="file" id="fil" multiple></label>
+    </div>
+  </div>
+
+  <div id="out"></div>
+
+  <footer>
+    <p><strong>What this page does not do.</strong> It does not recompute the measurement.
+    It checks that <code>kpi.json</code>, <code>spans.json</code> and
+    <code>annotation.json</code> carry the digests the register sealed — which proves the
+    published numbers are the sealed numbers — and leaves the arithmetic to
+    <code>measure.py</code>, so there is exactly one implementation of it.</p>
+    <p>It also cannot validate a timestamp authority's certificate, or confirm a Bitcoin
+    anchor: both need the network, and this page never touches it. The commands are shown
+    where they apply.</p>
+    <p>MIT. The chain rule it implements is <code>spec/canonical.md</code>.</p>
+  </footer>
+</main>
+
+<script>
+/* ==== core ==== */
+//__CORE__
+/* ==== ui ==== */
+(function () {
+  const $ = s => document.querySelector(s);
+  const out = $('#out'), drop = $('#drop');
+
+  const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const card = (title, badge, cls, body) =>
+    `<section class="card"><h2>${esc(title)}` +
+    (badge ? ` <span class="badge ${cls}">${esc(badge)}</span>` : '') +
+    `</h2>${body}</section>`;
+  const dl = pairs => '<dl>' + pairs.filter(Boolean)
+    .map(([k, v]) => `<dt>${esc(k)}</dt><dd class="mono">${esc(v)}</dd>`).join('') + '</dl>';
+
+  // ---- minimal ustar reader, so bundle.tar can be dropped straight in
+  function untar(buf) {
+    const b = new Uint8Array(buf), files = new Map(), td = new TextDecoder();
+    let off = 0;
+    while (off + 512 <= b.length) {
+      const name = td.decode(b.subarray(off, off + 100)).replace(/\0.*$/, '');
+      if (!name) { off += 512; continue; }
+      const sizeOct = td.decode(b.subarray(off + 124, off + 136)).replace(/\0.*$/, '').trim();
+      const size = parseInt(sizeOct, 8) || 0;
+      const type = String.fromCharCode(b[off + 156]);
+      off += 512;
+      if (type === '0' || type === '\0') files.set(name, b.subarray(off, off + size));
+      off += Math.ceil(size / 512) * 512;
+    }
+    return files;
+  }
+
+  // strip a single leading directory component, so a dropped folder keys the same
+  // way a bundle does
+  function normalise(map) {
+    const names = [...map.keys()];
+    if (!names.length) return map;
+    const first = n => n.split('/')[0];
+    const root = first(names[0]);
+    if (!names.every(n => n.includes('/') && first(n) === root)) return map;
+    return new Map(names.map(n => [n.slice(root.length + 1), map.get(n)]));
+  }
+
+  async function collect(fileList) {
+    const map = new Map();
+    for (const f of fileList) {
+      const rel = f.webkitRelativePath || f.name;
+      const buf = new Uint8Array(await f.arrayBuffer());
+      if (/\.tar$/i.test(f.name)) { for (const [k, v] of untar(buf.buffer)) map.set(k, v); }
+      else map.set(rel, buf);
+    }
+    return normalise(map);
+  }
+
+  function render(r) {
+    let html = '';
+
+    if (r.fatal) {
+      out.innerHTML = card('Not a case folder', 'stop', 'b-bad',
+        `<p class="note">${esc(r.fatal)}. A case folder must contain
+         <code>events.jsonl</code>.</p>`);
+      return;
+    }
+
+    // ---- the chain
+    const c = r.chain;
+    if (c.preSpec) {
+      html += card('Register', 'predates the spec', 'b-warn',
+        `<p>This register was sealed before the canonicalization specification, so this
+         page cannot check its chain without risking a <em>false</em> verdict.</p>
+         <pre class="cmd">python3 record.py --verify</pre>
+         <p class="note">Run that in the case folder. It is not evidence of a problem:
+         ${c.preSpec.length} of ${c.events} events use number forms that JavaScript cannot
+         reproduce byte for byte. First: event ${c.preSpec[0].event},
+         ${esc(c.preSpec[0].reason)}.</p>`);
+    } else if (c.ok) {
+      html += card('Chain', 'intact', 'b-ok',
+        dl([['events', c.events], ['root', c.root], ['sha256 of the register', r.registerSha256]]) +
+        `<p class="note">Every event carries the digest of the one before it, recomputed
+         here from the bytes you supplied.</p>`);
+    } else {
+      html += card('Chain', 'broken', 'b-bad',
+        dl([['events', c.events], ['first broken', `event ${c.broken}`], ['reason', c.why]]));
+    }
+
+    // ---- the signature
+    if (r.signature) {
+      const s = r.signature;
+      if (s.error) {
+        html += card('Signature', 'unreadable', 'b-bad', `<p class="note">${esc(s.error)}</p>`);
+      } else {
+        html += card('Signature', s.ok ? 'valid' : 'does not verify', s.ok ? 'b-ok' : 'b-bad',
+          dl([['namespace', s.namespace], ['hash', s.hashAlg],
+              ['key fingerprint', s.keyFingerprint], ['checked against', s.source]]) +
+          (s.keyEmbedded
+            ? `<p class="note"><strong>The key came from the signature itself.</strong> That
+               proves the register was signed by whoever holds that key — it does not say
+               whose key it is. Fetch the author's published key and compare the
+               fingerprint above.</p>`
+            : `<p class="note">A valid signature proves who takes responsibility for this
+               register. It does not prove the register is complete: no voluntary record
+               can.</p>`));
+      }
+    } else {
+      html += card('Signature', 'absent', 'b-dim',
+        `<p class="note">No <code>events.jsonl.sig</code> in what you supplied.</p>`);
+    }
+
+    // ---- the manifest
+    if (r.manifest) {
+      const m = r.manifest, bad = m.mismatched.length, gone = m.missing.length;
+      html += card('Manifest', bad ? 'mismatch' : gone ? 'incomplete' : 'all match',
+        bad ? 'b-bad' : gone ? 'b-warn' : 'b-ok',
+        dl([['sealed in', `event ${m.event}`], ['matched', m.matched.length],
+            bad ? ['mismatched', m.mismatched.map(x => x.name).join(', ')] : null,
+            gone ? ['not supplied', m.missing.join(', ')] : null]) +
+        `<p class="note">The manifest is the last event of the case, so the signature over
+         the register commits to every file listed here.</p>`);
+    }
+
+    // ---- the timestamps
+    if (r.timestamp) {
+      const t = r.timestamp;
+      html += card('Timestamp (RFC 3161)', t.commits ? 'commits to this register' : 'does not match',
+        t.commits ? 'b-ok' : 'b-bad',
+        dl([['time', t.genTime || 'unreadable'], ['imprint', t.commits || 'no match'],
+            ['qualified (eIDAS)', t.qualified ? 'yes' : 'no']]) +
+        `<pre class="cmd">openssl ts -verify -data events.jsonl -in events.jsonl.tsr -CAfile &lt;tsa-ca&gt;.pem</pre>
+         <p class="note">Checked here: that the token commits to <em>these exact bytes</em>.
+         Validating the authority's signature needs its certificate, and therefore the
+         command above.</p>`);
+    }
+    if (r.ots) {
+      html += card('Bitcoin anchor', 'not checkable here', 'b-dim',
+        `<pre class="cmd">ots upgrade events.jsonl.ots &amp;&amp; ots verify events.jsonl.ots</pre>
+         <p class="note">Confirming an OpenTimestamps anchor needs a Bitcoin node or a block
+         explorer, so this page will not pretend to. A <code>.ots</code> file means the
+         register was <em>submitted</em>; until <code>ots upgrade</code> succeeds it is not
+         yet anchored.</p>`);
+    }
+
+    if (r.notes.length) {
+      html += card('The measurement', 'not recomputed', 'b-dim',
+        `<p class="note">Present and covered by the manifest above:
+         ${r.notes.map(n => `<code>${esc(n)}</code>`).join(', ')}. To recompute the numbers
+         themselves:</p><pre class="cmd">python3 measure.py</pre>`);
+    }
+
+    out.innerHTML = html;
+  }
+
+  async function handle(fileList) {
+    out.innerHTML = card('Working', '', '', '<p class="note">Verifying locally…</p>');
+    try {
+      const files = await collect(fileList);
+      render(verifyCase(files));
+    } catch (e) {
+      out.innerHTML = card('Something went wrong', 'error', 'b-bad',
+        `<p class="note">${esc(e.message)}</p>`);
+    }
+    window.scrollTo({ top: drop.offsetTop, behavior: 'smooth' });
+  }
+
+  $('#dir').addEventListener('change', e => handle(e.target.files));
+  $('#fil').addEventListener('change', e => handle(e.target.files));
+
+  ['dragenter', 'dragover'].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+
+  drop.addEventListener('drop', async e => {
+    const items = [...(e.dataTransfer.items || [])];
+    const entries = items.map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+    if (!entries.length) return handle(e.dataTransfer.files);
+
+    const files = [];
+    const walk = entry => new Promise(res => {
+      if (entry.isFile) return entry.file(f => {
+        Object.defineProperty(f, 'webkitRelativePath', { value: entry.fullPath.slice(1) });
+        files.push(f); res();
+      });
+      const rd = entry.createReader();
+      const batch = () => rd.readEntries(async es => {
+        if (!es.length) return res();
+        await Promise.all(es.map(walk));
+        batch();
+      });
+      batch();
+    });
+    await Promise.all(entries.map(walk));
+    handle(files);
+  });
+})();
+</script>
+</body>
+</html>

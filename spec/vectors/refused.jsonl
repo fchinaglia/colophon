@@ -1,0 +1,9 @@
+{"event": "{\"type\":\"status\",\"payload\":{\"pct\":94.0}}", "name": "float", "note": "no floats in event payloads", "refuse": true}
+{"event": "{\"type\":\"status\",\"payload\":{\"a\":{\"b\":0.5}}}", "name": "float-nested", "note": "at any depth", "refuse": true}
+{"event": "{\"type\":\"status\",\"payload\":{\"xs\":[1,2.5]}}", "name": "float-in-array", "note": "inside arrays too", "refuse": true}
+{"event": "{\"type\":\"status\",\"payload\":{\"n\":9007199254740992}}", "name": "int-too-big", "note": "integers must satisfy abs(n) <= 2^53 - 1", "refuse": true}
+{"event": "{\"type\":\"status\",\"payload\":{\"n\":-9007199254740992}}", "name": "int-too-small", "note": "the same bound, negative", "refuse": true}
+{"event": "{\"type\":\"status\",\"payload\":{\"\\u00e0bc\":1}}", "name": "non-ascii-key", "note": "keys must be ASCII", "refuse": true}
+{"event": "{\"type\":\"status\",\"payload\":{\"\\ud83d\\ude00\":1}}", "name": "astral-key", "note": "keys must be ASCII", "refuse": true}
+{"event": "{\"type\":\"status\",\"payload\":{\"n\":9007199254740991}}", "name": "ok-boundary", "note": "ACCEPTED: exactly 2^53 - 1", "refuse": false}
+{"event": "{\"type\":\"status\",\"payload\":{\"note\":\"\\u00e0bc\"}}", "name": "ok-ascii-value", "note": "ACCEPTED: non-ASCII in a VALUE is fine", "refuse": false}
