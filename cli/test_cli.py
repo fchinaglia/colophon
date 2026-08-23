@@ -13,6 +13,7 @@ import json
 import os
 import shutil
 import subprocess
+import tarfile
 import sys
 import tempfile
 
@@ -124,8 +125,18 @@ else:
     case = os.path.join(home, "case")
     shutil.copytree(case_src, case)
     r = run_cli("deposit", case)
-    out = json.load(open(os.path.join(case, "submission.json"), encoding="utf-8"))
+    tar_path = os.path.join(case, "deposit.tar")
+    ok(os.path.exists(tar_path), "deposit.tar written")
+    with tarfile.open(tar_path) as tf:
+        names = tf.getnames()
+        ok(names[0] == "submission.json",
+           "submission.json is the FIRST member — the server reads it before extracting",
+           str(names[:2]))
+        out = json.loads(tf.extractfile("submission.json").read().decode("utf-8"))
+        ok(set(names[1:]) == set(out["submission"]["files"]),
+           "the tar carries exactly the declared files")
     sub = out["submission"]
+    ok(out["public_key"].startswith("ssh-ed25519"), "the public key travels with it")
 
     rows = [json.loads(l) for l in open(os.path.join(case, "events.jsonl"),
                                         encoding="utf-8") if l.strip()]
@@ -148,6 +159,7 @@ else:
     ok("render_post.py" not in files,
        "a script the manifest does not cover is withheld, despite the .py")
     ok("submission.json" not in files, "the submission does not deposit itself")
+    ok("deposit.tar" not in files, "the tar does not contain itself")
 
     # every declared digest is right
     bad = [f for f, d in files.items()

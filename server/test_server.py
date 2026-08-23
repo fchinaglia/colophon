@@ -227,6 +227,30 @@ try:
     ok(s == 201, "the right code, and the same case re-deposited by its owner",
        f"{s} {a}")
 
+    head("mirroring is opt-in, and its failure is not the deposit's failure")
+    # A base that will never answer: the archive request must fail, and the deposit
+    # must still be stored. Mirroring is a promise about the future, not a gate.
+    home3 = tempfile.mkdtemp(prefix="colophon-srv-home3-")
+    env3 = dict(os.environ, HOME=home3, XDG_CONFIG_HOME=os.path.join(home3, ".config"))
+    subprocess.run([sys.executable, CLI, "setup", "--batch", "--name", "Mirror",
+                    "--contact", "m@example.com", "--key", os.path.join(home3, "k")],
+                   env=env3, capture_output=True, check=True)
+    case3 = os.path.join(home3, "case")
+    shutil.copytree(os.path.join(REPO, "cases", "001"), case3)
+    r = subprocess.run([sys.executable, CLI, "deposit", case3, "--to", base, "--mirror",
+                        "--invite", "LETMEIN"], env=env3, capture_output=True, text=True)
+    ok(r.returncode == 0, "a deposit with --mirror still succeeds", r.stdout[-300:])
+    ok("permanent" in r.stdout,
+       "and the client says plainly that archiving cannot be undone")
+    with tarfile.open(os.path.join(case3, "deposit.tar")) as tf:
+        s3 = json.loads(tf.extractfile("submission.json").read())["submission"]
+    ok(s3.get("mirror") is True,
+       "the choice travels INSIDE the signed submission, so the instance cannot make it")
+    stored3 = os.path.join(data, "public", "c", s3["case_id"])
+    ok(os.path.exists(os.path.join(stored3, "events.jsonl")),
+       "the case is stored even though no mirror could be reached")
+    shutil.rmtree(home3, ignore_errors=True)
+
     head("what the server says about a case")
     ok("note" in a and "not endorsed" in a["note"],
        "it says it stores rather than endorses", str(a.get("note")))

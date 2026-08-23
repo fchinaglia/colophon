@@ -59,8 +59,62 @@ Step 4 is the one that matters: an anchor nobody is told about anchors nothing.
 **The private key never goes on the server.** Only `keys`, which is public by design.
 A server that can sign registers is a server that can forge them.
 
-## Not yet
+## The instance — deposit.colophonmethod.com
 
-The instance. It needs its own name, its own certificate, and a decision this repository
-has not recorded: fixed-price hosting with included bandwidth, never anything billed per
-request or per byte, so a flood degrades into a slowdown instead of a bill.
+Its own name, on purpose: **the key that vouches for a depositor must not be served by
+the same machine that stores their case.** The apex serves the keys; this name serves
+cases and nothing else.
+
+One nginx, not two. The host already runs one for the apex, so the production stack
+brings only the write process; the host serves the data directory directly and proxies
+`POST /c` to loopback. `compose.prod.yml` binds the port to `127.0.0.1`, so nothing
+reaches ingest except through nginx, which is where TLS, the size cap and the rate
+limits live.
+
+```bash
+# 1. the data directory, owned by the container's user BEFORE anything writes there
+mkdir -p /srv/deposit/public/c /srv/deposit/public/k
+chown -R 65534:65534 /srv/deposit          # nobody:nogroup inside the image
+chmod 755 /srv /srv/deposit /srv/deposit/public
+
+# 2. docker
+curl -fsSL https://get.docker.com | sh
+
+# 3. the certificate, before the config that names it
+cp /root/deposit.colophonmethod.com.conf /etc/nginx/sites-enabled/deposit.conf.off
+certbot certonly --webroot -w /var/www/certbot -d deposit.colophonmethod.com
+
+# 4. the config, then the stack
+mv /etc/nginx/sites-enabled/deposit.conf.off /etc/nginx/sites-enabled/deposit.conf
+nginx -t && systemctl reload nginx
+cd /root/colophon-proto/server && docker compose -f compose.prod.yml up --build -d
+
+# 5. invite-only while it is being tested
+printf '# trial\nSOMECODE\n' > /srv/deposit/invites.txt
+chown 65534:65534 /srv/deposit/invites.txt
+```
+
+**Step 1 is not boilerplate.** The image runs as `nobody` and drops privileges; a bind
+mount arrives with the host's ownership, so without the `chown` the container cannot
+create `/data/public` and **crash-loops while `docker compose ps` reports it running** —
+`restart: unless-stopped` hides it. That happened on the first local run and it will
+happen here for the same reason. And the mode matters too: nginx runs as a different
+user again, and a directory it cannot traverse produces a 404 on a file that is sitting
+right there, with `Permission denied` only in the error log.
+
+### Then check it from outside
+
+```bash
+curl -s https://deposit.colophonmethod.com/health
+colophon deposit <case> --to https://deposit.colophonmethod.com --invite SOMECODE --mirror
+curl -sO https://deposit.colophonmethod.com/c/<id>/events.jsonl   # digest must match
+```
+
+The digest is the check that matters: it proves the bytes survived storage, the proxy
+and TLS. Everything else can look right while that has quietly changed.
+
+## Still not decided
+
+Fixed-price hosting with included bandwidth — never anything billed per request or per
+byte, so a flood degrades into a slowdown instead of a bill. The droplet appears to be
+that already; it is worth confirming rather than assuming.

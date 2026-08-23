@@ -17,12 +17,14 @@ manifest covers.
 import argparse
 import hashlib
 import hmac
+import io
 import json
 import os
 import re
 import secrets
 import shutil
 import subprocess
+import tarfile
 import sys
 import tempfile
 import urllib.error
@@ -407,6 +409,10 @@ def cmd_deposit(a):
     manifest = manifest_of(rows)
     keep, refused = collect(case_dir, manifest)
 
+    if a.mirror:
+        print("\n  Mirroring requested. A copy will be pushed to a public archive, and")
+        print("  that is permanent: it is what keeps this case reachable if the instance")
+        print("  goes away, and it cannot be undone afterwards.")
     print(f"\n  case      {case_dir}")
     print(f"  events    {len(rows)}")
     print(f"  root      {root}")
@@ -430,6 +436,7 @@ def cmd_deposit(a):
 
     submission = {
         "case_id": cid,
+        "mirror": bool(a.mirror),
         "root": root,
         "sha256_events": hashlib.sha256(raw).hexdigest(),
         "files": {rel: sha256_file(p) for rel, p in sorted(keep.items())},
@@ -449,21 +456,65 @@ def cmd_deposit(a):
             return 1
         print(f"\n  signed under namespace colophon-deposit ({len(sig)} bytes armored)")
 
-    out = a.out or os.path.join(case_dir, "submission.json")
-    with open(out, "w", encoding="utf-8") as f:
-        json.dump({"submission": submission, "signature": sig}, f,
-                  indent=1, sort_keys=True, ensure_ascii=False)
-        f.write("\n")
-    print(f"  written   {out}")
+    with open(cfg["key_path"] + ".pub", encoding="utf-8") as f:
+        pub_line = f.read().strip()
+    envelope = {"submission": submission, "signature": sig, "public_key": pub_line}
 
-    if a.to:
-        print(f"\n  POST {a.to.rstrip('/')}/c")
-        print("  (no instance exists yet — this is the shape the request will take)")
-    else:
-        print("\n  No instance given. Pass --to <instance> once one is running;")
+    out = a.out or os.path.join(case_dir, "deposit.tar")
+    build_tar(out, envelope, keep, case_dir)
+    print(f"  written   {out}  ({os.path.getsize(out):,} bytes)")
+
+    if not a.to:
+        print("\n  No instance given. Pass --to <instance> to send it;")
         print("  the address above is already final, because it is derived from the")
         print("  root and your secret, and you can recompute it at any time.")
-    return 0
+        return 0
+
+    url = a.to.rstrip("/") + "/c"
+    print(f"\n  POST {url}")
+    with open(out, "rb") as f:
+        payload = f.read()
+    req = urllib.request.Request(url, data=payload, method="POST")
+    req.add_header("Content-Type", "application/x-tar")
+    if a.invite:
+        req.add_header("X-Colophon-Invite", a.invite)
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            answer = json.loads(r.read().decode("utf-8"))
+            status = r.status
+    except urllib.error.HTTPError as e:
+        answer, status = json.loads(e.read().decode("utf-8") or "{}"), e.code
+    except Exception as e:                                          # noqa: BLE001
+        print(f"  ! {e}", file=sys.stderr)
+        return 1
+
+    if status == 201:
+        print(f"  {status}  stored at {a.to.rstrip('/')}{answer.get('url','')}")
+        print(f"        bundle: {a.to.rstrip('/')}{answer.get('bundle','')}")
+        print(f"        {answer.get('register','')}")
+        print(f"\n  {answer.get('note','')}")
+        return 0
+    print(f"  {status}  refused: {answer.get('refused') or answer}", file=sys.stderr)
+    return 1
+
+
+def build_tar(path, envelope, keep, case_dir):
+    """submission.json FIRST, so the server can read it and check the signature
+    before extracting anything else — cheapest check first is the whole ordering."""
+    tmp = path + ".tmp"
+    with tarfile.open(tmp, "w", format=tarfile.USTAR_FORMAT) as t:
+        blob = json.dumps(envelope, indent=1, sort_keys=True,
+                          ensure_ascii=False).encode("utf-8")
+        info = tarfile.TarInfo("submission.json")
+        info.size, info.mtime, info.mode = len(blob), 0, 0o644
+        t.addfile(info, io.BytesIO(blob))
+        for rel in sorted(keep):
+            info = t.gettarinfo(keep[rel], arcname=rel)
+            info.mtime, info.uid, info.gid = 0, 0, 0
+            info.uname = info.gname = ""
+            with open(keep[rel], "rb") as f:
+                t.addfile(info, f)
+    os.replace(tmp, path)
 
 
 # --------------------------------------------------------------------------- cli
@@ -487,6 +538,11 @@ def main(argv=None):
     d = sub.add_parser("deposit", help="build and sign a submission")
     d.add_argument("case_dir")
     d.add_argument("--to", help="instance base URL")
+    d.add_argument("--invite", help="invite code, while an instance is invite-only")
+    d.add_argument("--mirror", action="store_true",
+                   help="ask the instance to push a copy to a public archive. Permanent "
+                        "and public: it is what makes the instance one location rather "
+                        "than the only one, and it is your choice, not its")
     d.add_argument("--out", help="where to write the submission (default: in the case)")
     d.add_argument("--no-sign", action="store_true")
     d.add_argument("--force", action="store_true", help="deposit without a manifest")

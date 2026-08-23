@@ -39,6 +39,8 @@ import tempfile
 import threading
 import time
 import traceback
+import urllib.error
+import urllib.request
 
 DATA = os.environ.get("COLOPHON_DATA", "/data")
 PUBLIC = os.path.join(DATA, "public")
@@ -47,6 +49,10 @@ MAX_BODY = int(os.environ.get("COLOPHON_MAX_BODY", str(25 * 1024 * 1024)))
 MAX_FILES = int(os.environ.get("COLOPHON_MAX_FILES", "200"))
 RATE_PER_DAY = int(os.environ.get("COLOPHON_RATE_PER_DAY", "20"))
 GLOBAL_PER_HOUR = int(os.environ.get("COLOPHON_GLOBAL_PER_HOUR", "60"))
+# The address this instance is reached at. Without it nothing can be mirrored, because
+# a mirror needs a URL to fetch, and an instance that does not know its own name has
+# none to give.
+PUBLIC_BASE = os.environ.get("COLOPHON_PUBLIC_BASE", "").rstrip("/")
 NAMESPACE = "colophon-deposit"
 CASE_ID_RE = re.compile(r"^[1-9A-HJ-NP-Za-km-z]{22}$")
 
@@ -354,6 +360,52 @@ def store(tmp, submission, pub_line, fingerprint, prespec):
     return dest, prespec
 
 
+# ----------------------------------------------------------------- mirroring
+
+def request_mirror(case_id):
+    """Ask the Internet Archive to keep a copy, and record what came back.
+
+    This is the requirement the design calls non-deferrable, and the reason is not
+    redundancy: it is what converts this instance from *the* location into *one*
+    location. Without it, "no guarantee of service" is an evasion; with it, the promise
+    an author makes to a reader does not depend on this machine surviving.
+
+    It is per case and by the author's choice, carried inside the signed submission.
+    Nobody consented to having the whole contents of an instance archived forever as a
+    collection, and every case.json names its author inside it.
+    """
+    if not PUBLIC_BASE:
+        return {"status": "skipped", "why": "this instance does not know its own address"}
+    target = f"{PUBLIC_BASE}/c/{case_id}/"
+    try:
+        req = urllib.request.Request("https://web.archive.org/save/" + target,
+                                     headers={"User-Agent": "colophon-instance"})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            return {"status": "requested", "http": r.status,
+                    "location": r.headers.get("Content-Location") or ""}
+    except urllib.error.HTTPError as e:
+        return {"status": "refused", "http": e.code}
+    except Exception as e:                                          # noqa: BLE001
+        return {"status": "failed", "error": str(e)[:200]}
+
+
+def mirror_in_background(case_id, dest):
+    def work():
+        record = {"service": "web.archive.org", "case_id": case_id,
+                  "requested_at": int(time.time()), **request_mirror(case_id)}
+        try:
+            # Not part of the deposited case: it is written after the bundle, it is not
+            # in the manifest, and it says what this instance did rather than what the
+            # author sealed.
+            with open(os.path.join(dest, "mirrors.json"), "w", encoding="utf-8") as f:
+                json.dump([record], f, indent=1, sort_keys=True)
+            os.chmod(os.path.join(dest, "mirrors.json"), 0o644)
+        except OSError:
+            pass
+        append_line(os.path.join(DATA, "mirrors.jsonl"), record)
+    threading.Thread(target=work, daemon=True).start()
+
+
 # ----------------------------------------------------------------- the handler
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -446,6 +498,9 @@ class Handler(http.server.BaseHTTPRequestHandler):
         prespec = check_register(tmp, submission)   # 7
 
         dest, prespec = store(tmp, submission, pub_line, fp, prespec)
+        mirrored = bool(submission.get("mirror"))
+        if mirrored:
+            mirror_in_background(submission["case_id"], dest)
         self._send(201, {
             "stored": submission["case_id"],
             "url": f"/c/{submission['case_id']}/",
@@ -453,6 +508,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
             "files": len(submission["files"]),
             "register": "pre-spec — its chain was not recomputed here; see "
                         "spec/canonical.md §5" if prespec else "chain recomputed",
+            "mirror": ("requested — see mirrors.json in a minute" if mirrored else
+                       "not requested; this instance is then the only copy"),
             "note": "Stored, not endorsed. This instance says nothing about whether "
                     "a case is true; it holds bytes and serves them.",
         })

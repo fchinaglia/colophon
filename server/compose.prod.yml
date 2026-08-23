@@ -1,0 +1,27 @@
+# Production. One difference from compose.yml, and it decides the whole shape:
+# the host already runs nginx for colophonmethod.com, so this stack does NOT bring its
+# own. The data directory is a bind mount, the host's nginx serves it directly, and only
+# the write process runs in a container.
+#
+#   docker compose -f compose.prod.yml up --build -d
+#
+# The port is bound to loopback: nothing reaches ingest except through the host's nginx,
+# which is where the size caps, the TLS and the rate limits live.
+
+services:
+  ingest:
+    build:
+      context: ..
+      dockerfile: server/Dockerfile
+    volumes:
+      - /srv/deposit:/data
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      # Without this the instance cannot mirror: a mirror needs a URL to fetch, and an
+      # instance that does not know its own name has none to give.
+      COLOPHON_PUBLIC_BASE: "https://deposit.colophonmethod.com"
+      COLOPHON_MAX_BODY: "26214400"
+      COLOPHON_RATE_PER_DAY: "20"
+      COLOPHON_GLOBAL_PER_HOUR: "60"
+    restart: unless-stopped
