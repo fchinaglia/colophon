@@ -8,6 +8,9 @@
   "phase": "titling",
   "event": "M02",
   "note": "title proposed by the model, then rewritten",
+  "events": [
+   "M02"
+  ],
   "heading": true
  },
  {
@@ -19,6 +22,7 @@
   "phase": "first_draft",
   "event": null,
   "note": "",
+  "events": [],
   "heading": false
  },
  {
@@ -30,6 +34,7 @@
   "phase": "first_draft",
   "event": null,
   "note": "",
+  "events": [],
   "heading": false
  },
  {
@@ -41,6 +46,7 @@
   "phase": "first_draft",
   "event": null,
   "note": "",
+  "events": [],
   "heading": false
  },
  {
@@ -52,6 +58,9 @@
   "phase": "copy_revision",
   "event": "M01",
   "note": "closing sentence: model wording, author's point",
+  "events": [
+   "M01"
+  ],
   "heading": false
  }
 ]

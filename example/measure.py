@@ -87,8 +87,19 @@ def main():
                 p = find(b, m["from"])
                 if p is None:
                     errors.append(f"block {i}: marker not found: {m['from'][:40]}")
-                else:
-                    cuts.append(p)
+                    continue
+                # A marker that occurs more than once silently moves the span
+                # boundary when the text is edited, producing a wrong span that
+                # still passes both checks. Refuse it instead.
+                if norm(b).count(norm(m["from"])) > 1:
+                    errors.append(
+                        f"block {i}: marker is ambiguous, it occurs "
+                        f"{norm(b).count(norm(m['from']))} times: {m['from'][:40]}")
+                    continue
+                cuts.append(p)
+            if cuts != sorted(cuts):
+                errors.append(f"block {i}: markers are out of order, spans would overlap")
+                cuts = sorted(cuts)
             edges = [0] + cuts + [len(b)]
             for k in range(len(edges) - 1):
                 seg = b[edges[k]:edges[k + 1]].strip()
@@ -99,12 +110,20 @@ def main():
                 "block": i, "text": seg, "words": len(seg.split()),
                 "lex": meta["lex"], "idea": meta["idea"], "phase": meta["phase"],
                 "event": meta.get("event"), "note": meta.get("note", ""),
+                "events": ([meta["event"]] if isinstance(meta.get("event"), str)
+                           else list(meta.get("event") or [])),
                 "heading": b.startswith("#")})
 
     # --- check 1: reconstruction ---
     rebuilt = norm(" ".join(s["text"] for s in spans))
     original = norm(" ".join(b for i, b in enumerate(blocks) if i not in excluded))
     ok = rebuilt == original
+    # An empty span set must never pass. Comparing nothing with nothing is not
+    # evidence of anything, and it is exactly what happens when the source file
+    # has been truncated: the check would report OK on a destroyed text.
+    if not spans or not original:
+        ok = False
+        errors.append("nothing to reconstruct: the span set or the source text is empty")
 
     # --- check 2: coverage ---
     orphans = []
@@ -115,7 +134,7 @@ def main():
                 d = json.loads(r).get("payload", {}).get("change")
                 if d:
                     declared.add(d)
-        present = {s["event"] for s in spans if s["event"]}
+        present = {e for s in spans for e in s["events"]}
         orphans = sorted(declared - present)
 
     json.dump(spans, open("spans.json", "w", encoding="utf-8"),

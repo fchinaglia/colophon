@@ -260,6 +260,7 @@ scripts/record.py          append-only register with hash chain
 scripts/measure.py         annotation → span → two axes, with the two checks
 scripts/build_page.py      standalone verification page, light and dark
 scripts/build_icon.py      the quadrant icon, generated from the measurement
+scripts/build_note.py      the technical line of the note, from the register
 scripts/seal.sh            signature, timestamp, anchoring
 ```
 

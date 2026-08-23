@@ -8,6 +8,7 @@ python3 record.py --verify     # the chain is intact
 python3 measure.py             # reconstruction and coverage checks, then the two axes
 python3 build_icon.py          # icon.svg, generated from kpi.json
 python3 build_page.py          # verification.html, the page a reader opens
+python3 build_note.py          # the technical line that closes the note
 ```
 
 Open `verification.html` in a browser afterwards.

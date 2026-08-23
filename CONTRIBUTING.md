@@ -43,7 +43,7 @@ If you think one of these is wrong, that is a conversation worth having — open
 
   ```bash
   cd example
-  python3 record.py --verify && python3 measure.py && python3 build_icon.py && python3 build_page.py
+  python3 record.py --verify && python3 measure.py && python3 build_icon.py && python3 build_page.py && python3 build_note.py
   ```
 
 - **Commits and PRs.** Say what changed and why. If the change alters a measurement, say what the number was before and what it is now.
