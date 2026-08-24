@@ -54,6 +54,40 @@ which is both accurate and what keeps the skill the one GitHub calls *latest*.
 - CI runs on Python 3.9 and 3.13, on Ubuntu and macOS, plus a Windows job whose only
   purpose is to fail loudly on the line-ending hazard, on the platform that causes it.
 
+### Fixed
+
+Both of these were found the same way, and that is the part worth keeping: a full run of
+the method on a real article, in a session that did nothing but follow `SKILL.md`. The
+case came out sound in every respect the register can check — chain intact, `unexplained`
+empty, fifteen manifest digests, a signature that verifies against the key published on
+the author's domain — and the one thing it asks a reader to do, a reader could not do.
+Neither defect is visible from inside the repository, because everything in the
+repository passes.
+
+- **`build_page.py` writes `index.html`.** That a published address must end at the
+  folder has been a rule since the underscore hazard was written down — link detectors
+  cut at the first underscore, so `…/pagina_di_verifica.html` arrives as `…/pagina` — and
+  the script that makes the page did not honour it: it wrote `verification.html`. A case
+  deposited exactly as the method describes therefore answered **404 at the address its
+  own note prints**. Measured on a real deposit: `events.jsonl`, `bundle.tar`, the page
+  and `kpi.json` all 200, the folder 404. Nothing writes the old name now; keeping both
+  would mean two manifest-covered files with identical content, which is a way for two
+  things to drift apart. `cases/001` and `cases/002` keep theirs — they are sealed, their
+  manifests cover that name, and they carry their own copies of the scripts, which is
+  what those copies are for.
+- **The cycle has a publication step.** §4 ended at `build_note.py`, so a model following
+  the skill stopped where the instructions stop, and the address written into `case.json`
+  at the opening — linked by the page, printed in the technical line, frozen by the
+  manifest — was never deposited anywhere. Nothing in any of those artefacts said *and
+  this has not been published yet*, which is the failure `reference/disclosures.md`
+  already names arriving from a direction nobody guarded. The step covers the deposit
+  through `cli/colophon.py` and, critically, the check that the address answers: `seal.sh`
+  already writes `events.jsonl.sha256`, so fetching the register from the published
+  address and comparing the digests is the whole check, and it runs before the author is
+  told the case is done. With two rules — an address that has not been published is not
+  done, and a deferred publication is recorded rather than left reading as live, before
+  the manifest if it is known then and as a reopening if it is not.
+
 ## [1.4.0] — 2026-08-23
 
 ### Added
