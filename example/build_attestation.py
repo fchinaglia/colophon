@@ -29,10 +29,17 @@ make one; it is no longer the way in.
 
 WHERE THE QUALIFIED SIGNATURE GOES, if you hold one: on the thing you actually hand over.
 A PDF, signed as PAdES, which covers the document as well as the record. Or the bundle,
-`colophon-<case_uid>.tar`, signed as CAdES — **in binary mode**. A client that treats the
-tar as text destroys it: measured here, 256,000 bytes in, 6,367 bytes and *Unrecognized
-archive format* out, with the signature over the wreckage still valid. Whether the Italian
-clients do the right thing by default is [unverified]; check before you rely on it.
+`colophon-<case_uid>.tar`, signed as CAdES.
+
+Signing the bundle is safe with a client that signs the bytes it is given, and one real
+Italian qualified-signature client was tested and does: a two-line text file came back out
+of its own .p7m byte-identical, and a client that leaves `\n` alone in a .txt will not
+touch a tar. Check yours once, before you rely on it — the failure is silent and total.
+Sign a small text file, extract it with `openssl cms -verify -noverify -out`, and compare
+the digests. If they differ, the client canonicalises: find its binary option, or sign the
+PDF instead. The damage is not subtle — measured with OpenSSL's own default, 256,000 bytes
+of tar in, 6,367 bytes and *Unrecognized archive format* out, with the signature over the
+wreckage still perfectly valid.
 
 Either way the signing happens in your own tool, with your own certificate, and nothing
 here ever sees it. Pick level **LT**: below it a signature carries no revocation evidence,

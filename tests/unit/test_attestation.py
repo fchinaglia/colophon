@@ -191,4 +191,5 @@ def test_it_tells_the_author_not_to_sign_it(manifested):
         os.path.abspath(__file__)))), "skill", "colophon", "scripts",
         "build_attestation.py"), encoding="utf-8").read()
     assert "DO NOT SIGN THIS FILE" in doc
-    assert "in binary mode" in doc, "a client that signs a tar as text destroys it"
+    assert "canonicalises" in doc and "Unrecognized archive format" in doc, \
+        "the warning about a client that mangles a tar must survive edits"

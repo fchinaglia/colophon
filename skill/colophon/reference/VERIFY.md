@@ -94,8 +94,8 @@ openssl cms -verify -in [file].p7m -inform DER -noverify -signer signer.pem \
   && openssl x509 -in signer.pem -noout -subject -dates
 ```
 
-The `-binary` matters: without it OpenSSL canonicalises the content, and a tar comes back
-out mangled. The second command prints who signed and until when the certificate was
+The `-binary` matters on the reading side too: without it OpenSSL canonicalises the
+content, and a tar comes back out mangled even though the signature verifies. The second command prints who signed and until when the certificate was
 valid. For a signed PDF, open it in a reader that shows the signature panel.
 
 For a full check against the European Trusted Lists, upload the file to the EU DSS
