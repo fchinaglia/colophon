@@ -132,6 +132,8 @@ Publishing it is what separates this from a declaration. `reference/VERIFY.md` i
 
 The blocks of the disclosure go in `excluded` inside `annotation.json`. The disclosure does not measure itself, and that has to be said.
 
+**Better still, do not put it in the source at all.** `render_md.py` and `render_pdf.py` generate the marker and the block at render time, so a source that carries its own gets both twice — measured on the two cases sealed before this was true, which printed the level-1 marker once from the renderer and once from the text. The renderers now omit the blocks `excluded` names, for exactly this reason: the field already means *the blocks of the disclosure*, and nothing is lost, because those blocks stay in the sealed source where the manifest covers them.
+
 ---
 
 ## What never to write

@@ -327,3 +327,36 @@ def test_it_promotes_nothing_when_the_title_does_not_match(tmp_path):
     body = m.to_html("Some opening line\n\nBody.\n")
     assert m.promote_title(body, "A completely different title") == body
     assert m.promote_title(body, None) == body
+
+
+def test_the_source_disclosure_is_not_printed_twice(manifested):
+    """disclosures.md defines `excluded` as the blocks of the disclosure, and both
+    renderers generate the marker and the block themselves. A source carrying its own —
+    every case sealed before that was true — printed the level-1 marker once from the
+    renderer and once from the text, and a paragraph note the generated block had already
+    superseded."""
+    src = os.path.join(manifested, source_of(manifested))
+    text = open(src, encoding="utf-8").read()
+    # A hand-typed disclosure, as every case sealed before the renderers generated one.
+    typed = "Written by hand with the assistance of a language model, ZZQX."
+    open(src, "w", encoding="utf-8").write(text.rstrip("\n") + "\n\n" + typed + "\n")
+    ann = os.path.join(manifested, "annotation.json")
+    a = json.loads(open(ann, encoding="utf-8").read())
+    n = len([b for b in open(src, encoding="utf-8").read().split("\n\n") if b.strip()])
+    a["excluded"] = [n - 1]
+    open(ann, "w", encoding="utf-8").write(json.dumps(a))
+    seal_manifest(manifested)
+
+    r = run(manifested, "render_pdf.py", "--html-only")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "dropped" in r.stdout, "the excluded block was rendered anyway"
+    doc = open(os.path.join(manifested, "document.html"), encoding="utf-8").read()
+    assert "ZZQX" not in doc, "the hand-typed disclosure was printed as well"
+    generated = load("render_md").MARKER["en"].strip("*")[:40]
+    assert doc.count(generated) == 1, "the generated marker is not there exactly once"
+
+
+def test_nothing_is_dropped_when_the_annotation_excludes_nothing(manifested):
+    r = run(manifested, "render_pdf.py", "--html-only")
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "dropped" not in r.stdout

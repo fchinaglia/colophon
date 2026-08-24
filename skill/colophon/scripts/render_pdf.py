@@ -474,6 +474,7 @@ def main(argv=None):
     p.add_argument("--kpi", default="kpi.json")
     p.add_argument("--icon", default="icon.svg")
     p.add_argument("--case", default="case.json")
+    p.add_argument("--annotation", default="annotation.json")
     p.add_argument("--source", default=None)
     p.add_argument("--lang", choices=sorted(render_md.MARKER), default="en")
     p.add_argument("--gap", default=None)
@@ -503,6 +504,7 @@ def main(argv=None):
 
     source = open(src, encoding="utf-8").read()
     refuse_unsupported(source)
+    source, dropped = render_md.without_the_old_disclosure(source, a.annotation)
     body = to_html(source)
     check_nothing_was_rewritten(source, body)
     body = promote_title(body, case.get("title"))
@@ -544,6 +546,10 @@ def main(argv=None):
     print(f"  {out_html}")
     print(f"  source    {src}  {manifest[src][:16]}…  matches the manifest")
     print(f"  block     {name}, {len(lines)} lines")
+    if dropped:
+        print(f"  dropped   {len(dropped)} block(s) the annotation excludes — the "
+              f"disclosure\n            the source carried by hand, which this "
+              f"rendering generates")
 
     if a.html_only:
         return 0

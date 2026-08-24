@@ -124,6 +124,39 @@ def gate(log, given=None, quiet=False):
     return src, manifest, rows
 
 
+def without_the_old_disclosure(source, ann_path):
+    """Drop the blocks the annotation excludes.
+
+    disclosures.md defines that field: *the blocks of the disclosure go in `excluded`
+    inside annotation.json*. That was written when the note was typed into the text by
+    hand. Both renderers generate the marker and the block now, so a source carrying its
+    own gets them twice — measured on the two published cases, which printed the level-1
+    marker once from the renderer and once from block 1, and carried a paragraph note the
+    generated block had already superseded.
+
+    Nothing is rewritten and nothing is lost: the blocks stay in the sealed source, where
+    the manifest covers them, and a reader who wants them opens the bundle. What changes
+    is that a rendering stops printing the apparatus twice.
+    """
+    try:
+        ann = json.load(open(ann_path, encoding="utf-8"))
+    except (OSError, ValueError):
+        return source, []
+    excluded = set(ann.get("excluded") or [])
+    if not excluded:
+        return source, []
+    blocks = source.split("\n\n")
+    keep, dropped = [], []
+    i = 0
+    for b in blocks:
+        if not b.strip():
+            keep.append(b)
+            continue
+        (dropped if i in excluded else keep).append(b)
+        i += 1
+    return "\n\n".join(keep), dropped
+
+
 def insert_after_title(body, block, title=None):
     """Under the title, which is where a reader meets the piece — never at the very top,
     above the thing they came for.
@@ -149,6 +182,7 @@ def main(argv=None):
     p.add_argument("--kpi", default="kpi.json")
     p.add_argument("--icon", default="icon.svg")
     p.add_argument("--case", default="case.json")
+    p.add_argument("--annotation", default="annotation.json")
     p.add_argument("--source", default=None, help="the covered version to publish")
     p.add_argument("--lang", choices=sorted(MARKER), default="en")
     p.add_argument("--block", choices=("html", "md", "svg"), default="html")
@@ -204,7 +238,8 @@ def main(argv=None):
             icon_src = open(a.icon, encoding="utf-8").read().strip()
         block = build_block.as_html(lines, tech, icon_src, alt)
 
-    body = open(src, encoding="utf-8").read().rstrip("\n")
+    body, dropped = without_the_old_disclosure(
+        open(src, encoding="utf-8").read().rstrip("\n"), a.annotation)
     head = []
     if not a.no_byline:
         head.append(a.byline if a.byline is not None else
@@ -223,6 +258,10 @@ def main(argv=None):
     print(f"  {out}")
     print(f"  source    {src}  {want[:16]}…  matches the manifest")
     print(f"  block     {name}, {len(lines)} lines, {a.block}")
+    if dropped:
+        print(f"  dropped   {len(dropped)} block(s) the annotation excludes — the "
+              f"disclosure\n            the source carried by hand, which this "
+              f"rendering generates")
     print(f"  body      {len(body.encode('utf-8')):,} bytes, unchanged from the source")
     return 0
 
