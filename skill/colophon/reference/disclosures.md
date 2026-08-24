@@ -217,11 +217,11 @@ The middle line of the technical block is the route to the record, and there are
 The first line states the seal and qualifies it; only the root is in all three.
 
 ```
-signed register                              signed register, attached to this file
+signed register                              signed register, enclosed
 example.com/cases/002                        verify offline: drop colophon-<uid>.tar on verify.html
 root ae68ae8d…8312793                        root ae68ae8d…8312793
 
-registro firmato                             registro firmato, allegato a questo file
+registro firmato                             registro firmato, accluso
 example.com/cases/002                        verifica offline: trascina colophon-<uid>.tar su verify.html
 radice ae68ae8d…8312793                      radice ae68ae8d…8312793
 ```
@@ -238,9 +238,16 @@ root ae68ae8d…8312793                        radice ae68ae8d…8312793
 inspectable register*, said two things and checked one: a register with no route is not
 inspectable by the reader holding the document, and the line printed the claim anyway.
 
-**Two things the attached form must carry, or it is worse than an address.** Say the
-attachment is there — most PDF viewers do not announce one, and Chrome's and Preview's do
-not at all, so a route nobody is told about is not a route. And treat what travels as a
+**Enclosed, not *attached to this file*.** Only a PDF with the tar embedded in it can say
+the second, and a markdown file can never say it: what is enclosed travels beside the
+document, in the same mail, folder or archive. The middle line says exactly what to do
+with it, so the first line does not have to describe a mechanism it cannot guarantee.
+`--attached` refuses if the bundle it would name is not on disk: a line promising an
+enclosure that was never built is #16 in a new costume, and a silent one.
+
+**Two things the enclosed form must carry, or it is worse than an address.** Say the
+enclosure is there — most PDF viewers do not announce an attachment, and Chrome's and
+Preview's do not at all, so a route nobody is told about is not a route. And treat what travels as a
 snapshot: a bundle in a reader's hands verifies perfectly and cannot announce that the
 case was reopened afterwards. The root printed in the document is what makes that visible,
 which is why it is in all three forms.

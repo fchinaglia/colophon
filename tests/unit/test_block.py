@@ -164,8 +164,14 @@ def test_the_line_states_the_route_and_there_are_three(case):
     assert "not published" in held
     assert "verify.html" not in held
 
+    tar = os.path.join(os.path.dirname(case), "colophon-a-case.tar")
+    r = run(case, "build_block.py", "--form", "text", "--attached")
+    assert r.returncode != 0, "a line naming an enclosure that does not exist"
+    assert "there is none" in r.stdout + r.stderr
+
+    open(tar, "wb").write(b"not really a tar, but it is on disk")
     attached = block(case, "--form", "text", "--attached")
-    assert "attached to this file" in attached
+    assert "enclosed" in attached
     assert "colophon-a-case.tar" in attached
 
     d["verification_url"] = "https://example.com/c/x/"

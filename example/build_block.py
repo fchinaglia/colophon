@@ -129,11 +129,12 @@ def render_line(text, bolds, bold_open, bold_close):
     return out
 
 
-def technical(log, lang, url, form, short_root, attached=False):
+def technical(log, lang, url, form, short_root, attached=False, bundle=None):
     """build_note.py owns this line in every form: asking it, rather than reassembling
     it here, is what keeps the block from claiming a seal the line does not name."""
     return build_note.line(log=log, lang=lang, html=(form == "html"), url=url,
-                           form="compact", short_root=short_root, attached=attached)
+                           form="compact", short_root=short_root, attached=attached,
+                           bundle=bundle)
 
 
 def as_html(lines, tech, icon_src, alt, style=True):
@@ -202,7 +203,9 @@ def main(argv=None):
     p.add_argument("--url", default=None, help="passed to build_note.py")
     p.add_argument("--short-root", action="store_true")
     p.add_argument("--attached", action="store_true",
-                   help="the record travels with the document, as a bundle")
+                   help="the record is enclosed with the document, as a bundle")
+    p.add_argument("--bundle", default=None,
+                   help="where that bundle is, if not beside the case")
     p.add_argument("--inline-icon", action="store_true",
                    help="inline icon.svg, for a fragment that has to travel alone")
     p.add_argument("--no-style", action="store_true", help="emit the table without CSS")
@@ -216,7 +219,8 @@ def main(argv=None):
 
     lines, name, xl, yi = note_lines(kpi, a.lang, a.gap, a.essential)
     alt = T[a.lang]["alt"].format(name=name, x=f"{xl:.0f}", y=f"{yi:.0f}")
-    tech = technical(a.log, a.lang, a.url, a.form, a.short_root, a.attached)
+    tech = technical(a.log, a.lang, a.url, a.form, a.short_root, a.attached,
+                     a.bundle)
 
     if a.form == "svg":
         svg, _ = build_icon.icon(xl / 100, yi / 100)

@@ -154,7 +154,9 @@ def main(argv=None):
                    help="reference icon.svg instead of inlining it")
     p.add_argument("--url", default=None)
     p.add_argument("--attached", action="store_true",
-                   help="the record travels with this file, as a bundle")
+                   help="the record is enclosed with this document, as a bundle")
+    p.add_argument("--bundle", default=None,
+                   help="where that bundle is, if not beside the case")
     p.add_argument("-o", "--out", default=None)
     a = p.parse_args(argv)
 
@@ -172,7 +174,7 @@ def main(argv=None):
     alt = build_block.T[a.lang]["alt"].format(name=name, x=f"{xl:.0f}", y=f"{yi:.0f}")
     tech = build_block.technical(a.log, a.lang, a.url,
                                  "html" if a.block == "html" else "text", False,
-                                 a.attached)
+                                 a.attached, a.bundle)
 
     if a.block == "svg":
         svg, _ = build_icon.icon(xl / 100, yi / 100)

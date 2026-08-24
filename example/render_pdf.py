@@ -235,7 +235,9 @@ def main(argv=None):
     p.add_argument("--no-marker", action="store_true")
     p.add_argument("--url", default=None)
     p.add_argument("--attached", action="store_true",
-                   help="the record travels with this file, as a bundle")
+                   help="the record is enclosed with this document, as a bundle")
+    p.add_argument("--bundle", default=None,
+                   help="where that bundle is, if not beside the case")
     p.add_argument("--html-only", action="store_true", help="stop before Chrome")
     p.add_argument("-o", "--out", default=None, help="the PDF path")
     a = p.parse_args(argv)
@@ -256,7 +258,8 @@ def main(argv=None):
 
     lines, name, xl, yi = build_block.note_lines(kpi, a.lang, a.gap)
     alt = build_block.T[a.lang]["alt"].format(name=name, x=f"{xl:.0f}", y=f"{yi:.0f}")
-    tech = build_block.technical(a.log, a.lang, a.url, "html", False, a.attached)
+    tech = build_block.technical(a.log, a.lang, a.url, "html", False, a.attached,
+                                 a.bundle)
     if not os.path.exists(a.icon):
         raise SystemExit(f"missing {a.icon} — run build_icon.py first")
     block = build_block.as_html(lines, tech, open(a.icon, encoding="utf-8").read().strip(),

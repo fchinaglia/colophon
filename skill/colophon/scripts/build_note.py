@@ -92,7 +92,7 @@ TAIL = {
         "at_page": " Verification page, with the register alongside it: {where}.",
         "at_url": " Register and verification instructions: {where}.",
         "at_doc": " Verification instructions in {where}.",
-        "attached": " The register travels with this file, as {tar}: drop it on"
+        "attached": " The register is enclosed with this document, as {tar}: drop it on"
                     " verify.html and everything above is checked offline.",
         "and": " and ",
         "no_address": "no {keys} in {files}, and --url not given: the line names no place"
@@ -105,8 +105,8 @@ TAIL = {
         "at_page": " Pagina di verifica, con il registro accanto: {where}.",
         "at_url": " Registro e istruzioni di verifica: {where}.",
         "at_doc": " Istruzioni di verifica in {where}.",
-        "attached": " Il registro viaggia con questo file, come {tar}: trascinalo su"
-                    " verify.html e tutto quanto sopra è verificato offline.",
+        "attached": " Il registro è accluso a questo documento, come {tar}: trascinalo"
+                    " su verify.html e tutto quanto sopra è verificato offline.",
         "and": " e ",
         "no_address": "nessun {keys} in {files}, e --url non passato: la riga non indica"
                       " nessun posto dove andare. Un lettore che non sia già dentro la"
@@ -123,13 +123,13 @@ TAIL = {
 # the route, and there are three of them.
 COMPACT = {
     "en": {"sealed": "signed register",
-           "attached": "signed register, attached to this file",
+           "attached": "signed register, enclosed",
            "held": "signed register, not published",
            "unsealed": "register not sealed yet — no signature or timestamp",
            "retrieval": "verify offline: drop {tar} on verify.html",
            "root": "root {root}"},
     "it": {"sealed": "registro firmato",
-           "attached": "registro firmato, allegato a questo file",
+           "attached": "registro firmato, accluso",
            "held": "registro firmato, non pubblicato",
            "unsealed": "registro non ancora sigillato — nessuna firma né marca temporale",
            "retrieval": "verifica offline: trascina {tar} su verify.html",
@@ -155,7 +155,27 @@ def bundle_name(base_dir):
             continue
         if uid:
             return f"colophon-{uid}.tar"
-    return "the attached .tar"
+    return None
+
+
+def find_bundle(base_dir, given, name):
+    """A line that names an enclosure is a promise about a file, so look for the file.
+
+    Without this, --attached is a flag: it prints `signed register, enclosed` and names a
+    tar, and nothing anywhere checks that the tar was ever built. That is #16 in a new
+    costume — a route under a disclosure that does not lead anywhere — and it is silent,
+    which is what makes it worth a refusal rather than a warning.
+    """
+    if given:
+        return given if os.path.exists(given) else False
+    if not name:
+        return False
+    for cand in (os.path.join(os.path.dirname(base_dir), name),
+                 os.path.join(base_dir, name),
+                 name):
+        if os.path.exists(cand):
+            return cand
+    return False
 
 
 def join(items, lang):
@@ -214,7 +234,7 @@ def shown(url):
 
 
 def line(log="events.jsonl", lang="en", html=False, url=None,
-         short_root=False, form="compact", attached=False):
+         short_root=False, form="compact", attached=False, bundle=None):
     if lang not in LANGS:
         raise SystemExit(f"unknown language {lang!r}: choose one of {', '.join(LANGS)}")
     if not os.path.exists(log):
@@ -243,6 +263,15 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
 
     present = [SEALS[lang][k] for k in ("sig", "tsr", "ots")
                if os.path.exists(f"{log}.{k}")]
+    tar = bundle_name(base_dir)
+    if attached and not find_bundle(base_dir, bundle, tar):
+        raise SystemExit(
+            f"! --attached names {tar or 'a bundle'} and there is none.\n"
+            f"  The line would tell a reader the record is enclosed with the document,\n"
+            f"  and nothing would be. Run build_bundle.py first, or pass --bundle PATH,\n"
+            f"  or drop --attached and let the line say what is true."
+            + ("" if tar else "\n  (case.json carries no case_uid, so the bundle has no"
+                              " name to look for either.)"))
     page = None if url else find_url(base_dir, PAGE_KEYS)
     url = url or page or find_url(base_dir, URL_KEYS)
     doc = find_doc(base_dir, lang)
@@ -260,7 +289,7 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
         else:
             rows = [c["held"]]
         if attached:
-            rows.append(c["retrieval"].format(tar=bundle_name(base_dir)))
+            rows.append(c["retrieval"].format(tar=tar))
         elif url:
             rows.append(where)
         # The event count is not here: the page at the address above prints it, and
@@ -283,7 +312,7 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
     # An address beats a filename: the filename only helps a reader who already has
     # the folder, which is the one reader who did not need telling.
     if attached:
-        text += t["attached"].format(tar=bundle_name(base_dir))
+        text += t["attached"].format(tar=tar)
     elif url:
         text += t["at_page" if page else "at_url"].format(where=where)
     elif doc:
@@ -314,14 +343,17 @@ def main():
     p.add_argument("--url", default=None,
                    help="where the register is published; overrides the case metadata")
     p.add_argument("--attached", action="store_true",
-                   help="the record travels with the document, as a bundle")
+                   help="the record is enclosed with the document, as a bundle")
+    p.add_argument("--bundle", default=None,
+                   help="where that bundle is, if not beside the case")
     p.add_argument("--short-root", action="store_true",
                    help="abbreviate the root — for a card or a slide, not for a page")
     p.add_argument("--form", choices=("compact", "full"), default="compact",
                    help="compact: three short lines, the default. full: one sentence "
                         "naming every seal, with the root in full")
     a = p.parse_args()
-    print(line(a.log, a.lang, a.html, a.url, a.short_root, a.form, a.attached))
+    print(line(a.log, a.lang, a.html, a.url, a.short_root, a.form, a.attached,
+               a.bundle))
 
 
 if __name__ == "__main__":
