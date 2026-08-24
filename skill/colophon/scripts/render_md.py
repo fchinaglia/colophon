@@ -153,6 +153,8 @@ def main(argv=None):
     p.add_argument("--linked-icon", action="store_true",
                    help="reference icon.svg instead of inlining it")
     p.add_argument("--url", default=None)
+    p.add_argument("--attached", action="store_true",
+                   help="the record travels with this file, as a bundle")
     p.add_argument("-o", "--out", default=None)
     a = p.parse_args(argv)
 
@@ -169,7 +171,8 @@ def main(argv=None):
     lines, name, xl, yi = build_block.note_lines(kpi, a.lang, a.gap)
     alt = build_block.T[a.lang]["alt"].format(name=name, x=f"{xl:.0f}", y=f"{yi:.0f}")
     tech = build_block.technical(a.log, a.lang, a.url,
-                                 "html" if a.block == "html" else "text", False)
+                                 "html" if a.block == "html" else "text", False,
+                                 a.attached)
 
     if a.block == "svg":
         svg, _ = build_icon.icon(xl / 100, yi / 100)

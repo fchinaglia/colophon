@@ -141,6 +141,9 @@ The blocks of the disclosure go in `excluded` inside `annotation.json`. The disc
 - **Claims of regulatory compliance.** For a professional post or blog the AI Act obligation almost never applies: the guidelines exclude advertising and product descriptions from "matters of public interest", and the exception for human review with editorial responsibility covers anyone who genuinely reads their text back. The correct framing, if you want to invoke the regulation at all, is **voluntary adherence**: adopting the standard of human review and editorial responsibility even where you would not be required to.
 - **The effort.** "It still took me three hours" is not an argument the public weighs. What it weighs is whether the AI contribution was substitutable, who was steering, and whether AI text went straight into the finished product — substitutability, intentionality and directness (Fang, Wen & Lee, 2026, arXiv:2604.27129).
 - **Numbers with decimals** in material addressed to the public. They convey a precision the construct does not have.
+- **"PDF/A-3", or any archival-format claim**, on a rendering produced by headless Chrome. It has no output intent, no conformant XMP and no guaranteed embedded fonts. An unverified compliance claim is the previous entry again, in the one artefact whose whole job is to be checkable.
+- **Anything that lets a signature over the document stand in for the measurement.** A qualified signature says this file has not changed since it was signed, and a reader who sees a legal name in a signature panel will hear *and these numbers are right about this text*. They are two claims. The attestation says so itself, `VERIFY.md` says so, and the disclosure must not undo them by implying otherwise.
+- **An address you are not sure will answer.** A dead link under a disclosure looks like evidence from a distance and is the opposite of it up close. If you are not certain, use the attached form or the held form below — both are true, and a true weaker claim beats a false stronger one.
 
 ---
 
@@ -207,6 +210,45 @@ Three things follow, and none is a detail.
 Icon, note and technical line are the three parts of level 2 — parts of one object, not levels of their own, and they are always
 arranged the same way: **the icon on the left, the note and the technical line
 stacked in a column to its right**, in that order down the page.
+
+### The three routes, and the line that says which one
+
+The middle line of the technical block is the route to the record, and there are three.
+The first line states the seal and qualifies it; only the root is in all three.
+
+```
+signed register                              signed register, attached to this file
+example.com/cases/002                        verify offline: drop colophon-<uid>.tar on verify.html
+root ae68ae8d…8312793                        root ae68ae8d…8312793
+
+registro firmato                             registro firmato, allegato a questo file
+example.com/cases/002                        verifica offline: trascina colophon-<uid>.tar su verify.html
+radice ae68ae8d…8312793                      radice ae68ae8d…8312793
+```
+
+And when there is neither — legitimate, and said plainly rather than implied away:
+
+```
+signed register, not published               registro firmato, non pubblicato
+root ae68ae8d…8312793                        radice ae68ae8d…8312793
+```
+
+`build_note.py --attached` picks the middle one; without it the line uses the address in
+`case.json`, and with no address it uses the third. The earlier wording, *signed and
+inspectable register*, said two things and checked one: a register with no route is not
+inspectable by the reader holding the document, and the line printed the claim anyway.
+
+**Two things the attached form must carry, or it is worse than an address.** Say the
+attachment is there — most PDF viewers do not announce one, and Chrome's and Preview's do
+not at all, so a route nobody is told about is not a route. And treat what travels as a
+snapshot: a bundle in a reader's hands verifies perfectly and cannot announce that the
+case was reopened afterwards. The root printed in the document is what makes that visible,
+which is why it is in all three forms.
+
+**The tier is the container, not the author.** A PDF can carry the attachment; a web page
+can carry an address, and beats an attachment on citability and on saying *this was
+superseded*; a post carries neither and must point at something that does. The marker, the
+note and the root travel in every container. Only the route changes.
 
 `python3 build_block.py` emits exactly this, styled. `--form svg` emits the same block as
 one image, for a post or a slide that takes neither an HTML fragment nor an image and a

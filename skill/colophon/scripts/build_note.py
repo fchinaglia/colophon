@@ -92,6 +92,8 @@ TAIL = {
         "at_page": " Verification page, with the register alongside it: {where}.",
         "at_url": " Register and verification instructions: {where}.",
         "at_doc": " Verification instructions in {where}.",
+        "attached": " The register travels with this file, as {tar}: drop it on"
+                    " verify.html and everything above is checked offline.",
         "and": " and ",
         "no_address": "no {keys} in {files}, and --url not given: the line names no place"
                       " to go. A reader who is not already inside the case folder cannot"
@@ -103,6 +105,8 @@ TAIL = {
         "at_page": " Pagina di verifica, con il registro accanto: {where}.",
         "at_url": " Registro e istruzioni di verifica: {where}.",
         "at_doc": " Istruzioni di verifica in {where}.",
+        "attached": " Il registro viaggia con questo file, come {tar}: trascinalo su"
+                    " verify.html e tutto quanto sopra è verificato offline.",
         "and": " e ",
         "no_address": "nessun {keys} in {files}, e --url non passato: la riga non indica"
                       " nessun posto dove andare. Un lettore che non sia già dentro la"
@@ -113,12 +117,22 @@ TAIL = {
 # The compact form: three short lines instead of a sentence. It is the default because
 # it is what goes under an article, where a paragraph of prose in a monospace face is
 # not read. The long form stays available for a page that has room to explain itself.
+# "signed and inspectable register" said two things at once and only checked one. A
+# register with no route is not inspectable by the reader holding the document, and the
+# line printed the claim anyway. The first line now states the seal; the second states
+# the route, and there are three of them.
 COMPACT = {
-    "en": {"sealed": "signed and inspectable register",
+    "en": {"sealed": "signed register",
+           "attached": "signed register, attached to this file",
+           "held": "signed register, not published",
            "unsealed": "register not sealed yet — no signature or timestamp",
+           "retrieval": "verify offline: drop {tar} on verify.html",
            "root": "root {root}"},
-    "it": {"sealed": "registro firmato e ispezionabile",
+    "it": {"sealed": "registro firmato",
+           "attached": "registro firmato, allegato a questo file",
+           "held": "registro firmato, non pubblicato",
            "unsealed": "registro non ancora sigillato — nessuna firma né marca temporale",
+           "retrieval": "verifica offline: trascina {tar} su verify.html",
            "root": "radice {root}"},
 }
 
@@ -128,6 +142,20 @@ DOC_NAMES = {
     "en": ("VERIFY.md", "VERIFICA.md"),
     "it": ("VERIFICA.md", "VERIFY.md"),
 }
+
+
+def bundle_name(base_dir):
+    """The tar is named after case_uid, which is why case_uid is fixed at the opening:
+    once the file is detached from the folder that made it, its name is all that says
+    which case it belongs to."""
+    for fn in ("case.json", "caso.json"):
+        try:
+            uid = json.load(open(os.path.join(base_dir, fn), encoding="utf-8")).get("case_uid")
+        except (OSError, ValueError):
+            continue
+        if uid:
+            return f"colophon-{uid}.tar"
+    return "the attached .tar"
 
 
 def join(items, lang):
@@ -186,7 +214,7 @@ def shown(url):
 
 
 def line(log="events.jsonl", lang="en", html=False, url=None,
-         short_root=False, form="compact"):
+         short_root=False, form="compact", attached=False):
     if lang not in LANGS:
         raise SystemExit(f"unknown language {lang!r}: choose one of {', '.join(LANGS)}")
     if not os.path.exists(log):
@@ -223,14 +251,23 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
 
     if form == "compact":
         c = COMPACT[lang]
-        rows = [c["sealed"] if present else c["unsealed"]]
-        if url:
+        if not present:
+            rows = [c["unsealed"]]
+        elif attached:
+            rows = [c["attached"]]
+        elif url:
+            rows = [c["sealed"]]
+        else:
+            rows = [c["held"]]
+        if attached:
+            rows.append(c["retrieval"].format(tar=bundle_name(base_dir)))
+        elif url:
             rows.append(where)
         # The event count is not here: the page at the address above prints it, and
         # the word that qualifies the hash matters more than the number that precedes
         # it. Without "root", the last line is an unidentified string.
         rows.append(c["root"].format(root=printed_root))
-        if not url and not doc:
+        if not attached and not url and not doc:
             warn_no_address(lang)
         if html:
             body = "<br>".join(
@@ -245,7 +282,9 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
 
     # An address beats a filename: the filename only helps a reader who already has
     # the folder, which is the one reader who did not need telling.
-    if url:
+    if attached:
+        text += t["attached"].format(tar=bundle_name(base_dir))
+    elif url:
         text += t["at_page" if page else "at_url"].format(where=where)
     elif doc:
         text += t["at_doc"].format(where=where)
@@ -274,13 +313,15 @@ def main():
                    help="wording language (default: en)")
     p.add_argument("--url", default=None,
                    help="where the register is published; overrides the case metadata")
+    p.add_argument("--attached", action="store_true",
+                   help="the record travels with the document, as a bundle")
     p.add_argument("--short-root", action="store_true",
                    help="abbreviate the root — for a card or a slide, not for a page")
     p.add_argument("--form", choices=("compact", "full"), default="compact",
                    help="compact: three short lines, the default. full: one sentence "
                         "naming every seal, with the root in full")
     a = p.parse_args()
-    print(line(a.log, a.lang, a.html, a.url, a.short_root, a.form))
+    print(line(a.log, a.lang, a.html, a.url, a.short_root, a.form, a.attached))
 
 
 if __name__ == "__main__":

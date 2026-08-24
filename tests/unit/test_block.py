@@ -145,3 +145,34 @@ def test_the_thousands_separator_follows_the_language(case):
     _json.dump(kpi, open(os.path.join(case, "kpi.json"), "w", encoding="utf-8"))
     assert "1.096 parole" in block(case, "--form", "text", "--lang", "it")
     assert "1,096 words" in block(case, "--form", "text", "--lang", "en")
+
+
+def test_the_line_states_the_route_and_there_are_three(case):
+    """"signed and inspectable register" said two things and checked one: a register with
+    no route is not inspectable by the reader holding the document."""
+    import json as _json
+    cj = os.path.join(case, "case.json")
+    d = _json.load(open(cj, encoding="utf-8"))
+    d["case_uid"] = "a-case"
+    d.pop("register_url", None), d.pop("verification_url", None)
+    _json.dump(d, open(cj, "w", encoding="utf-8"), ensure_ascii=False)
+    # build_note.py names a seal only if its file is on disk; the wording under test is
+    # the sealed one, and an unsealed register says so instead and says nothing else.
+    open(os.path.join(case, "events.jsonl.sig"), "w").write("x")
+
+    held = block(case, "--form", "text")
+    assert "not published" in held
+    assert "verify.html" not in held
+
+    attached = block(case, "--form", "text", "--attached")
+    assert "attached to this file" in attached
+    assert "colophon-a-case.tar" in attached
+
+    d["verification_url"] = "https://example.com/c/x/"
+    _json.dump(d, open(cj, "w", encoding="utf-8"), ensure_ascii=False)
+    published = block(case, "--form", "text")
+    assert "example.com/c/x" in published
+    assert "not published" not in published and "attached" not in published
+
+    for form in (held, attached, published):
+        assert "root " in form, "the root is what makes two copies comparable"

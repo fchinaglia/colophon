@@ -121,6 +121,40 @@ Also worth stating plainly: ideational attribution is a judgement, not a measure
 
 ---
 
+## Publishing what you wrote
+
+**You need no account, no invite, no instance and no hosting.** A case travels as one
+file:
+
+```bash
+python3 build_bundle.py        # in the case folder, after sealing
+```
+
+That writes `colophon-<case_uid>.tar` — the register, the signature, the timestamp, the
+measurement, everything the closing manifest covers, and `verify.html`. A reader drops it
+on the verifier **with the network off** and gets the chain, the signature, every digest
+and the timestamp's imprint. Nothing has to stay online, and nobody has to be alive in ten
+years for it to still check.
+
+The one thing to do once, not per case, is **publish your key**. A public key sitting
+inside the folder it authenticates proves only that the folder agrees with itself, which
+anyone arranges in ten seconds. Two ways:
+
+| | |
+|---|---|
+| a domain you control | `https://your-domain/.well-known/colophon/keys` — strongest: the claim becomes *whoever controls that domain* |
+| **no domain at all** | `https://api.github.com/users/<you>/ssh_signing_keys` — free, and `colophon setup` verifies it against your local key byte for byte |
+
+The second is weaker, because GitHub can change what it serves. It still breaks the
+circle, which is the part that matters.
+
+If you *do* have somewhere to publish — a site, a page, a folder — put the address in
+`case.json` and the disclosure line prints it. An address is the only route a reader can
+cite, and the only one that can say *this case was reopened, here is the current root*.
+Both routes are legitimate; the document says which one it is.
+
+---
+
 ## What is here
 
 | | |
@@ -130,6 +164,8 @@ Also worth stating plainly: ideational attribution is a judgement, not a measure
 | [`skill/colophon/reference/disclosures.md`](skill/colophon/reference/disclosures.md) | ready-to-publish disclosure texts, with the reasons behind their wording |
 | [`skill/colophon/reference/VERIFY.md`](skill/colophon/reference/VERIFY.md) | the template you publish next to a register so readers can check it |
 | [`paper/colophon-method.md`](paper/colophon-method.md) · [`.pdf`](paper/colophon-method.pdf) | the method paper, 12 pages, with the evidence base. The Markdown is the source; the PDF is a rendering of it and can lag behind |
+| [`verifier/`](verifier/) | one self-contained HTML page. No network, no dependencies, no server: drop a bundle on it |
+| [`cli/`](cli/) | `colophon setup` — once, to make a key and check where you publish it |
 | [`example/`](example/) | a small worked case you can run end to end |
 
 ---

@@ -45,6 +45,30 @@ reasoning, the order of work and what it costs are in `docs/plan-local-first.md`
   one thousand and ninety-six thousandths, and the word count is the first number a
   reader meets. Found by running the generator against a real case.
 
+### Changed — the prose, and the line that carries it
+
+- **The technical line states the route, and there are three of them.** `signed and
+  inspectable register` said two things and checked one: a register with no address is
+  not inspectable by the reader holding the document, and the line printed the claim
+  anyway. Now the first line is `signed register`, `signed register, attached to this
+  file` or `signed register, not published`, the middle line is the route, and the root
+  is in all three — because two copies with two different roots are the only way a reader
+  sees that a case was reopened.
+- **`VERIFY.md` gains §2b**, the qualified signature: the `openssl cms` recipe, the EU DSS
+  validator, and the warning nobody prints — a CAdES-B signature carries no revocation
+  evidence, and when the certificate expires CAD art. 24 c. 4-bis treats the signature as
+  never made. Level LT is what survives that.
+- `VERIFY.md` §3 also says why no CA travels in the bundle, and what the browser verifier
+  deliberately does not do: it reads the timestamp's imprint and stops, so it tells you
+  the token commits to *this* register and not who issued it.
+- **`README.md` says you need nothing.** No account, no invite, no instance, no hosting —
+  one command and a key published once, at a domain or at GitHub's signing-keys endpoint,
+  which is free and needs no domain at all.
+- **`disclosures.md`** carries the three forms in both languages, the rule that the tier
+  is the container and never the author, and two additions to *What never to write*: no
+  PDF/A claim on a Chrome rendering, and nothing that lets a signature over the document
+  stand in for the measurement.
+
 ### Removed
 
 - **`server/`** — ingest, the two compose files, the Dockerfile, the container nginx, and

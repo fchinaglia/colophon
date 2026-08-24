@@ -256,6 +256,13 @@ Two things the author must be told rather than left to discover:
   says to publish it alongside; VERIFY.md must tell the reader to compare, or to fetch
   their own copy.
 
+> **Done, 24 August.** The technical line was the load-bearing change, and it was one
+> string: `signed and inspectable register` asserted a property it never checked. Three
+> routes now, in both languages, with `--attached` plumbed through `build_block.py`,
+> `render_md.py` and `render_pdf.py`. VERIFY.md gained §2b and the reason no CA travels;
+> disclosures.md gained the three forms, the container-not-author rule, and two entries in
+> *What never to write*; README.md gained the no-hosting path, which is the #21 fix.
+
 ---
 
 ## 3. Issues, forecast
