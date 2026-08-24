@@ -9,11 +9,16 @@ The verifier ships as ONE file so a reader can save it and keep verifying offlin
 forever, with no network and no dependencies. core.js stays separate in the repository
 only so that verifier/test.js can exercise it directly.
 
-It is written twice, to the same bytes: verifier/verify.html, and skill/colophon/
+It is written three times, to the same bytes: verifier/verify.html; skill/colophon/
 verify.html, which is the copy the skill hands to a case at Opening and build_bundle.py
-packs into the tar. Two copies of one build are not two versions — there is one source,
-and tests/repo asserts they match — but a hand-edited second copy would be, which is why
-nobody should edit either.
+packs into the tar; and validation/verify.html, which is what a reader on the published
+page opens to check the bundle beside it. Three copies of one build are not three
+versions — there is one source, and tests/repo asserts they match — but a hand-edited one
+would be, which is why nobody should edit any of them.
+
+The copy sealed inside a case's bundle is a fourth and is not maintained: it is the
+verifier as it stood when that case was closed, its digest is in a signed manifest, and
+it is meant to go stale.
 
 Prints the digest of what it wrote: publish that alongside, so the verifier is itself
 verifiable.
@@ -45,7 +50,8 @@ def main():
 
     html = shell.replace("//__CORE__", core)
     targets = [os.path.join(HERE, "verify.html"),
-               os.path.join(HERE, "..", "skill", "colophon", "verify.html")]
+               os.path.join(HERE, "..", "skill", "colophon", "verify.html"),
+               os.path.join(HERE, "..", "validation", "verify.html")]
     for out in targets:
         with open(out, "w", encoding="utf-8", newline="\n") as f:
             f.write(html)

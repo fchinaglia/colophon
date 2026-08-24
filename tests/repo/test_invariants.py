@@ -79,11 +79,17 @@ def test_pages_serves_dot_directories_and_has_a_front_page():
     assert os.path.exists(os.path.join(ROOT, "index.html"))
 
 
-def test_the_skills_verifier_matches_the_built_one():
+@pytest.mark.parametrize("copy", [("skill", "colophon", "verify.html"),
+                                  ("validation", "verify.html")])
+def test_every_maintained_verifier_matches_the_built_one(copy):
     """build_bundle.py packs skill/colophon/verify.html into every bundle, and
-    verifier/build.py writes both copies from one source. A stale skill copy would ship
-    an old verifier inside new evidence — and it would still say everything is fine,
-    because an old verifier verifies an old case perfectly."""
+    validation/verify.html is what a reader on the published page opens. A stale copy
+    would ship an old verifier beside new evidence — and it would still say everything is
+    fine, because an old verifier verifies an old case perfectly.
+
+    The copy inside validation/colophon-001.tar is deliberately not covered here: it is
+    sealed, its digest is in a signed manifest, and it is the verifier as it stood when
+    that case was closed. It is meant to go stale; these are not."""
     a = open(os.path.join(ROOT, "verifier", "verify.html"), "rb").read()
-    b = open(os.path.join(ROOT, "skill", "colophon", "verify.html"), "rb").read()
-    assert a == b, "skill/colophon/verify.html is stale — run python3 verifier/build.py"
+    b = open(os.path.join(ROOT, *copy), "rb").read()
+    assert a == b, f"{'/'.join(copy)} is stale — run python3 verifier/build.py"
