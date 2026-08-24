@@ -165,7 +165,7 @@ def test_the_original_bytes_are_never_touched(tmp_path):
     tar = tmp_path / "colophon-x.tar"
     tar.write_bytes(os.urandom(4096))
     before = open(pdf, "rb").read()
-    after = m.embed_bundle(pdf, str(tar), "d")
+    after = m.embed_bundle(pdf, [(str(tar), "d")])
     assert after[:len(before)] == before
     assert len(after) > len(before)
 
@@ -179,7 +179,7 @@ def test_an_independent_reader_gets_the_bundle_back_byte_for_byte(tmp_path):
     payload = os.urandom(20000)
     tar = tmp_path / "colophon-x.tar"
     tar.write_bytes(payload)
-    merged = m.embed_bundle(pdf, str(tar), "the record")
+    merged = m.embed_bundle(pdf, [(str(tar), "the record")])
     open(pdf, "wb").write(merged)
 
     listing = subprocess.run(["pdfdetach", "-list", pdf], capture_output=True, text=True)
@@ -197,7 +197,7 @@ def test_the_document_still_reads_afterwards(tmp_path):
     pdf = a_pdf(tmp_path)
     tar = tmp_path / "colophon-x.tar"
     tar.write_bytes(b"x" * 1000)
-    merged = m.embed_bundle(pdf, str(tar), "d")
+    merged = m.embed_bundle(pdf, [(str(tar), "d")])
     open(pdf, "wb").write(merged)
     r = subprocess.run(["pdftotext", pdf, "-"], capture_output=True, text=True)
     assert "Title" in r.stdout and "Body." in r.stdout
@@ -218,7 +218,7 @@ def test_it_refuses_shapes_it_does_not_implement(tmp_path, marker, why):
     tar = tmp_path / "colophon-x.tar"
     tar.write_bytes(b"x")
     with pytest.raises(SystemExit) as e:
-        m.embed_bundle(pdf, str(tar), "d")
+        m.embed_bundle(pdf, [(str(tar), "d")])
     assert "cannot be updated" in str(e.value)
 
 
@@ -234,7 +234,7 @@ def test_it_refuses_a_catalog_that_already_has_names(tmp_path):
     tar = tmp_path / "colophon-x.tar"
     tar.write_bytes(b"x")
     with pytest.raises(SystemExit) as e:
-        m.embed_bundle(pdf, str(tar), "d")
+        m.embed_bundle(pdf, [(str(tar), "d")])
     assert "already carries" in str(e.value)
 
 
@@ -256,7 +256,7 @@ def test_the_file_name_strings_stay_literal(tmp_path):
     pdf = a_pdf(tmp_path)
     tar = tmp_path / "colophon-x.tar"
     tar.write_bytes(b"payload")
-    merged = m.embed_bundle(pdf, str(tar), "d")
+    merged = m.embed_bundle(pdf, [(str(tar), "d")])
     appended = merged[len(open(pdf, "rb").read()):]
     assert re.search(rb"/UF\s*\(", appended), "/UF must be a literal string"
     assert re.search(rb"/Names\s*\[\s*\(", appended), "the name-tree key must be literal"
@@ -271,5 +271,39 @@ def test_it_refuses_a_non_ascii_bundle_name(tmp_path):
     tar = tmp_path / "colophon-però.tar"
     tar.write_bytes(b"x")
     with pytest.raises(SystemExit) as e:
-        m.embed_bundle(pdf, str(tar), "d")
+        m.embed_bundle(pdf, [(str(tar), "d")])
     assert "ASCII" in str(e.value)
+
+
+def test_two_attachments_both_arrive(tmp_path):
+    """The record and the tool that reads it are two things. A reader who saves only the
+    bundle finds the tool inside it, which works and reads like a riddle."""
+    if not shutil.which("pdfdetach"):
+        pytest.skip("no poppler")
+    m = load("render_pdf")
+    pdf = a_pdf(tmp_path)
+    tar, tool = tmp_path / "colophon-x.tar", tmp_path / "verify.html"
+    tar.write_bytes(os.urandom(9000))
+    tool.write_text("<html>the verifier</html>", encoding="utf-8")
+    merged = m.embed_bundle(pdf, [(str(tar), "the record"), (str(tool), "the tool")])
+    open(pdf, "wb").write(merged)
+
+    listing = subprocess.run(["pdfdetach", "-list", pdf], capture_output=True, text=True)
+    assert "2 embedded files" in listing.stdout, listing.stdout
+    d = tmp_path / "out"
+    d.mkdir()
+    subprocess.run(["pdfdetach", "-saveall", pdf], cwd=d, check=True, capture_output=True)
+    assert (d / "colophon-x.tar").read_bytes() == tar.read_bytes()
+    assert (d / "verify.html").read_text(encoding="utf-8") == tool.read_text(encoding="utf-8")
+
+
+def test_the_name_tree_keys_are_sorted(tmp_path):
+    """A reader that binary-searches the tree finds nothing if they are not."""
+    m = load("render_pdf")
+    pdf = a_pdf(tmp_path)
+    a, b = tmp_path / "zz.tar", tmp_path / "aa.html"
+    a.write_bytes(b"x")
+    b.write_bytes(b"y")
+    appended = m.embed_bundle(pdf, [(str(a), "z"), (str(b), "a")])[len(open(pdf, "rb").read()):]
+    names = re.search(rb"/Names\s*\[(.*?)\]", appended, re.S).group(1).decode("latin-1")
+    assert names.index("aa.html") < names.index("zz.tar")

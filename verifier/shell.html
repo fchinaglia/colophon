@@ -90,34 +90,6 @@ footer p { margin:.4rem 0; }
   const dl = pairs => '<dl>' + pairs.filter(Boolean)
     .map(([k, v]) => `<dt>${esc(k)}</dt><dd class="mono">${esc(v)}</dd>`).join('') + '</dl>';
 
-  // ---- minimal ustar reader, so bundle.tar can be dropped straight in
-  function untar(buf) {
-    const b = new Uint8Array(buf), files = new Map(), td = new TextDecoder();
-    let off = 0;
-    while (off + 512 <= b.length) {
-      const name = td.decode(b.subarray(off, off + 100)).replace(/\0.*$/, '');
-      if (!name) { off += 512; continue; }
-      const sizeOct = td.decode(b.subarray(off + 124, off + 136)).replace(/\0.*$/, '').trim();
-      const size = parseInt(sizeOct, 8) || 0;
-      const type = String.fromCharCode(b[off + 156]);
-      off += 512;
-      if (type === '0' || type === '\0') files.set(name, b.subarray(off, off + size));
-      off += Math.ceil(size / 512) * 512;
-    }
-    return files;
-  }
-
-  // strip a single leading directory component, so a dropped folder keys the same
-  // way a bundle does
-  function normalise(map) {
-    const names = [...map.keys()];
-    if (!names.length) return map;
-    const first = n => n.split('/')[0];
-    const root = first(names[0]);
-    if (!names.every(n => n.includes('/') && first(n) === root)) return map;
-    return new Map(names.map(n => [n.slice(root.length + 1), map.get(n)]));
-  }
-
   async function collect(fileList) {
     const map = new Map();
     for (const f of fileList) {

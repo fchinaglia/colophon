@@ -34,7 +34,7 @@ install -D -m 644 deploy/well-known/colophon/keys \
         /srv/colophon/.well-known/colophon/keys
 ```
 
-Verified before publishing — the file checks the signature of `cases/001`:
+Verified before publishing — the file checks the signature of a sealed register:
 
 ```bash
 curl -sO https://colophonmethod.com/.well-known/colophon/keys

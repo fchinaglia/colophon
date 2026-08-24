@@ -37,7 +37,7 @@ h1.page{font-size:26px;line-height:1.25;margin:0 0 10px;font-weight:650}
  border-left:2px solid var(--line);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 24px}
 h2.sect{font-size:13px;letter-spacing:.06em;text-transform:uppercase;
  color:var(--text-muted);margin:44px 0 16px;font-weight:600}
-.row{display:grid;grid-template-columns:160px 1fr 52px 46px;align-items:center;
+.row{display:grid;grid-template-columns:160px 1fr 52px 52px 46px;align-items:center;
  gap:12px;margin-bottom:9px}
 .label{font-size:13px;color:var(--text-secondary)}
 .bar{display:flex;gap:2px;height:20px}
@@ -85,7 +85,7 @@ details p{margin:12px 0}
  line-height:1.45;background:var(--text-primary);color:var(--surface-1);
  border-radius:7px;pointer-events:none;opacity:0;transition:opacity .1s}
 @media (max-width:620px){ .tiles{grid-template-columns:1fr}
- .row{grid-template-columns:110px 1fr 48px} .words{display:none} }
+ .row{grid-template-columns:92px 1fr 46px 46px} .words{display:none} }
 </style></head>
 <body data-view="lex" data-highlight="on"><div class="wrap">
 
@@ -99,10 +99,10 @@ where, and whose is what.</p>
 <span>Fabio Chinaglia</span>
 <span>21 August 2026</span>
 <span>337 words · 18 spans</span>
-<span>77 events · 27 editorial decisions</span>
-<span>hash chain root <code>17e58649a3945e5f…</code></span>
+<span>81 events · 27 editorial decisions</span>
+<span>hash chain root <code>91c90a363e815dac…</code></span>
 <span>coverage: 16 changes without a span, all declared</span>
-<span><a href="https://github.com/fchinaglia/colophon/tree/main/cases/001">the register and every file</a></span>
+
 </div></header>
 
 
@@ -120,12 +120,13 @@ sentences.</div></div>
 difference is the most informative thing on this page. Mixed is counted as half.</p>
 
 <h2 class="sect">Where the AI came in</h2>
-<div class="row"><div class="label">First draft</div><div class="bar"><div class="seg s-U" style="flex:40.25157" data-tip="First draft · human: 40.3% (64 words)"></div><div class="seg s-UA" style="flex:9.43396" data-tip="First draft · mixed: 9.4% (15 words)"></div><div class="seg s-A" style="flex:50.31447" data-tip="First draft · AI: 50.3% (80 words)"></div></div><div class="value">55.0%</div><div class="words">159</div></div><div class="row"><div class="label">Content revision</div><div class="bar"><div class="seg s-U" style="flex:54.62185" data-tip="Content revision · human: 54.6% (65 words)"></div><div class="seg s-UA" style="flex:17.64706" data-tip="Content revision · mixed: 17.6% (21 words)"></div><div class="seg s-A" style="flex:27.73109" data-tip="Content revision · AI: 27.7% (33 words)"></div></div><div class="value">36.6%</div><div class="words">119</div></div><div class="row"><div class="label">Copy revision</div><div class="bar"><div class="seg s-UA" style="flex:100.00000" data-tip="Copy revision · mixed: 100.0% (48 words)"></div></div><div class="value">50.0%</div><div class="words">48</div></div><div class="row"><div class="label">Titling</div><div class="bar"><div class="seg s-U" style="flex:100.00000" data-tip="Titling · human: 100.0% (11 words)"></div></div><div class="value">0.0%</div><div class="words">11</div></div>
+<div class="row"><div class="label">First draft</div><div class="bar"><div class="seg s-U" style="flex:40.25157" data-tip="First draft · human: 40.3% (64 words)"></div><div class="seg s-UA" style="flex:9.43396" data-tip="First draft · mixed: 9.4% (15 words)"></div><div class="seg s-A" style="flex:50.31447" data-tip="First draft · AI: 50.3% (80 words)"></div></div><div class="value" data-tip="First draft · AI share of the words">55.0%</div><div class="value" data-tip="First draft · AI share of the ideas">0.0%</div><div class="words">159</div></div><div class="row"><div class="label">Content revision</div><div class="bar"><div class="seg s-U" style="flex:54.62185" data-tip="Content revision · human: 54.6% (65 words)"></div><div class="seg s-UA" style="flex:17.64706" data-tip="Content revision · mixed: 17.6% (21 words)"></div><div class="seg s-A" style="flex:27.73109" data-tip="Content revision · AI: 27.7% (33 words)"></div></div><div class="value" data-tip="Content revision · AI share of the words">36.6%</div><div class="value" data-tip="Content revision · AI share of the ideas">0.0%</div><div class="words">119</div></div><div class="row"><div class="label">Copy revision</div><div class="bar"><div class="seg s-UA" style="flex:100.00000" data-tip="Copy revision · mixed: 100.0% (48 words)"></div></div><div class="value" data-tip="Copy revision · AI share of the words">50.0%</div><div class="value" data-tip="Copy revision · AI share of the ideas">0.0%</div><div class="words">48</div></div><div class="row"><div class="label">Titling</div><div class="bar"><div class="seg s-U" style="flex:100.00000" data-tip="Titling · human: 100.0% (11 words)"></div></div><div class="value" data-tip="Titling · AI share of the words">0.0%</div><div class="value" data-tip="Titling · AI share of the ideas">0.0%</div><div class="words">11</div></div>
 <div class="legend">
 <span class="chip"><i class="sw" style="background:var(--human)"></i>human</span>
 <span class="chip"><i class="sw" style="background:var(--mixed)"></i>mixed</span>
 <span class="chip"><i class="sw" style="background:var(--ai)"></i>AI</span>
-<span style="color:var(--text-muted)">the percentage on the right is the AI share</span>
+<span style="color:var(--text-muted)">the bar is the words; the two percentages are the
+AI share of the words and of the ideas</span>
 </div>
 
 <h2 class="sect">The text, span by span</h2>
@@ -152,9 +153,13 @@ nor does it imply that the author does not answer for every word: editorial
 responsibility for the text is entirely theirs.</p>
 
 <h2 class="sect">Table</h2>
-<table><thead><tr><th>phase</th><th class="n">words</th><th class="n">human %</th>
-<th class="n">mixed %</th><th class="n">AI %</th><th class="n">AI ideational %</th>
+<table><thead><tr><th>phase</th><th class="n">words</th><th class="n">human words %</th>
+<th class="n">mixed words %</th><th class="n">AI words %</th><th class="n">AI ideas %</th>
 </tr></thead><tbody><tr><td>First draft</td><td class='n'>159</td><td class='n'>40.3</td><td class='n'>9.4</td><td class='n'>50.3</td><td class='n'>0.0</td></tr><tr><td>Content revision</td><td class='n'>119</td><td class='n'>54.6</td><td class='n'>17.6</td><td class='n'>27.7</td><td class='n'>0.0</td></tr><tr><td>Copy revision</td><td class='n'>48</td><td class='n'>0.0</td><td class='n'>100.0</td><td class='n'>0.0</td><td class='n'>0.0</td></tr><tr><td>Titling</td><td class='n'>11</td><td class='n'>100.0</td><td class='n'>0.0</td><td class='n'>0.0</td><td class='n'>0.0</td></tr></tbody></table>
+<p class="note" style="margin-top:16px">The three middle columns are the composition of
+the words in that phase — the author's, indivisible mixed, the AI's — and they add up to
+a hundred. The last column is on the other axis: the AI share of the ideas, with mixed
+counted as half.</p>
 
 <h2 class="sect">Changes without a span</h2><p class="note">The register declares these interventions and the annotation attaches none of them to a piece of the final text. That is expected for an edit a later one replaced, and for a diffuse pass recorded as an event without touching the attributions. Each is listed with the reason the author gave; anything marked as not declared is an open question about this measurement.</p><table><thead><tr><th>change</th><th>why it has no span</th></tr></thead><tbody><tr><td><code>F01</code></td><td>Purely formal, and only inside the two disclosure blocks, which are excluded from the count: no span could carry it.</td></tr><tr><td><code>R02</code></td><td>Four words in a fifty-three-word block. Attribution left U per the rule on diffuse lexical intervention, and the choice was declared in the event itself.</td></tr><tr><td><code>R03</code></td><td>Deletion on suggestion. The block it removed is not in the final text, so there is nothing left to attribute.</td></tr><tr><td><code>R04</code></td><td>Deletion. The block carrying the two statistics was removed; the evidence it took with it was restored by R06, which a span does carry.</td></tr><tr><td><code>R05</code></td><td>Two marks in an eighty-seven-word block. Attribution stays U, and the note on block 2 records this pass by name.</td></tr><tr><td><code>R07</code></td><td>Two marks on the user&#x27;s text. Attribution stays U.</td></tr><tr><td><code>R10</code></td><td>A replacement in block 6, itself replaced by the later work recorded as R13, R17 and R19 — and those are the events the spans of that block carry.</td></tr><tr><td><code>R12</code></td><td>Two words inside a span that stays U. The annotation attaches an event where an attribution moved, and here none did.</td></tr><tr><td><code>R14</code></td><td>Deletion. &#x27;È la versione 0.1,&#x27; is not in the final text.</td></tr><tr><td><code>R15</code></td><td>A compression by the user with AI corrections. The first span of block 2 stays U, and its note names this pass among the three that touched the paragraph.</td></tr><tr><td><code>R16</code></td><td>The rewrite that moved the first span of block 3 from U to UA. That span carries R20, the later touch, and its note describes this rewrite as the reason for the change.</td></tr><tr><td><code>R18</code></td><td>The text added here was replaced by R19, which a span carries. What R18 put in the piece is no longer in it.</td></tr><tr><td><code>R21</code></td><td>One word deleted inside a span that stays UA.</td></tr><tr><td><code>R23</code></td><td>Four words added on the user&#x27;s instruction. Attribution stays U.</td></tr><tr><td><code>R24</code></td><td>A choice between two of the user&#x27;s own phrasings. Attribution stays U either way.</td></tr><tr><td><code>R25</code></td><td>The method note, an excluded block: it does not measure itself.</td></tr></tbody></table>
 
@@ -173,7 +178,9 @@ observed. Ideational attribution is a judgment, not a measurement: on judgments 
 kind, agreement between independent annotators, in the literature, stops at around 0.66
 alpha. Take the two numbers at the top as orders of magnitude declared in good faith,
 not as exact figures.</p>
-<p>Register opened before writing began. Case run in light mode until the icon was requested, then moved to full: nothing was lost, the register is the same file. The text was drafted by the language model on the author&#x27;s instruction, from the author&#x27;s own methodological document, and then revised with him across twenty-two versions — the measurement says the words are 46.0 per cent the model&#x27;s and the ideas none of them, which is the shape of a text whose content existed before its sentences did. Sealed on 22 August 2026. Reopened on 23 August to repair the verification page, to correct this note, and to declare the sixteen changes the register names and no span carries; the seal of 22 August is kept as events.jsonl.v1.* and a new one follows the manifest recorded at the end of the register. Published at the address below, where the earlier version of this note said it was not.</p>
+<p>THIS REGISTER IS A REPLAY. The eighty events below were recorded while the article was written, on 21-23 August 2026, and they are reproduced here event for event, with their original timestamps. What is new is the chain and the seal: the canonicalization rule published as spec/canonical.md refuses the non-integer numbers the original carried, so the four percentage keys are quoted and every hash after the first therefore differs. The measurement is unchanged and was checked against the original before this case was sealed: eighteen spans, 337 words, 46 per cent of the words the model&#x27;s and none of the ideas. See replayed_from above.
+
+Register opened before writing began. Case run in light mode until the icon was requested, then moved to full: nothing was lost, the register is the same file. The text was drafted by the language model on the author&#x27;s instruction, from the author&#x27;s own methodological document, and then revised with him across twenty-two versions — the measurement says the words are 46.0 per cent the model&#x27;s and the ideas none of them, which is the shape of a text whose content existed before its sentences did. Sealed on 22 August 2026. Reopened on 23 August to repair the verification page, to correct this note, and to declare the sixteen changes the register names and no span carries; the seal of 22 August is kept as events.jsonl.v1.* and a new one follows the manifest recorded at the end of the register. Published at the address below, where the earlier version of this note said it was not.</p>
 </details>
 
 </div><div id="tip" role="status"></div>

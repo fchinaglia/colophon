@@ -32,7 +32,7 @@ def test_the_example_has_not_forked_from_the_skill(name):
     assert a == b, f"example/{name} has drifted from the skill"
 
 
-@pytest.mark.parametrize("pattern", ["cases/**", "example/**", "tests/**"])
+@pytest.mark.parametrize("pattern", ["validation/**", "example/**", "tests/**"])
 def test_line_endings_are_pinned(pattern):
     """A checkout with core.autocrlf=true rewrites every line ending: every digest
     changes and the signature stops verifying, while `record.py --verify` still answers

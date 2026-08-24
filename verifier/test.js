@@ -64,55 +64,52 @@ if (fs.existsSync(ex)) {
   console.log(`       example/ root ${r.root}`);
 }
 
-const c1 = path.join(REPO, 'cases', '001');
-if (fs.existsSync(c1)) {
-  const r = C.verifyChain(fs.readFileSync(path.join(c1, 'events.jsonl'), 'utf8'));
-  ok(!!r.preSpec, 'cases/001: detected as pre-spec');
-  ok(r.preSpec && r.preSpec.length === 18, 'cases/001: 18 offending events',
-     `got ${r.preSpec && r.preSpec.length}`);
-  ok(!r.broken, 'cases/001: NOT reported as broken');
-  console.log(`       first: event ${r.preSpec[0].event} — ${r.preSpec[0].reason}`);
+// The validation case, as it ships: one tar, read the way the page reads it. Everything
+// below is a real artefact — a real SSHSIG, a real RFC 3161 token, a real manifest — which
+// is why this block exists at all: the vectors cover the format, this covers the world.
+const bundle = path.join(REPO, 'validation', 'colophon-001.tar');
+if (fs.existsSync(bundle)) {
+  head('the shipped bundle');
+  const raw = fs.readFileSync(bundle);
+  const files = C.normalise(C.untar(
+    raw.buffer.slice(raw.byteOffset, raw.byteOffset + raw.byteLength)));
+  ok(files.size > 20, 'bundle: unpacks', `${files.size} entries`);
+  ok(files.has('verify.html'), 'bundle: carries the verifier');
 
-  // the SSH signature: SHA-512 + SSHSIG framing + Ed25519, all at once
-  const reg = new Uint8Array(fs.readFileSync(path.join(c1, 'events.jsonl')));
-  const sig = fs.readFileSync(path.join(c1, 'events.jsonl.sig'), 'utf8');
-  const pub = fs.readFileSync(path.join(c1, 'colophon.pub'), 'utf8');
+  const text = new TextDecoder().decode(files.get('events.jsonl'));
+  const r = C.verifyChain(text);
+  ok(r.ok === true, 'bundle: chain verifies under the spec', JSON.stringify(r).slice(0, 160));
+  ok(!r.preSpec, 'bundle: no pre-spec numbers left', JSON.stringify(r.preSpec || []).slice(0, 120));
+  console.log(`       root ${r.root}`);
+
+  const reg = files.get('events.jsonl');
+  const sig = new TextDecoder().decode(files.get('events.jsonl.sig'));
+  const pub = new TextDecoder().decode(files.get('colophon.pub'));
   const parsed = C.parseSshsig(sig);
   console.log(`       sshsig: v${parsed.version} ns="${parsed.namespace}" ` +
               `hash=${parsed.hashAlg} key=${parsed.keyType} blob=${parsed.blobLength}B`);
-  const pre = C.sshsigPreimage(parsed.namespace, parsed.reserved, parsed.hashAlg,
-                               C.sha512(reg));
-  console.log(`       preimage: ${pre.length} bytes`);
   const v = C.verifySignature(reg, sig, pub);
-  ok(v.ok === true, 'cases/001: Ed25519 signature verifies', JSON.stringify(v));
+  ok(v.ok === true, 'bundle: Ed25519 signature verifies', JSON.stringify(v));
   console.log(`       fingerprint ${v.keyFingerprint}`);
 
-  // a tampered register must fail
   const bad = new Uint8Array(reg); bad[bad.length - 20] ^= 1;
-  ok(C.verifySignature(bad, sig, pub).ok === false, 'cases/001: tampered register fails');
+  ok(C.verifySignature(bad, sig, pub).ok === false, 'bundle: tampered register fails');
 
-  // the timestamp
-  const tsr = new Uint8Array(fs.readFileSync(path.join(c1, 'events.jsonl.tsr')));
-  const t = C.checkTimestamp(tsr, reg);
-  ok(t.parsed && t.commits !== null, 'cases/001: .tsr imprint commits to this register',
+  const t = C.checkTimestamp(files.get('events.jsonl.tsr'), reg);
+  ok(t.parsed && t.commits !== null, 'bundle: .tsr imprint commits to this register',
      JSON.stringify(t));
   console.log(`       tsr: genTime=${t.genTime} commits=${t.commits} ` +
-              `qualified=${C.isQualifiedTimestamp(tsr)}`);
+              `qualified=${C.isQualifiedTimestamp(files.get('events.jsonl.tsr'))}`);
 
-  // the manifest
-  const man = C.findManifest(fs.readFileSync(path.join(c1, 'events.jsonl'), 'utf8'));
-  ok(!!man, 'cases/001: manifest event found');
+  const man = C.findManifest(text);
+  ok(!!man, 'bundle: manifest event found');
   if (man) {
-    const files = new Map();
-    for (const name of Object.keys(man.digests)) {
-      const p = path.join(c1, name);
-      if (fs.existsSync(p)) files.set(name, new Uint8Array(fs.readFileSync(p)));
-    }
     const m = C.checkManifest(man, files);
     console.log(`       manifest: ${m.matched.length} matched, ` +
                 `${m.mismatched.length} mismatched, ${m.missing.length} missing`);
-    ok(m.mismatched.length === 0, 'cases/001: every manifest digest matches',
-       JSON.stringify(m.mismatched.map(x => x.name)));
+    ok(m.mismatched.length === 0 && m.missing.length === 0,
+       'bundle: every manifest digest matches a file inside it',
+       JSON.stringify(m.mismatched.map(x => x.name).concat(m.missing)));
   }
 }
 

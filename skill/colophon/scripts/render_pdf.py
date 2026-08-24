@@ -242,6 +242,11 @@ def check_nothing_was_rewritten(source, rendered):
 
 MAXOBJ = 8388607          # the PDF 1.4 limit on object numbers
 
+# The `#2F` is an escaped slash: a PDF name cannot carry one literally.
+MIME = {".tar": "application#2Fx-tar", ".html": "text#2Fhtml", ".txt": "text#2Fplain",
+        ".p7m": "application#2Fpkcs7-mime", ".json": "application#2Fjson",
+        ".pdf": "application#2Fpdf", ".zip": "application#2Fzip"}
+
 
 def _balanced_dict(buf, start):
     """The extent of the << >> beginning at `start`, skipping literal strings.
@@ -307,16 +312,23 @@ def _pdf_string(s):
 # has to be declared.
 
 
-def embed_bundle(pdf, tar_path, desc):
-    """Return the PDF with `tar_path` embedded, as an incremental update."""
+def embed_bundle(pdf, attachments):
+    """Return the PDF with each (path, description) embedded, as one incremental update.
+
+    More than one, because the record and the tool that reads it are two things. A reader
+    who saves both has the whole check in front of them; a reader who saves only the
+    bundle finds the tool inside it, which works and reads like a riddle.
+    """
+    if isinstance(attachments, (str, bytes)):
+        raise TypeError("embed_bundle takes a list of (path, description)")
     data = open(pdf, "rb").read()
-    payload = open(tar_path, "rb").read()
-    name = os.path.basename(tar_path)
-    if not name.isascii():
-        raise SystemExit(f"! {name} is not an ASCII file name, and the literal-string "
-                         f"form this writer\n  has to use for Adobe Reader cannot carry "
-                         f"it safely. Rename the bundle,\n  or give the case an ASCII "
-                         f"case_uid.")
+    for path, _ in attachments:
+        n = os.path.basename(path)
+        if not n.isascii():
+            raise SystemExit(f"! {n} is not an ASCII file name, and the literal-string "
+                             f"form this writer\n  has to use for Adobe Reader cannot "
+                             f"carry it safely. Rename it,\n  or give the case an ASCII "
+                             f"case_uid.")
 
     for marker, why in ((b"/Encrypt", "it is encrypted"),
                         (b"/ObjStm", "it uses object streams"),
@@ -356,14 +368,9 @@ def embed_bundle(pdf, tar_path, desc):
                              f"in blindly would\n  break whatever is already there; this "
                              f"script refuses instead.")
 
-    n_ef, n_fs, n_nm = size, size + 1, size + 2
+    n_nm = size + 2 * len(attachments)          # the name tree comes after the pairs
     if n_nm > MAXOBJ:
         raise SystemExit("! too many objects in this PDF.")
-
-    body = zlib.compress(payload, 9)
-    # /CheckSum is an MD5 by specification (PDF 32000-1, 7.11.4). It is a format field,
-    # not a claim: what a reader checks this bundle against is the manifest inside it.
-    params = (f"<< /Size {len(payload)} /CheckSum <{hashlib.md5(payload).hexdigest()}> >>")
 
     out = [data]
     if not data.endswith(b"\n"):
@@ -381,14 +388,29 @@ def embed_bundle(pdf, tar_path, desc):
         out.append(chunk)
         pos += len(chunk)
 
-    add(n_ef, f"<< /Type /EmbeddedFile /Subtype /application#2Fx-tar"
-              f" /Filter /FlateDecode /Length {len(body)} /Params {params} >>", body)
-    add(n_fs, f"<< /Type /Filespec /F {_pdf_string(name)} /UF {_pdf_string(name)}"
-              f" /EF << /F {n_ef} 0 R >> /AFRelationship /Supplement"
-              f" /Desc {_pdf_string(desc)} >>")
-    add(n_nm, f"<< /Names [ {_pdf_string(name)} {n_fs} 0 R ] >>")
+    specs, names = [], []
+    for i, (path, desc) in enumerate(attachments):
+        payload = open(path, "rb").read()
+        name = os.path.basename(path)
+        n_ef, n_fs = size + 2 * i, size + 2 * i + 1
+        body = zlib.compress(payload, 9)
+        # /CheckSum is an MD5 by specification (PDF 32000-1, 7.11.4). It is a format
+        # field, not a claim: what a reader checks a bundle against is the manifest in it.
+        params = f"<< /Size {len(payload)} /CheckSum <{hashlib.md5(payload).hexdigest()}> >>"
+        sub = MIME.get(os.path.splitext(name)[1].lower(), "application#2Foctet-stream")
+        add(n_ef, f"<< /Type /EmbeddedFile /Subtype /{sub}"
+                  f" /Filter /FlateDecode /Length {len(body)} /Params {params} >>", body)
+        add(n_fs, f"<< /Type /Filespec /F {_pdf_string(name)} /UF {_pdf_string(name)}"
+                  f" /EF << /F {n_ef} 0 R >> /AFRelationship /Supplement"
+                  f" /Desc {_pdf_string(desc)} >>")
+        specs.append(n_fs)
+        names.append(f"{_pdf_string(name)} {n_fs} 0 R")
+    # The name tree wants its keys sorted, and a reader that binary-searches it finds
+    # nothing if they are not.
+    add(n_nm, "<< /Names [ " + " ".join(sorted(names)) + " ] >>")
     add(root, (catalog[:-2].decode("latin-1")
-               + f" /Names << /EmbeddedFiles {n_nm} 0 R >> /AF [ {n_fs} 0 R ] >>"))
+               + f" /Names << /EmbeddedFiles {n_nm} 0 R >>"
+               + " /AF [ " + " ".join(f"{n} 0 R" for n in specs) + " ] >>"))
 
     xref_at = pos
     rows = ["xref"]
@@ -447,10 +469,9 @@ def main(argv=None):
     p.add_argument("--bundle", default=None,
                    help="where that bundle is, if not beside the case")
     p.add_argument("--html-only", action="store_true", help="stop before Chrome")
-    p.add_argument("--embed", nargs="?", const=True, default=None,
-                   metavar="TAR",
-                   help="embed the bundle in the PDF as an incremental update; "
-                        "without a path, the one --attached would name")
+    p.add_argument("--embed", nargs="*", default=None, metavar="FILE",
+                   help="embed files in the PDF as an incremental update; with no "
+                        "argument, the bundle --attached would name plus verify.html")
     p.add_argument("-o", "--out", default=None, help="the PDF path")
     a = p.parse_args(argv)
 
@@ -519,27 +540,36 @@ def main(argv=None):
                     os.path.abspath(out_html)], check=True, capture_output=True)
     print(f"  {out_pdf}  {os.path.getsize(out_pdf):,} bytes")
 
-    if a.embed:
+    if a.embed is not None:
         base = os.path.dirname(os.path.abspath(a.log))
-        tar = (a.embed if a.embed is not True else
-               build_note.find_bundle(base, a.bundle,
-                                      build_note.bundle_name(base)))
-        if not tar or not os.path.exists(tar):
-            print("! nothing to embed: build_bundle.py first, or name the tar.",
-                  file=sys.stderr)
+        if a.embed:
+            files = [(f, os.path.basename(f)) for f in a.embed]
+        else:
+            tar = build_note.find_bundle(base, a.bundle, build_note.bundle_name(base))
+            if not tar:
+                print("! nothing to embed: run build_bundle.py first, or name the "
+                      "files.", file=sys.stderr)
+                return 1
+            files = [(tar, "Colophon: the register, the seal and the measurement for "
+                           "this document. Drop it on verify.html."),
+                     (os.path.join(base, "verify.html"),
+                      "The verifier. Open it in a browser with the network off and drop "
+                      "the bundle on it.")]
+        missing = [f for f, _ in files if not os.path.exists(f)]
+        if missing:
+            print(f"! not here: {', '.join(missing)}", file=sys.stderr)
             return 1
         before = open(out_pdf, "rb").read()
-        merged = embed_bundle(out_pdf, tar,
-                              "Colophon: the register, the seal and the measurement "
-                              "for this document. Drop it on verify.html.")
+        merged = embed_bundle(out_pdf, files)
         if merged[:len(before)] != before:
             print("! the update rewrote existing bytes. Refusing to write it.",
                   file=sys.stderr)
             return 1
         with open(out_pdf, "wb") as f:
             f.write(merged)
-        print(f"  embedded  {os.path.basename(tar)}  "
-              f"{os.path.getsize(tar):,} bytes → {len(merged):,}")
+        for f, _ in files:
+            print(f"  embedded  {os.path.basename(f):<28} {os.path.getsize(f):>9,} bytes")
+        print(f"  {out_pdf}  {len(merged):,} bytes")
         print("  the original bytes are untouched: this is an incremental update, so a\n"
               "  PAdES signature added AFTER this covers it. Signing first and embedding\n"
               "  after reads as tampering, not as breakage.")

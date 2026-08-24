@@ -1,4 +1,4 @@
-{"detect": true, "line": "{\"actor\":\"system\",\"payload\":{\"ai_lexical\":94.0},\"seq\":1}", "name": "integral-float", "note": "Python writes 94.0, JS writes 94 - real, 72 times across 18 events of cases/001"}
+{"detect": true, "line": "{\"actor\":\"system\",\"payload\":{\"ai_lexical\":94.0},\"seq\":1}", "name": "integral-float", "note": "Python writes 94.0, JS writes 94 - real, 72 times across 18 events of the register this rule was written from"}
 {"detect": true, "line": "{\"payload\":{\"human_ideas\":0.0,\"ai_ideational\":100.0},\"seq\":2}", "name": "zero-float", "note": "the same class, and the commonest one in a measurement payload"}
 {"detect": true, "line": "{\"payload\":{\"margin\":4.5},\"seq\":3}", "name": "fraction", "note": "4.5 happens to agree across the two, but no rule can promise that - refuse every float"}
 {"detect": true, "line": "{\"payload\":{\"x\":1e-07},\"seq\":4}", "name": "exp-small", "note": "Python pads the exponent to two digits, JS does not: 1e-07 against 1e-7"}

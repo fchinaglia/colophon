@@ -112,14 +112,24 @@ ASCII in every existing register, and requiring it removes the ordering question
 
 ## 5. Registers predating this specification
 
-Registers sealed before version 1 may violate §4. `cases/001` does: measured with the
-scanner of §5.1, it carries **72 non-integer numbers across 18 of its 80 events** —
+Registers sealed before version 1 may violate §4. The validation case did: measured with
+the scanner of §5.1, it carried **72 non-integer numbers across 18 of its 80 events** —
 `94.0`, `6.0`, `0.0`, `100.0`, and fractional ones such as `10.3` and `89.7`. The integral
 ones diverge outright between the two languages; the fractional ones happen to agree, which
 is exactly why §4 forbids the whole class rather than trying to draw the line.
 
-**They cannot be repaired.** The register is append-only; reopening a case appends events
-and cannot rewrite the ones already recorded. Adopting RFC 8785 would not help either — JCS
+**They cannot be repaired in place.** The register is append-only; reopening a case
+appends events and cannot rewrite the ones already recorded.
+
+They can be **replayed**, which is a different thing and worth naming because the
+difference is the whole point. A replay re-records every event through a conforming
+`record.py`, quoting the offending numbers and leaving every other field and every
+original timestamp alone. The result is a new register: new chain, new root, new
+signature, new timestamp. It is not the old one repaired — the old one still says what it
+said, and the new one has to name it. What is lost is not recoverable: the original
+timestamp attested that *those bytes* existed on *that date*, and the bytes changed. The
+validation case shipped in `validation/` is a replay, and its register says so in an event
+of its own before the closing manifest. Adopting RFC 8785 would not help either — JCS
 formats `94.0` as `94`, so it breaks the same registers in the same way. **JCS is not
 backward compatible with what this project has already sealed.**
 

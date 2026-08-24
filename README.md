@@ -167,6 +167,7 @@ Both routes are legitimate; the document says which one it is.
 | [`verifier/`](verifier/) | one self-contained HTML page. No network, no dependencies, no server: drop a bundle on it |
 | [`cli/`](cli/) | `colophon setup` — once, to make a key and check where you publish it |
 | [`example/`](example/) | a small worked case you can run end to end |
+| [`validation/`](validation/) | the case the method was validated on: one PDF, one bundle. Open the PDF, save both attachments, verify with the network off |
 
 ---
 
