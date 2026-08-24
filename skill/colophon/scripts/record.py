@@ -12,6 +12,13 @@ An event may hold strings, integers within +/-(2**53 - 1), booleans, null, lists
 objects with ASCII keys. Not floats. See violations() for why, and spec/canonical.md
 for the rule in full.
 
+THE RED LIST warns and does not refuse. See redlist_violations(): what may not be
+recorded about a third party is a judgement, and the only part of it a machine can
+decide is whether a string the author named in advance is present. That check is
+machine-local — it depends on a file outside the case — so it lives outside
+violations(), which spec/canonical.md §4 makes normative and a second implementation
+has to reproduce exactly.
+
 Usage:
     python3 record.py '<event json>'
     python3 record.py --verify
@@ -20,7 +27,9 @@ Usage:
 import hashlib
 import json
 import os
+import re
 import sys
+import unicodedata
 from datetime import datetime, timezone
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -69,6 +78,78 @@ def violations(obj, path="event") -> list:
         out.append(f"{path}: {obj!r} is not an integer — write it as a string")
     elif isinstance(obj, int) and abs(obj) > MAX_INT:
         out.append(f"{path}: {obj} is beyond 2**53-1")
+    return out
+
+
+def redlist_path(case_dir=BASE):
+    """Beside author.json, never in the case folder.
+
+    A list of the names an author is protecting must not be committed, and .gitignore
+    covers no such name; both case folders in this repository are committed, and
+    cli/colophon.py writes .nojekyll precisely so that dot-paths are served. So it
+    lives in the config directory, per case, named after case_uid — which is a public
+    name, because the bundle is called after it.
+    """
+    uid = None
+    for fn in ("case.json", "caso.json"):
+        try:
+            uid = json.load(open(os.path.join(case_dir, fn),
+                                 encoding="utf-8")).get("case_uid")
+        except (OSError, ValueError):
+            continue
+        if uid:
+            break
+    if not uid:
+        return None
+    home = os.environ.get("XDG_CONFIG_HOME") or os.path.join(
+        os.path.expanduser("~"), ".config")
+    return os.path.join(home, "colophon", "redlists", f"{uid}.txt")
+
+
+def fold(s: str) -> str:
+    """NFD, combining marks dropped, casefolded, whitespace collapsed.
+
+    So that Peròtti matches Perotti and MARIO ROSSI matches Mario Rossi. It does not
+    make `il Rossi` match `Mario Rossi`, and nothing here will: the variants are the
+    author's knowledge, and getting them into the list is a conversation.
+    """
+    s = unicodedata.normalize("NFD", s)
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    return re.sub(r"\s+", " ", s.casefold())
+
+
+def redlist(case_dir=BASE) -> list:
+    p = redlist_path(case_dir)
+    if not p or not os.path.exists(p):
+        return []
+    with open(p, encoding="utf-8") as f:
+        return [l.strip() for l in f if l.strip() and not l.startswith("#")]
+
+
+def redlist_violations(obj, entries, path="event") -> list:
+    """Where a declared string appears in a payload. Warns; never refuses.
+
+    Word-bounded, so that an entry `Rossi` does not fire on `Rossini`. The cost of the
+    boundary is that `M.R.` and a misspelling are unreachable, and the cost of not
+    having one is an author who learns to delete events to get past a false positive.
+
+    The caller must never print what matched. Printing the name is the harm arriving
+    through the guard.
+    """
+    out = []
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            out += redlist_violations(v, entries, f"{path}.{k}")
+    elif isinstance(obj, list):
+        for i, v in enumerate(obj):
+            out += redlist_violations(v, entries, f"{path}[{i}]")
+    elif isinstance(obj, str) and entries:
+        hay = fold(obj)
+        for e in entries:
+            needle = fold(e)
+            if needle and re.search(rf"(?<!\w){re.escape(needle)}(?!\w)", hay):
+                out.append(path)
+                break
     return out
 
 
@@ -133,3 +214,16 @@ if __name__ == "__main__":
         print(f"not recorded — {exc}", file=sys.stderr)
         sys.exit(1)
     print(json.dumps(row, ensure_ascii=False))
+
+    # After the write, on stderr, and naming nothing. The row above goes to stdout and
+    # a caller may be consuming it; and this is a courtesy at the moment of the write,
+    # not the guard. The guard is the review before the manifest, where every one of
+    # these comes back — because a warning printed into a conversation while somebody
+    # is writing an article is a warning nobody reads.
+    hits = redlist_violations(row.get("payload") or {}, redlist(), "event.payload")
+    for h in hits:
+        print(f"recorded — and your list matched inside {h}.", file=sys.stderr)
+    if hits:
+        print("Nothing is blocked and nothing is lost. This comes back at the last "
+              "read\nbefore sealing, together with the rest, and can still be changed "
+              "then.", file=sys.stderr)

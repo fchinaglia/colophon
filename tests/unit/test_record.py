@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: MIT
 """The chain, and the guard that keeps it checkable outside Python."""
 import json
+import os
 
-from conftest import run
+from conftest import SCRIPTS, run
 
 
 def test_chain_verifies_and_reports_the_root(workspace):
@@ -46,3 +47,88 @@ def test_the_guard_accepts_the_boundary_and_quoted_numbers(workspace):
         r = run(wd, "record.py", '{"type":"status","payload":' + payload + '}')
         assert r.returncode == 0, f"{payload} was refused: {r.stderr}"
     assert run(wd, "record.py", "--verify").returncode == 0
+
+
+# ------------------------------------------------------------------------ the red list
+
+def redlisted(wd, tmp_path, *entries):
+    """A red list for the case in wd, in a config directory of our own."""
+    cfg = tmp_path / "cfg"
+    d = cfg / "colophon" / "redlists"
+    d.mkdir(parents=True)
+    uid = json.loads((wd / "case.json").read_text(encoding="utf-8"))["case_uid"]
+    (d / f"{uid}.txt").write_text("# names that must not travel\n" + "\n".join(entries),
+                                  encoding="utf-8")
+    return {"XDG_CONFIG_HOME": str(cfg)}
+
+
+def with_uid(wd, uid="a-case"):
+    p = wd / "case.json"
+    c = json.loads(p.read_text(encoding="utf-8"))
+    c["case_uid"] = uid
+    p.write_text(json.dumps(c, ensure_ascii=False), encoding="utf-8")
+    return wd
+
+
+def test_a_red_list_hit_warns_and_records(workspace, tmp_path):
+    """It warns; it does not refuse. What may not be said about a third party is a
+    judgement, and the only part a machine decides is whether a string the author named
+    in advance is present."""
+    wd = with_uid(workspace("example", only={"record.py"}))
+    env = redlisted(wd, tmp_path, "Mario Rossi")
+    before = len((wd / "events.jsonl").read_text(encoding="utf-8").splitlines())
+    r = run(wd, "record.py", json.dumps({
+        "type": "editorial_decision", "actor": "ai", "phase": "—",
+        "payload": {"change": "R01",
+                    "note": "Mario Rossi ha chiesto di togliere il riferimento"}},
+        ensure_ascii=False), env=env)
+    assert r.returncode == 0, r.stdout + r.stderr
+    after = len((wd / "events.jsonl").read_text(encoding="utf-8").splitlines())
+    assert after == before + 1, "the event was not recorded"
+    assert "your list matched inside event.payload.note" in r.stderr
+    assert "comes back at the last read" in r.stderr
+
+
+def test_the_warning_never_prints_what_matched(workspace, tmp_path):
+    """Printing the name is the harm arriving through the guard: it writes it to a
+    terminal and into whatever transcript is running."""
+    wd = with_uid(workspace("example", only={"record.py"}))
+    env = redlisted(wd, tmp_path, "Mario Rossi")
+    r = run(wd, "record.py", json.dumps({
+        "type": "register_note", "actor": "ai", "phase": "—",
+        "payload": {"note": "parlato con Mario Rossi"}}, ensure_ascii=False), env=env)
+    assert r.returncode == 0
+    assert "Mario Rossi" not in r.stderr
+    assert "Mario Rossi" in r.stdout, "the recorded row is unchanged, and goes to stdout"
+
+
+def test_the_match_folds_case_and_accents_but_keeps_word_boundaries(workspace, tmp_path):
+    """Peròtti matches Perotti; Rossini does not match Rossi. The boundary costs `M.R.`
+    and a misspelling, and not having one costs an author who learns to delete events."""
+    wd = with_uid(workspace("example", only={"record.py"}))
+    env = redlisted(wd, tmp_path, "Perotti", "Rossi")
+    def note(text):
+        return run(wd, "record.py", json.dumps({
+            "type": "register_note", "actor": "ai", "phase": "—",
+            "payload": {"note": text}}, ensure_ascii=False), env=env)
+    assert "matched" in note("una nota su PERÒTTI").stderr
+    assert "matched" in note("il Rossi ha deciso").stderr
+    assert "matched" not in note("Rossini era un compositore").stderr
+    assert "matched" not in note("nulla di sensibile qui").stderr
+
+
+def test_no_list_no_warning(workspace):
+    """The whole feature costs nothing when the author declared nothing."""
+    wd = with_uid(workspace("example", only={"record.py"}))
+    r = run(wd, "record.py", json.dumps({
+        "type": "register_note", "actor": "ai", "phase": "—",
+        "payload": {"note": "Mario Rossi"}}, ensure_ascii=False))
+    assert r.returncode == 0 and "matched" not in r.stderr
+
+
+def test_the_red_list_is_not_part_of_the_canonical_refusals(workspace, tmp_path):
+    """spec/canonical.md §4 is normative about what append() refuses and a second
+    implementation must reproduce it. A machine-local list is reproducible by nobody."""
+    src = open(os.path.join(SCRIPTS, "record.py"), encoding="utf-8").read()
+    body = src[src.index("def violations("):src.index("def redlist_path(")]
+    assert "redlist" not in body, "the red list leaked into the normative refusals"

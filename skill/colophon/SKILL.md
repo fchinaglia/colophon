@@ -29,7 +29,7 @@ You can move from light to full at any moment without losing anything: the regis
 
 ### 1. Opening
 
-Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_block.py`, `build_attestation.py`, `build_bundle.py`, `render_md.py`, `render_pdf.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
+Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_block.py`, `build_attestation.py`, `build_bundle.py`, `render_md.py`, `render_pdf.py`, `review.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
 
 Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed, and — **if the case will live at an address** — `verification_url`, where the verification page will be readable, and `register_url`, the folder with the register and the files. `build_note.py` puts the first in the technical line and falls back to the second; `build_page.py` uses the second to link the files from the page. Leave both out and the line says the record travels with the document, which is true when it does. See *Publication* for the three routes.
 
@@ -39,6 +39,30 @@ thing that says which case a tar belongs to once the tar is detached from the fo
 made it. Fixed at the opening because the manifest covers `case.json`: a name derived
 later from the register's root could not go in, since the root is the hash of the manifest
 event and the manifest covers the file the name would have to live in.
+
+**Ask one question before recording the brief, and record the answer.** *May what you
+tell me be quoted in a record that is handed to other people?* The register travels whole
+inside the bundle; a copy in a reader's hands cannot be withdrawn, corrected, or told it
+has been superseded. For commissioned work the answer is usually no, and it is cheaper to
+know now than after the signature.
+
+Two answers, and the case carries one of them as a `constraint` event **before the brief**:
+
+    open           the author's instructions may be quoted, and the quotations travel
+    confidential   they are recorded as what they required, never as what they said
+
+`confidential` does not mean the case records less of the work. Every event, every
+editorial decision, every attribution and every change is still recorded; what changes is
+that the author's own words are not reproduced. Under it, quote nothing — anywhere, for
+the whole case. The brief is not the only place a register quotes: in the validation case
+002, three of the four events that had to be redacted were `editorial_decision` events
+documenting the removal of the very details they quoted.
+
+If the author names people or organisations that must never enter the register, put those
+strings in `~/.config/colophon/redlists/<case_uid>.txt`, one per line. `record.py` warns
+when one appears and records the event anyway; the warning comes back at the review before
+the seal. **Never in the case folder** — `case_uid` is a public name, the bundle is called
+after it, and a list of the names an author is protecting must not be committed.
 
 `case.json` also carries `key_url` and `key_fingerprint`: where the author's public key
 is published, and which key to expect. **Publish it on a domain you control, not inside
@@ -88,6 +112,7 @@ Annotate, measure, generate, seal, publish. See reference/protocol.md for the at
 
 ```bash
 python3 measure.py          # integrity check + computes the two axes
+python3 review.py           # the last read: what the register says about other people
 python3 build_page.py       # HTML verification page
 python3 build_icon.py       # quadrant icon, from kpi.json
                             # then the closing manifest — see below
@@ -97,6 +122,31 @@ python3 build_attestation.py # the checkfile a reader runs, and what this does n
 python3 build_bundle.py     # the bundle: the evidence and the verifier, in one file
                             # then publication, if any — see below
 ```
+
+### The last read
+
+`review.py` shows three lists and nothing else: where the red list matched and the event
+was recorded anyway, every `human_contribution` event whole, and every payload string that
+reproduces thirty characters of a draft. A register holds five to six hundred strings and
+nobody reads that; these are forty lines and a person does.
+
+The author says what should not travel. `review.py --set` rewrites the value and rebuilds
+the chain from that event on. **Values are rewritten; events are never deleted** — the
+count of events is printed into a page the manifest covers. Every original timestamp
+survives, and the measurement does not move: `measure.py` reads `payload.change` from the
+register and nothing else.
+
+Then `review.py --done`, which records **one event, always, whether or not anything
+changed** — that the author read what the register says about other people, and whether
+something was removed. Never which events, never how many. Naming them would tell a reader
+where to dig, and a review that only appears when something was found is itself the
+disclosure. If it were conditional, its presence would be the leak.
+
+**It runs after `measure.py` passes and before `build_page.py`.** Not earlier: a stopped
+measurement sends you back to the register and makes any earlier read stale. Not later:
+the verification page prints the root, and the manifest covers the page. Not after the
+manifest, which is the last event — rebuilding then changes the hash of the manifest
+itself. Not after the seal: the signature can be remade, the timestamp cannot.
 
 ### The closing manifest
 
@@ -113,6 +163,9 @@ python3 record.py '{"type":"status","actor":"system","phase":"—","meta":true,"
   "closing":"MANIFEST — final event. The next operation on this case is the signature.",
   "algorithm":"sha256","sha256":{ "…":"…" }}}'
 ```
+
+`review.py` is covered like the others: a reader who wants to know what the review looked
+at runs it themselves, over the register they were handed.
 
 **What it covers**: the source version, `annotation.json`, `kpi.json`, `spans.json`,
 `case.json`, `icon.svg`, `index.html` — the verification page, under the name the

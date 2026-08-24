@@ -122,6 +122,20 @@ for pk, data in kpi["by_phase"].items():
 
 ai_lex, ai_idea = kpi["ai_lexical"], kpi["ai_ideational"]
 reconstructed = case.get("reconstructed", False)
+# The regime is declared in the register, not in case.json — a metadata file left to go
+# stale beside numbers that were checked is how case 001 published three false statements
+# about itself. A reader who counts the events and assumes none were held back is being
+# misled by omission, so the page says it.
+regime = next((str((e.get("payload") or {}).get("confidentiality"))
+               for e in events if (e.get("payload") or {}).get("confidentiality")), None)
+confidential = ("<p class=\"note\">This register quotes nothing the author said. The "
+                "instructions behind this piece are recorded as what they required, not "
+                "as what they said, by a decision declared in the register before the "
+                "brief. What that costs you is the ability to check the lexical "
+                "carry-over against the author's own words. What it still carries is "
+                "every editorial decision, every attribution and every change.</p>"
+                ) if regime == "confidential" else ""
+
 warning = ("<p class=\"note\" style=\"border-left-color:var(--ai)\">Warning: this "
            "register was compiled <strong>after</strong> the text was written. The "
            "percentages are a reconstruction, not a measurement of the process: read "
@@ -294,6 +308,7 @@ where, and whose is what.</p>
 </div></header>
 
 {warning}
+{confidential}
 <div class="tiles">
 <div class="tile"><div class="n">{pct(ai_lex)}%</div>
 <div class="k">of the words were written by the AI</div>

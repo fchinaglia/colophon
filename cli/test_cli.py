@@ -85,6 +85,10 @@ r = run_cli("setup", "--batch", "--force", "--name", "T", "--contact", "t@e.com"
 ok("Publish the key there first" in r.stdout + r.stderr,
    "a key URL that does not serve this key stops setup")
 
+ok(oct(os.stat(os.path.dirname(cfg_path)).st_mode)[-3:] == "700",
+   "the config directory is 0700, not only the file inside it",
+   oct(os.stat(os.path.dirname(cfg_path)).st_mode))
+
 shutil.rmtree(home, ignore_errors=True)
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)

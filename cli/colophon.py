@@ -50,13 +50,19 @@ def load_config():
 
 
 def save_config(cfg):
+    # The directory too, not only the file. makedirs applies the process umask to its
+    # mode, so it comes out 0755 and the chmod is not redundant — and what lives in
+    # here is not only this file: a case's red list is named after its case_uid, which
+    # is a public name, so a world-traversable directory would leak the very thing the
+    # list exists to keep out of the record.
     os.makedirs(config_dir(), exist_ok=True)
+    os.chmod(config_dir(), 0o700)
     tmp = config_path() + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=1, sort_keys=True, ensure_ascii=False)
         f.write("\n")
     os.replace(tmp, config_path())
-    os.chmod(config_path(), 0o600)          # it holds author_secret
+    os.chmod(config_path(), 0o600)
 
 
 # --------------------------------------------------------------------------- ssh
