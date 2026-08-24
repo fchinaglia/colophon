@@ -1,5 +1,15 @@
 # The instance
 
+> **Frozen, 24 August 2026.** This is retained for the record and for one reason that
+> matters: `deposit.colophonmethod.com` still serves the cases already deposited on it,
+> because one of them has its address printed in a signed technical line inside a
+> published PDF that cannot be edited. The write path is closed — `nginx` answers `410`
+> at `/c` and the ingest container is stopped — and nothing here is part of the method
+> any more. A case now travels as a bundle its author packs: `build_bundle.py`.
+>
+> The reasoning is in `docs/plan-local-first.md`. `deploy/deposit.colophonmethod.com.conf`
+> is the frozen configuration and outlives this directory.
+
 Two containers, and the split is not tidiness.
 
 ```

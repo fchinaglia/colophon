@@ -152,7 +152,9 @@ failure the method exists to prevent.
 
 ### Step 5 — remove `server/` and `deploy/`
 
-Only now. Also removes `cmd_deposit`, `owners.jsonl`, invites, bearer tokens, the two
+Only now. **One file survives**: `deploy/deposit.colophonmethod.com.conf`, the frozen
+configuration that keeps the deposited case answering. It stops being part of the project
+and becomes infrastructure, like the key at the apex. Also removes `cmd_deposit`, `owners.jsonl`, invites, bearer tokens, the two
 compose files, the nginx configs, `test_server.py` and `test_loop.py`.
 
 What survives outside the repository as infrastructure, not as a component:

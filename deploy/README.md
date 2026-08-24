@@ -1,5 +1,11 @@
 # Deploying colophonmethod.com
 
+> **The instance is frozen, 24 August 2026.** `deposit.colophonmethod.com` serves what it
+> already holds and accepts nothing new; `deposit.colophonmethod.com.conf` in this
+> directory is that frozen configuration, and it is the one file here that outlives the
+> rest. The apex keeps serving `/.well-known/colophon/keys`, which is not a service but a
+> file, and without it every signature in the project is circular again.
+
 Two names, one canonical.
 
 ```
