@@ -38,7 +38,7 @@ One line, in italics, right under the title. It says what the reader is reading 
 
 ## Level 2 — the block at the bottom
 
-Three parts: the icon, the note, the technical line. The icon comes from `build_icon.py`, the technical line from `build_note.py`, and the three are laid out as described in *The shape of the block*.
+Three parts: the icon, the note, the technical line. **`build_block.py` produces all three as one object** — it takes the category and the boundary margin from `build_icon.py` and the technical line from `build_note.py`, so the block cannot disagree with the icon beside it or with the page it links to. What follows is what that script implements and why; it is not a form to fill in by hand. That was tried, and case 001 shipped a full-width, body-size, stacked version of the block specified below.
 
 **The note is short by default.** Five lines, not a paragraph — this is the form to use everywhere, including in a PDF:
 
@@ -207,6 +207,11 @@ Three things follow, and none is a detail.
 Icon, note and technical line are the three parts of level 2 — parts of one object, not levels of their own, and they are always
 arranged the same way: **the icon on the left, the note and the technical line
 stacked in a column to its right**, in that order down the page.
+
+`python3 build_block.py` emits exactly this, styled. `--form svg` emits the same block as
+one image, for a post or a slide that takes neither an HTML fragment nor an image and a
+caption that stay together; `--inline-icon` inlines the quadrant, for a document that
+travels without the folder that holds `icon.svg`. The markup below is what it writes.
 
 ```html
 <table class="colophon">
