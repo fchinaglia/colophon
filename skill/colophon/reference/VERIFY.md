@@ -12,6 +12,21 @@ it**.
 Next to the register you will find three files that let you verify it without taking my
 word for anything.
 
+## 0. The fastest check, if `attestation.txt` is here
+
+```bash
+grep -E '^[0-9a-f]{64}  ' attestation.txt | shasum -a 256 -c -
+```
+
+Every file the register closes over, in one command, with no PDF, no PKI and no browser.
+The file is deliberately unsigned: its bytes are the ones those digests describe. If you
+have only a copy extracted from a `.p7m`, normalise it first — signing rewrites line
+endings and `shasum` will then look for `kpi.json\r`:
+
+```bash
+tr -d '\r' < extracted.txt | grep -E '^[0-9a-f]{64}  ' | shasum -a 256 -c -
+```
+
 **If this arrived as a bundle** — `colophon-[uid].tar` — everything below is already in
 it, and so is `verify.html`. Open that file in a browser with the network off and drop
 the tar on it: it checks the chain, the signature, every digest the manifest covers and
@@ -59,52 +74,47 @@ That is why the published one lives somewhere else, and it is an anchor rather t
 proof: it moves the question from "is this folder internally consistent", which anyone
 can arrange, to "who controls that domain", which they cannot.
 
-## 2b. Signed by a named person — only if `attestation.txt.p7m` is here
+## 2b. Signed by a named person — only if a `.p7m` is here
 
 The Ed25519 signature above proves that a key signed, and the published key moves that to
 "whoever controls that domain". A qualified electronic signature moves it to a natural
 person, because a supervised trust service identified them first.
 
-What is signed is `attestation.txt` — one page restating the case identity, the root, and
-every digest the manifest covers. It is not the register: a log lives by being readable,
-and wrapping it would take that away.
+**What is signed is whatever the author handed you** — the PDF, or the bundle
+`colophon-[uid].tar` — not `attestation.txt`, which travels unsigned on purpose. Its
+digest lines are the checkfile in §0 above, and signing a text file rewrites its line
+endings, which breaks that.
+
+For a signed bundle or any `.p7m`:
 
 ```bash
-openssl cms -verify -in attestation.txt.p7m -inform DER -out attestation.txt \
+openssl cms -verify -in [file].p7m -inform DER -binary -out [file] \
             -CAfile [the EU trusted-list bundle, or your own]
-openssl cms -verify -in attestation.txt.p7m -inform DER -noverify -signer signer.pem \
+openssl cms -verify -in [file].p7m -inform DER -noverify -signer signer.pem \
   && openssl x509 -in signer.pem -noout -subject -dates
 ```
 
-**Run the checkfile against `attestation.txt`, not against what you extract.** Signing a
-text file canonicalises its line endings — `openssl cms -sign` rewrites every `\n` as
-`\r\n`, and what comes back out of `-verify -out` is that version. The digest lines then
-carry a trailing carriage return, `shasum -c` looks for `kpi.json\r`, and every line fails
-with *No such file* under a signature that is perfectly valid. If you only have the
-extracted copy:
+The `-binary` matters: without it OpenSSL canonicalises the content, and a tar comes back
+out mangled. The second command prints who signed and until when the certificate was
+valid. For a signed PDF, open it in a reader that shows the signature panel.
 
-```bash
-tr -d '\r' < extracted.txt | grep -E '^[0-9a-f]{64}  ' | shasum -a 256 -c -
-```
+For a full check against the European Trusted Lists, upload the file to the EU DSS
+validator (`ec.europa.eu/digital-building-blocks/DSS/webapp-demo/validation`), which
+resolves the trust anchors for you.
 
-The unsigned `attestation.txt` travels in the bundle for exactly this reason: its bytes are
-the ones the digests describe. The `.p7m` is there for the name, not for the checkfile.
-
-The second command prints who signed and until when the certificate was valid. For a full
-check against the European Trusted Lists, upload the `.p7m` to the EU DSS validator
-(`ec.europa.eu/digital-building-blocks/DSS/webapp-demo/validation`), which resolves the
-trust anchors for you.
-
-**Look at the signature level**, and this is the part nobody mentions. A `CAdES-B`
-signature carries no revocation evidence: once the certificate expires — Italian
+**Look at the signature level**, and this is the part nobody mentions. A `CAdES-B` or
+`PAdES-B` signature carries no revocation evidence: once the certificate expires — Italian
 qualified certificates run about three years — Italian law (CAD art. 24 c. 4-bis) treats
 the signature as **not made at all**, silently. A signature at level **LT** or **LTA**
-embeds the revocation data and stays checkable afterwards. The validator reports the
-level.
+embeds the revocation data and stays checkable afterwards. The validator reports the level.
 
-And the one thing this signature does not say: it says who takes responsibility for the
-register. It does not say the register is complete, and it does not say that the text of
-the document it accompanies is the text that was measured — §4 below is what checks that.
+Two things this signature does not say. It does not say the register is complete. And it
+does not say that the text of the document is the text that was measured — §4 below is
+what checks that, and a signature panel showing a legal name is not a substitute for it.
+
+One thing it stops saying the moment you unpack. A signature over a bundle covers the
+bundle; extract it and hand the folder to someone else, and the legal name does not go
+with it. What travels is the Ed25519 signature and the key at §2.
 
 ## 3. The register already existed on that date
 
@@ -163,8 +173,9 @@ that does not exist, and no piece of text has been left without an attribution.
 
 **It proves** that the register existed in that form on that date, that it has not been
 altered since, and that it was signed by the holder of a key which a domain I control
-published — an anchor to an identity, not a proof of one. With `attestation.txt.p7m`
-present and valid, the anchor becomes a legal name instead of a domain.
+published — an anchor to an identity, not a proof of one. With a valid qualified signature
+over the document or the bundle, the anchor becomes a legal name instead of a domain, for
+as long as you hold the file that carries it.
 
 **It does not prove that this document is the text that was measured.** A signature over
 a file says the file has not changed since it was signed; §4 is the only check that ties

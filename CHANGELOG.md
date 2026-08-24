@@ -54,10 +54,19 @@ reasoning, the order of work and what it costs are in `docs/plan-local-first.md`
   file` or `signed register, not published`, the middle line is the route, and the root
   is in all three — because two copies with two different roots are the only way a reader
   sees that a case was reopened.
-- **`VERIFY.md` gains §2b**, the qualified signature: the `openssl cms` recipe, the EU DSS
+- **`VERIFY.md` gains §0 and §2b.** §0 is the fastest check there is — one `grep | shasum
+  -c` over `attestation.txt`, every file the register closes over, with no PDF, no PKI and
+  no browser. §2b is the qualified signature: the `openssl cms` recipe, the EU DSS
   validator, and the warning nobody prints — a CAdES-B signature carries no revocation
   evidence, and when the certificate expires CAD art. 24 c. 4-bis treats the signature as
   never made. Level LT is what survives that.
+- **`attestation.txt` is not the file you sign, and the reason is measured.** Signing a
+  text file canonicalises its line endings: the copy extracted from a `.p7m` has digest
+  lines ending in a carriage return, `shasum -c` looks for `kpi.json\r`, and every line
+  fails with *No such file* — under a signature that verifies perfectly. The qualified
+  signature belongs on what the author hands over: the PDF as PAdES, or the bundle as
+  CAdES **in binary mode**. A client that signs a tar as text destroys it — 256,000 bytes
+  in, 6,367 and *Unrecognized archive format* out, signature valid over the wreckage.
 - `VERIFY.md` §3 also says why no CA travels in the bundle, and what the browser verifier
   deliberately does not do: it reads the timestamp's imprint and stops, so it tells you
   the token commits to *this* register and not who issued it.

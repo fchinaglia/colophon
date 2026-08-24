@@ -2,40 +2,46 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Fabio Chinaglia
 """
-The attestation: one page an author can sign with a qualified signature, by hand.
+The attestation: one page stating what the register is, in a form a reader can run.
 
-Colophon signs a register with an Ed25519 key, which proves that *a key* signed. It does
-not say whose key. Publishing the key at a domain gets as far as "whoever controls that
-domain"; a qualified electronic signature gets to a named natural person, because a
-supervised trust service identified them first. This file is what that signature signs.
+It is two things and neither of them is a signature.
 
-It is deliberately not the register. `seal.sh` refuses to wrap `events.jsonl` in a .p7m
-because a log lives by being inspectable, and that refusal is right about the log. It
-does not transfer to two kilobytes of text that restate the log's identity.
-
-WHAT MAKES IT WORK. The digest lines are flush-left, in `sha256sum` checkfile format, so
+**A checkfile.** The digest lines are flush-left, in `sha256sum` format, so
 
     grep -E '^[0-9a-f]{64}  ' attestation.txt | shasum -a 256 -c -
 
-is a complete check of every file the register closes over — no PDF, no PKI, no browser.
-**The legally signed document is the checkfile the reader runs.** That is the whole design
-in one line, and it is why the layout below is not free typography.
+checks every file the register closes over — no PDF, no PKI, no browser, no verifier.
+It is the shortest path from a folder to *these are the bytes that were measured*.
 
-THE UNSIGNED COPY STAYS IN THE BUNDLE, and not only for the reason below. Signing a text
-file canonicalises its line endings: `openssl cms -sign` rewrites every \n as \r\n, so the
-copy a reader extracts from the .p7m has digest lines ending in a carriage return, and
-`shasum -c` then looks for `kpi.json\r` and fails on every one of them — under a signature
-that verifies perfectly. This file, as written here, is the one whose bytes the digests
-describe. The .p7m is for the name.
+**A declaration.** One paragraph, in a sentence a person reads, saying what the whole
+apparatus does not claim: not that the register is complete — no voluntary record can
+prove that, and this one is compiled by the model about itself — and not that the text of
+the document it accompanies is the text that was measured. `measure.py` is what checks
+that, against the manifest above.
 
-IT STAYS IN THE BUNDLE EVEN WHEN THE PDF IS SIGNED. A PAdES signature over a document
-covers the document; extract the tar from it, hand the tar to a third party, and the legal
-identity is gone. This file travels with the evidence.
+DO NOT SIGN THIS FILE. Signing a text file canonicalises its line endings: `openssl cms
+-sign` rewrites every \n as \r\n, so the copy extracted from the .p7m has digest lines
+ending in a carriage return, `shasum -c` looks for `kpi.json\r`, and every line fails with
+*No such file* — under a signature that verifies perfectly. That is this project's own
+line-endings hazard in a new place, and it destroys the better of this file's two
+properties in exchange for the weaker one. `attestation.txt.p7m` is still carried if you
+make one; it is no longer the way in.
 
-WHAT IT DOES NOT SAY, and the text says so itself: not that the register is complete — no
-voluntary record can prove that, and this one is compiled by the model about itself — and
-not that the text of whatever document it is attached to is the text that was measured.
-`measure.py` is what checks that, against the manifest.
+WHERE THE QUALIFIED SIGNATURE GOES, if you hold one: on the thing you actually hand over.
+A PDF, signed as PAdES, which covers the document as well as the record. Or the bundle,
+`colophon-<case_uid>.tar`, signed as CAdES — **in binary mode**. A client that treats the
+tar as text destroys it: measured here, 256,000 bytes in, 6,367 bytes and *Unrecognized
+archive format* out, with the signature over the wreckage still valid. Whether the Italian
+clients do the right thing by default is [unverified]; check before you rely on it.
+
+Either way the signing happens in your own tool, with your own certificate, and nothing
+here ever sees it. Pick level **LT**: below it a signature carries no revocation evidence,
+and when the certificate expires — about three years for an Italian qualified certificate
+— CAD art. 24 c. 4-bis treats it as never made, silently.
+
+And whatever you sign, this file stays unsigned inside the bundle. **Its bytes are the
+ones the digests describe**, and a signature over the document does not travel with the
+evidence once someone opens the tar.
 
 ORDER. Generated after `seal.sh`, so it can name the seal. It records no event and does
 not reopen the case: like the technical line, it is derived from files the manifest
@@ -43,12 +49,6 @@ already covers and it changes none of them.
 
     python3 build_attestation.py                 attestation.txt
     python3 build_attestation.py --lang it       attestazione.txt
-
-Then sign it with your own tool — Aruba Sign, Dike, Firma4NG — as CAdES, **at level LT**.
-Below LT the signature carries no revocation evidence, and CAD art. 24 c. 4-bis makes a
-signature on an expired certificate equivalent to no signature at all. Italian qualified
-certificates run about three years. The file becomes `attestation.txt.p7m`; put it in the
-case folder and pack the bundle again.
 
 Usage: python3 build_attestation.py [--lang it|en] [-o OUT]
 """
@@ -239,7 +239,8 @@ def main(argv=None):
         print("    The checkfile a reader runs will fail on them. Attest from the case\n"
               "    folder, not from a copy of part of it.")
         return 1
-    print("  sign it as CAdES at level LT, then put attestation.txt.p7m beside it")
+    print("  do not sign this file — sign the PDF or the bundle you hand over, and\n"
+          "  leave this one plain: its bytes are what the digests describe")
     return 0
 
 

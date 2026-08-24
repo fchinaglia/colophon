@@ -144,9 +144,13 @@ def test_the_attestation_travels_in_the_bundle(manifested, tmp_path):
 
 
 def test_the_documented_recipe_survives_a_real_cms_signature(manifested, tmp_path):
-    """Signing canonicalises line endings, and the checkfile then fails on every line
-    under a signature that verifies perfectly. This asserts both halves: that it breaks,
-    and that the normalisation VERIFY.md prescribes fixes it."""
+    """Why this file is not the one you sign.
+
+    Signing canonicalises line endings, and the checkfile then fails on every line under
+    a signature that verifies perfectly. The method's answer is to sign the PDF or the
+    bundle instead and leave this file plain; the test stays as the guard on that
+    decision, and it also proves the `tr -d '\r'` fallback for a reader who has only an
+    extracted copy."""
     if not shutil.which("openssl"):
         pytest.skip("no openssl")
     attest(manifested)
@@ -178,3 +182,13 @@ def test_the_documented_recipe_survives_a_real_cms_signature(manifested, tmp_pat
     r = subprocess.run(["shasum", "-a", "256", "-c", "-"], input=lines, text=True,
                        capture_output=True, cwd=manifested)
     assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_it_tells_the_author_not_to_sign_it(manifested):
+    r = run(manifested, "build_attestation.py")
+    assert "do not sign this file" in r.stdout
+    doc = open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__)))), "skill", "colophon", "scripts",
+        "build_attestation.py"), encoding="utf-8").read()
+    assert "DO NOT SIGN THIS FILE" in doc
+    assert "in binary mode" in doc, "a client that signs a tar as text destroys it"

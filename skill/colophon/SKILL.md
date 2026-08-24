@@ -93,7 +93,7 @@ python3 build_icon.py       # quadrant icon, from kpi.json
                             # then the closing manifest — see below
 bash seal.sh events.jsonl   # Ed25519 signature + timestamp + anchoring
 python3 build_note.py       # the technical line of the note
-python3 build_attestation.py # one page to sign by hand, if you hold a qualified signature
+python3 build_attestation.py # the checkfile a reader runs, and what this does not claim
 python3 build_bundle.py     # the bundle: the evidence and the verifier, in one file
                             # then publication, if any — see below
 ```
