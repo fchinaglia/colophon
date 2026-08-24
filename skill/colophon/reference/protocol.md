@@ -152,7 +152,7 @@ Without it `measure.py` stops and publishes nothing. The two cases it exists for
 
 1. `measure.py` must say **reconstruction: OK**.
 2. It must exit zero: no unmatched edit left undeclared, and no stale entry in `explained`.
-3. The percentages must be accompanied by the breakdown by phase.
+3. The percentages must be accompanied by the breakdown by phase, on both axes: a per-phase figure that does not say whether it counts words or ideas is read as whichever the sentence around it is about.
 4. The section on the limits gets written **before** the results, not after.
 
 ---
