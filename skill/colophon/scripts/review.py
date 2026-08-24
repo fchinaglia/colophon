@@ -56,13 +56,17 @@ SHINGLE = 30          # characters of a draft a payload string may repeat unrema
 
 T = {
  "en": {
-  "told": "TOLD, AND STILL HERE — the red list matched and the event was recorded",
-  "supplied": "WHAT THE REGISTER SAYS YOU SUPPLIED",
-  "repeated": "WHERE THE REGISTER REPEATS THE ARTICLE",
+  # One of these is not an offer. Three headers of equal weight say the three are the
+  # same kind of thing, and two are "worth a look" while the first is a thing the author
+  # was already told once. The typography is the difference between an alarm and an
+  # invitation, and it is the only part of it a reader takes in before reading.
+  "told": "YOU ASKED ME TO KEEP THESE OUT, AND THEY ARE STILL IN",
+  "supplied": "what you told me, in your words, as the register has them",
+  "repeated": "what the register still says and the article no longer does",
   "rest": "{n} more strings in this register are not shown: they are the method "
           "talking\n  about itself. These three lists are a filter, not the register.",
-  "head": "  This is the last moment at which anything here can be taken back without\n"
-          "  rebuilding a sealed chain. After the bundle is handed over, not at all.",
+  "head": "  This is the last moment at which anything here can be taken out for free.\n"
+          "  After the file is handed over, not at all.",
   "clean": "Nothing to change.",
   "none": "nothing was removed",
   "review": "The author read what this register says about people other than themselves, and about the text, before it was sealed.",
@@ -71,14 +75,13 @@ T = {
           "the change did",
  },
  "it": {
-  "told": "SEGNALATI, E ANCORA QUI — la lista ha fatto match e l'evento è stato scritto",
-  "supplied": "QUELLO CHE IL REGISTRO DICE CHE HAI FORNITO",
-  "repeated": "DOVE IL REGISTRO RIPETE L'ARTICOLO",
+  "told": "AVEVI CHIESTO DI TENERLI FUORI, E SONO ANCORA QUI",
+  "supplied": "quello che mi hai detto, con le tue parole, come le tiene il registro",
+  "repeated": "quello che il registro dice ancora e l'articolo non dice più",
   "rest": "Altre {n} stringhe di questo registro non sono mostrate: sono il metodo che "
           "parla\n  di sé. Questi tre elenchi sono un filtro, non il registro.",
-  "head": "  Questo è l'ultimo momento in cui qualcosa può essere tolto senza "
-          "ricostruire\n  una catena sigillata. Dopo che il bundle è stato consegnato, "
-          "non più.",
+  "head": "  Questo è l'ultimo momento in cui qualcosa può essere tolto senza costi.\n"
+          "  Dopo che il file è stato consegnato, non più.",
   "clean": "Niente da cambiare.",
   "none": "non è stato tolto niente",
   "review": "L'autore ha letto quello che questo registro dice di persone diverse da sé, e del testo, prima che venisse sigillato.",
@@ -284,22 +287,30 @@ def main(argv=None):
 
     shown = len(told) + len(repeated) + sum(
         1 for r in supplied for _ in strings(r.get("payload") or {}, "payload"))
+    # Numbered across all three, contiguously. The author says "3 and 7"; finding the
+    # path is the model's job, not theirs — SKILL.md's rule that they are never asked to
+    # edit a file, applied to the review.
+    n = 0
     print()
     print(t["head"])
     if told:
         print(f"\n{t['told']}\n")
         for seq, ts, path in told:
-            print(f"  seq {seq:>3}  {ts}  {path}")
+            n += 1
+            print(f"  {n:>3}.  seq {seq:>3}  {ts}  {path}")
     if supplied:
         print(f"\n{t['supplied']}\n")
         for r in supplied:
-            print(f"  seq {r['seq']:>3}  {r.get('phase','—')}")
             for path, s in strings(r.get("payload") or {}, "payload"):
-                print(f"        {path}: {s[:150]}{'…' if len(s) > 150 else ''}")
+                n += 1
+                print(f"  {n:>3}.  seq {r['seq']:>3}  {path}: "
+                      f"{s[:140]}{'…' if len(s) > 140 else ''}")
     if repeated:
         print(f"\n{t['repeated']}\n")
         for seq, path, s in repeated:
-            print(f"  seq {seq:>3}  {path}: {s[:150]}{'…' if len(s) > 150 else ''}")
+            n += 1
+            print(f"  {n:>3}.  seq {seq:>3}  {path}: "
+                  f"{s[:140]}{'…' if len(s) > 140 else ''}")
     if not (told or supplied or repeated):
         print(f"\n  {t['clean']}")
     print(f"\n  " + t["rest"].format(n=total - shown))

@@ -85,8 +85,9 @@ def test_a_red_list_hit_warns_and_records(workspace, tmp_path):
     assert r.returncode == 0, r.stdout + r.stderr
     after = len((wd / "events.jsonl").read_text(encoding="utf-8").splitlines())
     assert after == before + 1, "the event was not recorded"
-    assert "your list matched inside event.payload.note" in r.stderr
+    assert "something on your list is in what I just recorded" in r.stderr
     assert "comes back at the last read" in r.stderr
+    assert "payload" not in r.stderr, "a path the author cannot act on yet"
 
 
 def test_the_warning_never_prints_what_matched(workspace, tmp_path):
@@ -111,10 +112,10 @@ def test_the_match_folds_case_and_accents_but_keeps_word_boundaries(workspace, t
         return run(wd, "record.py", json.dumps({
             "type": "register_note", "actor": "ai", "phase": "—",
             "payload": {"note": text}}, ensure_ascii=False), env=env)
-    assert "matched" in note("una nota su PERÒTTI").stderr
-    assert "matched" in note("il Rossi ha deciso").stderr
-    assert "matched" not in note("Rossini era un compositore").stderr
-    assert "matched" not in note("nulla di sensibile qui").stderr
+    assert "on your list" in note("una nota su PERÒTTI").stderr
+    assert "on your list" in note("il Rossi ha deciso").stderr
+    assert "on your list" not in note("Rossini era un compositore").stderr
+    assert "on your list" not in note("nulla di sensibile qui").stderr
 
 
 def test_no_list_no_warning(workspace):
@@ -123,7 +124,7 @@ def test_no_list_no_warning(workspace):
     r = run(wd, "record.py", json.dumps({
         "type": "register_note", "actor": "ai", "phase": "—",
         "payload": {"note": "Mario Rossi"}}, ensure_ascii=False))
-    assert r.returncode == 0 and "matched" not in r.stderr
+    assert r.returncode == 0 and "on your list" not in r.stderr
 
 
 def test_the_red_list_is_not_part_of_the_canonical_refusals(workspace, tmp_path):
@@ -132,3 +133,17 @@ def test_the_red_list_is_not_part_of_the_canonical_refusals(workspace, tmp_path)
     src = open(os.path.join(SCRIPTS, "record.py"), encoding="utf-8").read()
     body = src[src.index("def violations("):src.index("def redlist_path(")]
     assert "redlist" not in body, "the red list leaked into the normative refusals"
+
+
+def test_one_line_however_many_fields_matched(workspace, tmp_path):
+    """Case 002's seq 68 matches in five fields. Five lines of warning about one event
+    is an interruption in a conversation where somebody is writing an article."""
+    wd = with_uid(workspace("example", only={"record.py"}))
+    env = redlisted(wd, tmp_path, "quattro", "cinque", "sei")
+    r = run(wd, "record.py", json.dumps({
+        "type": "editorial_decision", "actor": "ai", "phase": "—",
+        "payload": {"change": "Z01", "a": "quattro elementi", "b": "cinque cose",
+                    "c": "sei dettagli", "d": "nulla"}}, ensure_ascii=False), env=env)
+    assert r.returncode == 0
+    assert r.stderr.count("on your list") == 1
+    assert len(r.stderr.strip().splitlines()) == 3

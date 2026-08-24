@@ -47,6 +47,19 @@ the case was reopened afterwards, because a copy in your hands has no way back t
 root printed in the document is what makes that visible: two copies with two different
 roots are two different states of the same case.
 
+**And if it was published at an address, that the address serves those bytes.** `seal.sh`
+writes `events.jsonl.sha256`, so fetching the register from where it was published and
+comparing the two digests is the whole check:
+
+```bash
+curl -fsS "<register_url>events.jsonl" | shasum -a 256
+cat events.jsonl.sha256
+```
+
+The same digest — the second column differs, the hash is the whole comparison — means the
+address serves the bytes the signature attests. A different one, or a `curl` that fails,
+means the case is not published, whatever anything printed on its way out.
+
 ## 1. The chain has not been altered
 
 ```bash

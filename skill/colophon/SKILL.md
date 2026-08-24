@@ -17,13 +17,52 @@ If the user asks you to apply the method to a text that is already written, you 
 
 ## Two modes
 
-Ask the user which one, if it is not obvious from the context. When in doubt: pieces under 800 words → light; above that → full.
+**Decide it; do not ask.** Under 800 words → light, above → full. If you genuinely cannot tell, ask what they are writing — a post or a long piece — not which mode they want. `light` and `full` are names in this file.
 
 **Light mode.** Event register with a hash chain, no span-level annotation, closing note with coarse-grained estimated percentages declared as estimates. Almost no friction.
 
 **Full mode.** The whole cycle: register, span-by-span annotation, measurement along the two axes, verification page, three-level disclosure, cryptographic seal.
 
 You can move from light to full at any moment without losing anything: the register is the same.
+
+## What the author hears
+
+The author is writing an article. The words in this file — span, block, manifest, root,
+payload, phase, bundle, seq — are the instrument's, and they are useful to you. Said out
+loud they cost the author a sentence they did not need and could not act on.
+
+**Three moments, and nowhere else.** The opening, the closing, and when something stops.
+There the vocabulary is earned and is explained rather than avoided. Between them the
+instrument runs and is not mentioned.
+
+Each of the three has the same shape:
+
+1. **A budget.** One or two sentences, before any detail. If it takes more, you are
+   explaining rather than saying.
+2. **The fact they need in order to answer** — what is at stake in the answer, never what
+   the machinery is doing.
+3. **The reason, once, in a clause.** Then stop.
+
+*When something stops*, below, is this rule already written out for one case. Read it as
+the model for the other two.
+
+**Ask in their terms.** Not *"R12 has no span — add it to `explained`?"* but *"this
+rewrite: did it survive into the final version, or did the later one replace it?"* Same
+question. Only the second can be answered without opening a file.
+
+**Say results, not steps.** Recording an event, splitting a span, packing the file: these
+happen. Narrating them turns a writing session into a status feed for a process nobody
+asked to supervise.
+
+**And a paragraph is a paragraph.** Number it, point at it as `[12]`, never call it a
+block.
+
+**What never reaches the author**, because none of it is answerable by someone who has not
+opened the file: manifest, payload, span, block, seq, chain, digest, sha256, Ed25519,
+route, technical line, level 1/2/3, attestation, bundle, `explained`, meta, denominator,
+axis, `lex`/`idea`/`UA`, the six phase names, `case_uid`, and every file name.
+
+What does reach them is in *What must be said anyway*, at the end of this file.
 
 ## The cycle
 
@@ -33,12 +72,21 @@ Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the s
 
 Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed, and — **if the case will live at an address** — `verification_url`, where the verification page will be readable, and `register_url`, the folder with the register and the files. `build_note.py` puts the first in the technical line and falls back to the second; `build_page.py` uses the second to link the files from the page. Leave both out and the line says the record travels with the document, which is true when it does. See *Publication* for the three routes.
 
-`case.json` also carries **`case_uid`**: a short, stable name for this case, fixed now
-and never changed. It is not decoration — the bundle is named after it, so it is the only
-thing that says which case a tar belongs to once the tar is detached from the folder that
-made it. Fixed at the opening because the manifest covers `case.json`: a name derived
-later from the register's root could not go in, since the root is the hash of the manifest
-event and the manifest covers the file the name would have to live in.
+`case.json` also carries **`case_uid`**: a short, stable name for this case, fixed now and
+never changed. The bundle is named after it, so it is the only thing that says which case
+a file belongs to once that file is on its own — and it has to exist before the manifest,
+which covers `case.json`. `reference/protocol.md` has the rest.
+
+**What you say at the opening, and in what order.** Four things, then start. The folder,
+the scripts, `case.json` and the case's short name are yours and are never mentioned.
+
+1. The question below, about who else is in this.
+2. If there is anyone to protect, build the list. If there is not, skip it and say nothing.
+3. *"I'm keeping a record of how this gets written from here. It only sees this
+   conversation: anything you write elsewhere it won't know about, and knowing you're
+   being recorded may change how you write. Both of those go in as limits."*
+4. *"Nothing in the record gets deleted. Before I seal it, wording can be replaced; after,
+   not even that — it takes a new entry saying what changed and why."*
 
 **Ask one question before recording the brief, and record the answer.** *May what you
 tell me be quoted in a record that is handed to other people?* The register travels whole
@@ -46,10 +94,14 @@ inside the bundle; a copy in a reader's hands cannot be withdrawn, corrected, or
 has been superseded. For commissioned work the answer is usually no, and it is cheaper to
 know now than after the signature.
 
-Two answers, and the case carries one of them as a `constraint` event **before the brief**:
+One question, one answer. **The author never meets the two words.** You map what they say
+onto one of them and record it as a `constraint` event before the brief:
 
     open           the author's instructions may be quoted, and the quotations travel
     confidential   they are recorded as what they required, never as what they said
+
+**Anything that is not a clear no is `confidential`.** Being wrong that way costs a page
+that explains itself; being wrong the other way cannot be undone.
 
 `confidential` does not mean the case records less of the work. Every event, every
 editorial decision, every attribution and every change is still recorded; what changes is
@@ -58,11 +110,29 @@ the whole case. The brief is not the only place a register quotes: in the valida
 002, three of the four events that had to be redacted were `editorial_decision` events
 documenting the removal of the very details they quoted.
 
-If the author names people or organisations that must never enter the register, put those
-strings in `~/.config/colophon/redlists/<case_uid>.txt`, one per line. `record.py` warns
-when one appears and records the event anyway; the warning comes back at the review before
-the seal. **Never in the case folder** — `case_uid` is a public name, the bundle is called
-after it, and a list of the names an author is protecting must not be committed.
+**If there is anyone to protect, get the list out of the author by asking about people,
+not about matching.**
+
+> *"Are there people or companies in this that must not appear in the record — not just in
+> the article, in the record? Give me the names the way they'd actually turn up: the
+> surname on its own, the way you'd say it in passing, the company without its legal
+> form."*
+
+Three variants a full name will not catch, and you ask for each rather than explaining why:
+
+- the surname alone, and with an article — `Mario Rossi` does not match `il Rossi`
+- the short form of a company — `Rossi & Figli S.r.l.` does not match `Rossi & Figli`
+- anything they habitually call the person that is not their name
+
+Two things it cannot reach, said once and not dwelt on: **initials and misspellings**.
+`M.R.` and `Rosi` are not findable. Do not describe substring matching to get there.
+
+You write the file, at `~/.config/colophon/redlists/<case_uid>.txt`, one entry per line.
+The path is not shown to the author and the list is never read back. `record.py` warns when
+an entry appears and records the event anyway; the warning comes back at the review before
+the seal. **Never in the case folder** — the case's short name is public, the file the
+reader receives is called after it, and a list of the names an author is protecting must
+not be committed.
 
 `case.json` also carries `key_url` and `key_fingerprint`: where the author's public key
 is published, and which key to expect. **Publish it on a domain you control, not inside
@@ -71,11 +141,10 @@ authenticates proves only that the folder is internally consistent, which anyone
 arrange in ten seconds by generating a fresh key and re-signing. The copy in the folder
 stays, for offline reproduction; the published one is what binds the key to a person.
 
-An address you cannot keep is worse than none: the line is generated at render time, so a PDF freezes it forever. Do not move a case folder once it is published. If you do not know the address yet, add it before publishing — the line will pick it up at the next render.
-
-The page has to be **served as a page**. A raw `.html` on a code host is delivered as plain text and the reader sees the markup: publish it where HTML renders, GitHub Pages or your own site.
-
-**No underscore in the published address.** URL detectors — in mail clients, chat apps, PDF viewers — cut a link at the first underscore, so `…/cases/002/pagina_di_verifica.html` arrives at the reader as `…/cases/002/pagina`, which is a 404. `build_page.py` writes the page as `index.html` for this reason, so the address ends at the folder and there is nothing after it to truncate. A case sealed under an older name keeps it — its manifest covers that name — and gets an `index.html` next to it that redirects.
+**An address is a promise**: the line is generated at render time, so a PDF freezes it
+forever. Do not move a case folder once it is published. It must be served as a page, at
+an address with no underscore in it — `reference/disclosures.md` says why both of those
+matter, and `build_page.py` already writes `index.html` for the second.
 
 Among the known limits, always declare at least these: that capture happens through the conversation and not through an instrumented editor; that work done outside the conversation is not observed; that the user knows they are being observed and that this may change how they write.
 
@@ -98,7 +167,7 @@ Mark with `"meta": true` the events that concern the design of the method and no
 
 ### 3. Revision
 
-Print the text with **numbered blocks** (the index of the paragraph in the file, blank line as separator) so that the user can refer to `[12]`. The numbers must match those in the annotation.
+Print the text with **numbered paragraphs** (the index of the paragraph in the file, blank line as separator) so that the user can refer to `[12]`. The numbers must match those in the annotation — which calls them blocks, and the author never has to.
 
 Propose edits **marked one by one** with an identifier (`M01`, `M02`…), plus a closing index with the type, what changes and why. The user accepts or rejects by number. Every decision is an `editorial_decision` event with the outcome and the updated attribution.
 
@@ -108,7 +177,52 @@ Do not rewrite the user's voice. Anglicisms, a colloquial register, personal lex
 
 ### 4. Closing
 
-Annotate, measure, generate, seal, publish. See reference/protocol.md for the attribution rules. **The block is generated, not assembled**: `build_block.py` composes the icon, the note and the technical line into the one shape reference/disclosures.md prescribes — icon on the left, note and technical line stacked to its right, the icon in absolute units. Read that file for why the shape is what it is, not to retype it. The note is followed by a technical line — signed or not, where it lives, how many events and the root — generated by build_note.py, never typed. **Neither goes in the text.** The marker under the title and the block at the foot are added by `render_md.py` and `render_pdf.py` at render time, from the measurement: type them into the source and the document carries them twice, and the numbers in them freeze at the moment they were typed. **Both are short by default**: five lines for the note, three for the technical line, and that is the form to use everywhere, PDFs included. The paragraph note and the one-sentence technical line remain, for a page that has room to explain itself: `--form full`. The rules, and what drops when, are in reference/disclosures.md.
+**What you say at the closing.** Four decisions belong to the author, in this order.
+Everything between them is yours and is not narrated.
+
+**The numbers, once the measurement passes.** Two percentages, what each is a percentage
+of, the phase that changes the reading, and the two things it does not prove:
+
+> *"Of the words in the final text, 47% are the model's and 53% yours; of the ideas, 31%
+> the model's and 69% yours. Almost all of the model's words are in the revision — the
+> first draft is 86% yours. Two things this does not prove: it can't show the record is
+> complete, only that nothing in it was changed after the fact, and the ideas figure is a
+> judgement, not a count."*
+
+**The last read.** It is an offer, and it is made once, after the measurement passes,
+whatever the regime:
+
+> *"One thing before I seal it. The record still holds what you told me about other
+> people, and passages the article no longer has — this is the last point at which any of
+> that can come out for free. Do you want to read it? It's about forty lines."*
+
+If they say no, say nothing further and run `review.py --done`, which records that the
+moment happened either way. If they say yes, say the limit once, because a list that comes
+back clean reads as a clearance and is not one:
+
+> *"It finds words, not inferences. Four harmless details that together point at one
+> company will go straight past it."*
+
+**Where the record travels.**
+
+> *"Do you want the record to travel with the document, or to sit at a web address people
+> can link to? Both work, and the document will say which. Travelling with it needs nobody
+> alive in ten years; an address is the only one that can later say the case was
+> reopened."*
+
+Then say what you did, not how: *"I'll pack the record into one file you can attach to the
+article — a reader can check everything in it with the network off."* Not the file names,
+not the digests, not what the manifest covers.
+
+**The point of no return.**
+
+> *"From here on the record can only be added to. If anything in it should change, say so
+> now: after I seal it, changing it means opening the case again and saying publicly
+> why."*
+
+---
+
+Annotate, measure, generate, seal, publish. See reference/protocol.md for the attribution rules. **The block is generated, not assembled**: `build_block.py` composes the icon, the note and the technical line into the one shape reference/disclosures.md prescribes — icon on the left, note and technical line stacked to its right, the icon in absolute units. Read that file for why the shape is what it is, not to retype it. The note is followed by a technical line — signed or not, where it lives, how many events and the root — generated by build_note.py, never typed. **Neither goes in the text** — `render_md.py` and `render_pdf.py` add both at render time, from the measurement. Both are short by default: five lines and three. reference/disclosures.md says why, what `--form full` is for, and what drops when.
 
 ```bash
 python3 measure.py          # integrity check + computes the two axes
@@ -214,14 +328,11 @@ problem disappears; if one was made earlier, say so.
 
 ### Line endings
 
-Git normalises line endings on checkout. A clone on Windows with `core.autocrlf=true`
-turns every `\n` into `\r\n`: the files still read, **every digest changes, and the
-signature stops verifying**. Worse, `record.py --verify` still answers `chain intact`,
-because it recomputes from parsed JSON — so the first check passes, the second fails, and
-an honest reader concludes the signature is forged.
-
-Put `cases/** -text` in the repository's `.gitattributes` before publishing a case, and
-check it is there before telling anyone to verify.
+Put `cases/** -text` in the repository's `.gitattributes` before publishing a case. Without
+it a checkout on Windows rewrites every line ending, every digest changes and the signature
+stops verifying — while `record.py --verify` still answers `chain intact`, so the first
+check passes, the second fails, and an honest reader concludes the signature is forged.
+reference/VERIFY.md has the rest.
 
 ### Publication
 
@@ -246,15 +357,13 @@ and the line prints it.
 **Neither.** Legitimate, and the line says so rather than implying an address that is not
 there.
 
-The three are not a ranking. A PDF can carry the attachment; a web page can carry the
-address; a post can carry neither and must point at something that does. **The marker, the
-note and the root travel in every container. Only the route changes.**
+The three are not a ranking: **the marker, the note and the root travel in every
+container, and only the route changes.** reference/disclosures.md has the three forms and
+which container takes which.
 
-**What the attachment cannot do, and you should say so once.** A bundle in a reader's
-hands is frozen. It verifies perfectly and it cannot announce that it has been superseded
-— a case reopened next month leaves every distributed copy looking correct and being out
-of date. This is why the root is printed in the document: a reader holding two copies can
-see that they differ. It is also why an address, when you have one, is worth having
+**What the attachment cannot do, and you say so once.** A bundle in a reader's hands is
+frozen: it verifies perfectly and cannot announce that it has been superseded. That is why
+the root is printed in the document, and why an address, when you have one, is worth having
 alongside.
 
 **Your key is published once, and it is not part of the case.** A public key inside the
@@ -269,31 +378,21 @@ case.
 a new event would change the root the line prints and the manifest already covers. So do
 not pack, publish or render before the manifest, and do not record having done so after.
 
-**If you did publish at an address, check that it answers before you call the case done.**
-`seal.sh` writes `events.jsonl.sha256`, so fetching the register from where it was
-published and comparing the two digests is the whole check:
-
-```bash
-curl -fsS "<register_url>events.jsonl" | shasum -a 256
-cat events.jsonl.sha256
-```
-
-The same digest — the second column differs, the hash is the whole comparison — means the
-address serves the bytes the signature attests. A different one, or a `curl` that fails,
-means the case is not published, whatever anything printed on its way out.
+**If you did publish at an address, check that it answers before you call the case done** —
+fetch the register from where it was published and compare its digest with the one
+`seal.sh` wrote. reference/VERIFY.md §0 has the two commands. A different digest, or a
+fetch that fails, means the case is not published, whatever anything printed on its way
+out.
 
 **An address that has not been published is not done.** Do not report the closing sequence
 as successful while the declared address 404s. That the numbers are right is not what the
 note claims: it tells a reader where to go and check them, and a note whose address is
 dead is the failure the note exists to remove, wearing the costume of the fix.
 
-**Say what is not yet true.** A publication that is deferred — the domain does not exist
-yet, the author wants to hold the piece — is recorded, and *when* it is recorded is the
-whole difficulty. Before the manifest it is one event like any other. After the seal it is
-a reopening: a new event saying why, a new manifest, a second signature, the old seal
-kept. So find out early, before you compute the manifest, not after it. What is not
-allowed is the third option: leaving a declared address that reads as live and saying
-nothing. That is a silent gap, and it is the one a reader walks into.
+**Say what is not yet true.** A deferred publication is recorded, and *when* decides the
+cost: before the manifest it is one event like any other; after the seal it is a reopening.
+So find out before you compute the manifest. What is never allowed is the third option —
+leaving a declared address that reads as live and saying nothing.
 
 ## The annotation
 
@@ -337,9 +436,31 @@ AI share = `A + UA/2`, and it has to be said that mixed is counted as half.
 
 In material addressed to the public use whole numbers. The precise value stays in the record.
 
-## When the measurement stops
+## When something stops
 
 `measure.py` exiting non-zero is a normal moment in the cycle, not an accident, and the first thing to do is to say so to the user in one sentence: **the register is intact, nothing they wrote or you recorded is lost, and this is the closing step being repeated — not the work.** They are watching a red block of text about spans and declarations, in the vocabulary of a file they have never opened.
+
+**Everything in the closing sequence that refuses is the same moment, and gets the same
+sentence: nothing is lost, here is what has to happen, and here is what it costs the
+record.** The scripts print the diagnosis for whoever is working on the case; you say one
+sentence for the person who wrote the text. The four you will actually meet:
+
+> **The render gate.** *"The text has changed since it was measured, so I'm not printing
+> it — the document would carry a signature saying this is the text that was measured, and
+> it isn't any more. Nothing is lost. Either put back the version that was measured, or
+> measure this one, and we go on."*
+>
+> **A piece of formatting the renderer will not guess at.** *"There's something on line 44
+> I can't print without risking changing it, so it stopped rather than printing something
+> you didn't write. Tell me what that line should look like and I'll set it plainly."*
+>
+> **The review, after the manifest.** *"This is past the point where the record can be
+> edited quietly. Nothing is broken — but changing anything now means reopening the case,
+> which is recorded and visible. Do you want to?"*
+>
+> **Packing before sealing.** *"I can pack this now, but nothing has signed it: a reader
+> would be able to see that the record is consistent with itself and nothing about who
+> made it. Shall I sign it first?"*
 
 Then fix it, in this order:
 

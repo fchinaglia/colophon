@@ -220,10 +220,13 @@ if __name__ == "__main__":
     # not the guard. The guard is the review before the manifest, where every one of
     # these comes back — because a warning printed into a conversation while somebody
     # is writing an article is a warning nobody reads.
-    hits = redlist_violations(row.get("payload") or {}, redlist(), "event.payload")
-    for h in hits:
-        print(f"recorded — and your list matched inside {h}.", file=sys.stderr)
-    if hits:
-        print("Nothing is blocked and nothing is lost. This comes back at the last "
-              "read\nbefore sealing, together with the rest, and can still be changed "
-              "then.", file=sys.stderr)
+    # One line, however many fields matched — case 002's seq 68 has five, and five
+    # lines of warning about one event is an interruption in a conversation where
+    # somebody is writing an article. And a seq, not a JSON path: the path is not
+    # actionable here by construction, because the whole design is that the decision
+    # happens at the review; the seq is what that review prints back.
+    if redlist_violations(row.get("payload") or {}, redlist(), "event.payload"):
+        print(f"noted at seq {row['seq']} — something on your list is in what I just "
+              f"recorded.\nNothing is blocked and nothing is lost. This comes back at "
+              f"the last read\nbefore sealing, and can still be changed then.",
+              file=sys.stderr)

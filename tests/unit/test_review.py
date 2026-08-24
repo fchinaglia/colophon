@@ -50,8 +50,8 @@ def test_it_shows_what_the_author_supplied_and_what_repeats_the_article(case, tm
     assert note(case, piece, typ="human_contribution").returncode == 0
     r = run(case, "review.py", env=cfg(tmp_path))
     assert r.returncode == 0, r.stdout + r.stderr
-    assert "WHAT THE REGISTER SAYS YOU SUPPLIED" in r.stdout
-    assert "WHERE THE REGISTER REPEATS THE ARTICLE" in r.stdout
+    assert "what you told me, in your words" in r.stdout
+    assert "the article no longer does" in r.stdout
     assert piece[:40] in r.stdout
 
 
@@ -61,9 +61,9 @@ def test_the_told_list_never_prints_what_matched(case, tmp_path):
     env = cfg(tmp_path, "Mario Rossi")
     assert note(case, "parlato con Mario Rossi", env=env).returncode == 0
     r = run(case, "review.py", env=env)
-    assert "TOLD, AND STILL HERE" in r.stdout
+    assert "YOU ASKED ME TO KEEP THESE OUT" in r.stdout
     assert "payload.note" in r.stdout
-    assert "Mario Rossi" not in r.stdout.split("WHERE THE REGISTER REPEATS")[0]
+    assert "Mario Rossi" not in r.stdout.split("what the register still says")[0]
 
 
 def test_a_rewrite_moves_no_number_and_loses_no_date(case, tmp_path):
@@ -136,17 +136,17 @@ def test_a_kept_hit_stops_being_raised_and_lapses_when_the_value_changes(case, t
     assert note(case, "una nota su Rossi", env=env).returncode == 0
     seq = json.loads((case / "events.jsonl").read_text(encoding="utf-8")
                      .splitlines()[-1])["seq"]
-    assert "TOLD, AND STILL HERE" in run(case, "review.py", env=env).stdout
+    assert "YOU ASKED ME TO KEEP THESE OUT" in run(case, "review.py", env=env).stdout
 
     assert run(case, "review.py", "--keep", str(seq), "payload.note", env=env).returncode == 0
     kept = tmp_path / "cfg" / "colophon" / "redlists" / "a-case.kept"
     assert kept.exists() and oct(kept.stat().st_mode)[-3:] == "600"
     assert oct(kept.parent.stat().st_mode)[-3:] == "700"
-    assert "TOLD, AND STILL HERE" not in run(case, "review.py", env=env).stdout
+    assert "YOU ASKED ME TO KEEP THESE OUT" not in run(case, "review.py", env=env).stdout
 
     assert run(case, "review.py", "--set", str(seq), "payload.note",
                "un'altra nota su Rossi", env=env).returncode == 0
-    assert "TOLD, AND STILL HERE" in run(case, "review.py", env=env).stdout, \
+    assert "YOU ASKED ME TO KEEP THESE OUT" in run(case, "review.py", env=env).stdout, \
         "the acceptance survived a change to the value it accepted"
 
 
@@ -168,3 +168,34 @@ def test_a_clean_case_costs_one_line(tmp_path):
     assert r.returncode == 0, r.stdout + r.stderr
     assert "Nothing to change." in r.stdout
     assert len(r.stdout.strip().splitlines()) <= 8
+
+
+def test_one_list_shouts_and_the_other_two_do_not(case, tmp_path):
+    """Two of the three are worth a look; the first is a thing the author was already
+    told once. Three headers of equal weight say the three are the same kind of thing,
+    and the typography is the only part a reader takes in before reading."""
+    env = cfg(tmp_path, "Rossi")
+    assert note(case, "una nota su Rossi", env=env).returncode == 0
+    src = (case / "versions" / "post.md").read_text(encoding="utf-8")
+    assert note(case, " ".join(src.split()[8:20]), typ="human_contribution").returncode == 0
+    out = run(case, "review.py", env=env).stdout
+    heads = [l.strip() for l in out.splitlines()
+             if l.strip() and not l.startswith(" ") and not l.startswith("This")]
+    shouting = [h for h in heads if h.isupper()]
+    assert len(shouting) == 1, f"expected one shout, got {heads}"
+    assert out.index(shouting[0]) < out.index("what you told me"), \
+        "the one that is not an offer comes first"
+
+
+def test_the_entries_are_numbered_contiguously(case, tmp_path):
+    """The author says "3 and 7". Finding the path is the model's job — SKILL.md's rule
+    that they are never asked to edit a file, applied to the review."""
+    import re as _re
+    env = cfg(tmp_path, "Rossi")
+    assert note(case, "una nota su Rossi", env=env).returncode == 0
+    src = (case / "versions" / "post.md").read_text(encoding="utf-8")
+    assert note(case, " ".join(src.split()[8:20]), typ="human_contribution").returncode == 0
+    out = run(case, "review.py", env=env).stdout
+    nums = [int(m) for m in _re.findall(r"^\s*(\d+)\.\s+seq ", out, _re.M)]
+    assert nums, "nothing is numbered"
+    assert nums == list(range(1, len(nums) + 1)), f"not contiguous: {nums}"
