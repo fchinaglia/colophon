@@ -4,6 +4,54 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [2.1.0] — 2026-08-24
+
+Two sealed cases are published in the current format, and getting them there found two
+defects and one thing the specification had asserted too broadly.
+
+### Added
+
+- **`cases/001/` and `cases/002/`** — the article that explains Colophon and the article
+  on data fragmentation, each as four files: the verification page, `verify.html`, the
+  bundle, and a PDF carrying both as attachments. Open the verifier, drop the bundle on
+  it, network off.
+- Both registers are **replays**, and each says so in an event of its own before the
+  closing manifest, naming the original root. The original registers stay in the history
+  of this repository. Neither measurement moved: 001 is 18 spans and 337 words, 002 is
+  75 spans and 3,126 words, both to the digit.
+- **`render_pdf.py --embed` takes more than one file.** The record and the tool that reads
+  it are two things: a reader who saves only the bundle finds the verifier inside it,
+  which works and reads like a riddle. The name tree is sorted, because a reader that
+  binary-searches it finds nothing otherwise.
+- `spec/canonical.md` §5 says what a **replay** is. It said such registers cannot be
+  repaired; they cannot be repaired *in place*, and the difference is the whole point —
+  a replay is a new register with a new root and a new seal, and what it loses is not
+  recoverable.
+
+### Fixed
+
+- **The title was not a title, and the marker sat above it.** A source written before the
+  deliverable was markdown carries its title as an ordinary paragraph, so `render_pdf.py`
+  set it at body size and put the byline and the level-1 marker *above* it — the one
+  placement `disclosures.md` forbids. The first paragraph is now promoted to `h1` when it
+  is exactly the title `case.json` declares: a check against a manifest-covered value, not
+  a guess, and no word is touched either way.
+- `untar` and `normalise` move from `shell.html` into `core.js`. The page, the test
+  harness and anyone driving `core.js` from node all need them, and three copies of a
+  parser is how they drift.
+
+### Changed
+
+- The golden and verifier suites now read **the bundle this project ships** rather than a
+  folder beside it: extract `cases/001/colophon-001.tar`, measure, compare with the
+  measurement sealed inside. It tests the file a reader receives.
+- `verifier/build.py` writes a copy of `verify.html` into each published case folder, and
+  a repo invariant covers every maintained copy. The copy sealed inside a bundle is
+  deliberately not covered: it is the verifier as it stood when that case was closed, and
+  it is meant to go stale.
+- **`verify.html` changed, so its digest changed.** Compare against the digest published
+  with *this* release, not with 2.0.0.
+
 ## [2.0.0] — 2026-08-24 — the local-first turn
 
 **Breaking.** `colophon deposit` and `colophon address` are gone, and so is the
