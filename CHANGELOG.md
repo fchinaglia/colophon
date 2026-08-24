@@ -56,12 +56,12 @@ which is both accurate and what keeps the skill the one GitHub calls *latest*.
 
 ### Fixed
 
-Both of these were found the same way, and that is the part worth keeping: a full run of
+All three were found the same way, and that is the part worth keeping: a full run of
 the method on a real article, in a session that did nothing but follow `SKILL.md`. The
 case came out sound in every respect the register can check — chain intact, `unexplained`
 empty, fifteen manifest digests, a signature that verifies against the key published on
 the author's domain — and the one thing it asks a reader to do, a reader could not do.
-Neither defect is visible from inside the repository, because everything in the
+None of the three is visible from inside the repository, because everything in the
 repository passes.
 
 - **`build_page.py` writes `index.html`.** That a published address must end at the
@@ -87,6 +87,31 @@ repository passes.
   told the case is done. With two rules — an address that has not been published is not
   done, and a deferred publication is recorded rather than left reading as live, before
   the manifest if it is known then and as a reopening if it is not.
+- **The breakdown by phase carries both axes, and each one says which it is.** It was
+  computed on the lexical axis alone and stored under the key `"ai"`, which names no axis
+  at all — in a file that already distinguished `ai_lexical` from `ai_ideational` at the
+  top level, and beneath a method whose central claim is that one number is not enough.
+  `reference/disclosures.md` prescribes a sentence that publishes that figure — *the
+  first draft is K% mine* — and lists the breakdown among the four things that are not
+  optional. There was exactly one place to take K from, and it answered a different
+  question from the one the sentence asks. In `cases/001` the first draft is **entirely
+  the model's words and two thirds the author's ideas**: filled in from what the tool
+  printed, the note would have told the reader the first draft was 0% the author's. The
+  number was right and its label lied by omission, which is the one failure a check
+  cannot see — reconstruction and coverage both passed, as they were bound to.
+  What caught it was the author reading the table: *"mi sembra che il first draft fosse
+  in gran parte mio, o sbaglio?"*, recorded verbatim as event 36 of that register. A
+  method that asks a reader to trust a number it publishes cannot rely on the author
+  happening to know better. `kpi.json` now carries `ai_lexical` and `ai_ideational` per
+  phase, the names it already used above; the ambiguous key is gone rather than kept as
+  an alias, because leaving it alive leaves the wrong way to read the file alive.
+  `measure.py` prints a column for each, the verification page shows both beside every
+  phase bar, and the prescribed sentence became *in the first draft the ideas are K% mine
+  and the words J%* — in both languages. The golden test on the validation case now
+  compares the measured values instead of the bytes of `kpi.json`: a key that moves no
+  number is not drift, the assertion it was making failed on any extension of the schema
+  and would have passed a value that changed representation while staying equal, and
+  `cases/001` stays sealed and untouched, as its own copies of the scripts exist for.
 
 ## [1.4.0] — 2026-08-23
 
