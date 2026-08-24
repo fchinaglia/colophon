@@ -60,11 +60,13 @@ This is the detail-on-demand shape the research asks for: the numbers where the 
 
 The paragraph form still exists, and it is for a page that has space to explain itself — a site, a report, a document nobody is scrolling past:
 
-> *I wrote this article with the assistance of a language model, and every intervention was recorded as it happened. Content: X% mine, Y% the AI's. Text: Z% mine, W% the AI's. The two numbers measure different things — the first the ideas, the second the words that express them — and the gap between them is the interesting part: the AI wrote more words than it brought ideas, because it came in mostly at [phases]. The first draft is K% mine. I stand behind every statement in it.*
+> *I wrote this article with the assistance of a language model, and every intervention was recorded as it happened. Content: X% mine, Y% the AI's. Text: Z% mine, W% the AI's. The two numbers measure different things — the first the ideas, the second the words that express them — and the gap between them is the interesting part: the AI wrote more words than it brought ideas, because it came in mostly at [phases]. In the first draft the ideas are K% mine and the words J%. I stand behind every statement in it.*
 
-It carries one thing the short form drops — **the breakdown by phase**, "the first draft is 87% mine" — which is why it is worth keeping where a reader will actually read a paragraph. Everything else it says, the short form says in fewer words.
+It carries one thing the short form drops — **the breakdown by phase**, "in the first draft the ideas are 68% mine and the words none of them" — which is why it is worth keeping where a reader will actually read a paragraph. Everything else it says, the short form says in fewer words.
 
-Both forms carry the same four things, and none of them is optional: the two percentages **each with its semantic unit** ("42%" without saying *of what* is the commonest misunderstanding), **the gap explained**, **the breakdown** (in the short form, by pointing at the page), and **taking responsibility** — the lever that mitigates the reputational cost, and the criterion the AI Act uses in its exception for editorial review.
+**A per-phase figure names its axis too, and it is the sentence where forgetting costs most.** The two aggregates are far apart by design; within a single phase they can be at opposite ends, because a phase is precisely where one of the two happens. The figures quoted above are case 001's first draft: entirely the model's words, two thirds the author's ideas. Written as one number it becomes "the first draft is 0% mine", which is the opposite of what happened, and the reader has no way to tell. `measure.py` prints both columns and `kpi.json` carries them as `ai_lexical` and `ai_ideational`; take K and J from there and say which is which.
+
+Both forms carry the same four things, and none of them is optional: the two percentages **each with its semantic unit** ("42%" without saying *of what* is the commonest misunderstanding), **the gap explained**, **the breakdown** — by phase and on both axes, or in the short form by pointing at the page — and **taking responsibility**, the lever that mitigates the reputational cost, and the criterion the AI Act uses in its exception for editorial review.
 
 ### The essential form
 
@@ -104,7 +106,7 @@ The first line is the category as `build_icon.py` names it, in English: the four
 
 Note, level 2, the full form:
 
-> *Ho scritto questo articolo con l'assistenza di un modello linguistico, e ogni intervento è stato registrato mentre accadeva con il metodo Colophon. Contenuto: X% mio, Y% dell'AI. Testo: Z% mio, W% dell'AI. I due numeri misurano cose diverse — il primo le idee, il secondo le parole che le esprimono — e la differenza è la parte interessante: l'AI ha scritto più parole di quante idee abbia portato, perché è intervenuta soprattutto in [fasi]. La prima stesura è mia all'K%. Il quadrante qui accanto colloca il testo sui due assi. Di ogni affermazione rispondo io.*
+> *Ho scritto questo articolo con l'assistenza di un modello linguistico, e ogni intervento è stato registrato mentre accadeva con il metodo Colophon. Contenuto: X% mio, Y% dell'AI. Testo: Z% mio, W% dell'AI. I due numeri misurano cose diverse — il primo le idee, il secondo le parole che le esprimono — e la differenza è la parte interessante: l'AI ha scritto più parole di quante idee abbia portato, perché è intervenuta soprattutto in [fasi]. Nella prima stesura le idee sono mie al K% e le parole al J%. Il quadrante qui accanto colloca il testo sui due assi. Di ogni affermazione rispondo io.*
 
 Light mode:
 

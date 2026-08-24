@@ -246,7 +246,9 @@ Two percentages, never one. The difference between the two is the most useful pi
 
 AI share = `A + UA/2`, and it has to be said that mixed is counted as half.
 
-**Always report the breakdown by phase as well.** An aggregate figure of 47% reads as "half of it was written by the machine"; knowing that the first draft is 86% human and that the AI worked on the revision tells the true story. Without the breakdown the number is misleading in both directions. (The values are those of the validation case, not a target to hit.)
+**Always report the breakdown by phase as well.** An aggregate figure of 47% reads as "half of it was written by the machine"; knowing that the words of the first draft are 86% the author's and that the AI worked on the revision tells the true story. Without the breakdown the number is misleading in both directions. (The values are those of the validation case, not a target to hit.)
+
+**And a per-phase figure says which axis it is on, exactly as the aggregates do.** `measure.py` prints a column for each and `kpi.json` carries them as `ai_lexical` and `ai_ideational`. Inside one phase the two can sit at opposite ends — in case 001 the first draft is all the model's words and two thirds the author's ideas — so a single unlabelled number there says "the first draft is 0% mine" about a draft the author thought up.
 
 In material addressed to the public use whole numbers. The precise value stays in the record.
 
