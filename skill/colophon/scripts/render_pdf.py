@@ -279,11 +279,40 @@ def _pdf_string(s):
     return "(" + re.sub(r"([()\\])", r"\\\1", s) + ")"
 
 
+# The file name is written as a literal string in /F, in /UF and as the key of the
+# /EmbeddedFiles name tree. The specification prefers UTF-16BE for /UF; a literal string is
+# a valid text string for an ASCII name and round-trips exactly, which is why the writer
+# refuses a name that is not ASCII rather than mangling one.
+#
+# What was measured, and what it does not settle. Eight builds of the same document,
+# differing one variable at a time — literal against UTF-16 names, with and without
+# /Subtype, with and without /AF, a .zip name, an uncompressed stream — plus one written
+# by poppler's own `pdfattach`, which never touched this code.
+#
+#     Firefox (pdf.js)      downloads the attachment from every one of them
+#     poppler pdfdetach     lists and extracts every one, byte-identical
+#     Adobe Reader          shows the attachment and exports none of them,
+#                           "Impossibile esportare … il file selezionato", after the click
+#
+# Including the file poppler wrote. So this is not a property of what is written here, and
+# no change to these objects has been shown to help; on that installation Acrobat does not
+# export attachments at all. It is one machine and one installation, and it is left
+# unexplained rather than guessed at. What follows from it is a documentation duty, not a
+# code change: a reader on Acrobat may see the record and be unable to save it, and has to
+# be told to use Firefox or `pdfdetach`. A route one reader cannot finish is a route that
+# has to be declared.
+
+
 def embed_bundle(pdf, tar_path, desc):
     """Return the PDF with `tar_path` embedded, as an incremental update."""
     data = open(pdf, "rb").read()
     payload = open(tar_path, "rb").read()
     name = os.path.basename(tar_path)
+    if not name.isascii():
+        raise SystemExit(f"! {name} is not an ASCII file name, and the literal-string "
+                         f"form this writer\n  has to use for Adobe Reader cannot carry "
+                         f"it safely. Rename the bundle,\n  or give the case an ASCII "
+                         f"case_uid.")
 
     for marker, why in ((b"/Encrypt", "it is encrypted"),
                         (b"/ObjStm", "it uses object streams"),

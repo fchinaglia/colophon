@@ -27,6 +27,12 @@ endings and `shasum` will then look for `kpi.json\r`:
 tr -d '\r' < extracted.txt | grep -E '^[0-9a-f]{64}  ' | shasum -a 256 -c -
 ```
 
+**If it arrived inside a PDF**, the bundle is an attachment. Firefox opens the attachments
+panel and downloads it; `pdfdetach -saveall file.pdf` does the same from a terminal.
+**Adobe Reader may show the attachment and refuse to save it** — measured on one macOS
+installation, on every file tried including ones Adobe had nothing to do with. If that
+happens, nothing is wrong with the document: use Firefox or `pdfdetach`.
+
 **If this arrived as a bundle** — `colophon-[uid].tar` — everything below is already in
 it, and so is `verify.html`. Open that file in a browser with the network off and drop
 the tar on it: it checks the chain, the signature, every digest the manifest covers and

@@ -245,3 +245,31 @@ def test_the_dictionary_scanner_counts_rather_than_matching(tmp_path):
     buf = rb"<< /A << /B 1 >> /C (a \) string with >> inside) /D 2 >>tail"
     assert buf[:m._balanced_dict(buf, 0)].endswith(b">>")
     assert buf[m._balanced_dict(buf, 0):] == b"tail"
+
+
+def test_the_file_name_strings_stay_literal(tmp_path):
+    """The literal form is what the ASCII guard below is written for: a literal string
+    round-trips an ASCII name exactly, and the two have to stay consistent. Switching to
+    the UTF-16BE form the specification prefers is defensible, but then the guard is
+    pointless and should go with it — this asserts they do not drift apart."""
+    m = load("render_pdf")
+    pdf = a_pdf(tmp_path)
+    tar = tmp_path / "colophon-x.tar"
+    tar.write_bytes(b"payload")
+    merged = m.embed_bundle(pdf, str(tar), "d")
+    appended = merged[len(open(pdf, "rb").read()):]
+    assert re.search(rb"/UF\s*\(", appended), "/UF must be a literal string"
+    assert re.search(rb"/Names\s*\[\s*\(", appended), "the name-tree key must be literal"
+    assert b"<feff" not in appended.lower()
+
+
+def test_it_refuses_a_non_ascii_bundle_name(tmp_path):
+    """The literal-string form cannot carry one with confidence, and a mangled name is
+    how an attachment becomes unfindable in a file that otherwise looks correct."""
+    m = load("render_pdf")
+    pdf = a_pdf(tmp_path)
+    tar = tmp_path / "colophon-però.tar"
+    tar.write_bytes(b"x")
+    with pytest.raises(SystemExit) as e:
+        m.embed_bundle(pdf, str(tar), "d")
+    assert "ASCII" in str(e.value)

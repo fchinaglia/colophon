@@ -228,8 +228,23 @@ an `EmbeddedFile` stream, a `/Names/EmbeddedFiles` tree, `/AF` associations — 
 others. Behind four tooling tests on one real PDF with a real Italian client: does
 signing preserve `/Names/EmbeddedFiles` and `/AF`; does the signature validate in Acrobat
 *and* the EU DSS validator; is the attachment still extractable in Acrobat and pdf.js;
-does level LT survive. Start with Aruba Sign, the one client with a confirmed level
-chooser.
+does level LT survive.
+
+> **All four closed, 24 August, by the author signing a real PDF with a real qualified
+> certificate.**
+>
+> | check | result |
+> |---|---|
+> | signing preserves the attachment | **yes** — an incremental update; the 321,051 original bytes are intact, and the `/EmbeddedFile` at offset 241,577 is inside the signed range `[0–321638]` |
+> | the signature validates | **yes**, cryptographically (`pdfsig`: *Signature is Valid*). The chain to the EU Trusted Lists is still unconfirmed — poppler had no NSS store, so its *"Certificate issuer is unknown"* is about the tool, not the certificate |
+> | the attachment is still extractable | **yes** — `pdfdetach` returns it byte-identical from the signed file, and the extracted tar still verifies through `core.js`: chain over 38 events, Ed25519 signature, 15 manifest digests, timestamp |
+> | level LT survives | **it is LT.** `signingCertificateV2` and `signatureTimeStampToken` in the CMS, `/DSS` with `/OCSPs`, `/VRI` and `/Certs` appended after it; no `archiveTimestampV3`, so LT and not LTA |
+>
+> One thing to document rather than fear: `pdfsig` reports **"Not total document signed"**,
+> and that is what LT looks like. The `/DSS` carrying the revocation evidence is appended
+> in a further incremental update *after* the signature, so it lies outside the byte range
+> by construction. A reader who runs `pdfsig` and stops at that line will conclude the
+> opposite of the truth.
 
 > **Writer done, 24 August; the gate is not.** `render_pdf.py --embed` writes the
 > incremental update: an `EmbeddedFile` stream, a `/Names/EmbeddedFiles` tree, an `/AF`
@@ -248,17 +263,25 @@ chooser.
 > the attachment and downloads it; the downloaded tar, dropped on `verify.html` **with the
 > network off**, verifies. `pdfdetach` gets the same bytes. Two independent readers.
 >
-> **Adobe Reader shows the attachment and refuses to export it** — *"Impossibile esportare
-> da Adobe Acrobat il file selezionato"*, after the click, on every variant tried:
-> UTF-16 name strings, no `/AF`, no `/Subtype`, a `.zip` name, an uncompressed stream.
-> **It fails identically on a PDF written by poppler's own `pdfattach`**, which never
-> touched this code, so the writer is not implicated and no change to it would help. Left
-> unexplained rather than guessed at; what it needs is a second machine, and until then
-> the documentation has to say that a reader on Acrobat sees the attachment and cannot
-> save it, and name Firefox or `pdfdetach` instead. A route one reader in three cannot
-> finish is a route that has to be declared.
+> **Adobe Reader exports none of them, and that is the finding.** It shows the attachment
+> and refuses on the click — *"Impossibile esportare da Adobe Acrobat il file
+> selezionato"*. Eight builds isolating one variable at a time — literal against UTF-16BE
+> name strings in `/UF` and in the name-tree key, with and without `/Subtype`, with and
+> without `/AF`, a `.zip` name, an uncompressed stream — behave identically, **and so does
+> a PDF written by poppler's own `pdfattach`**, which never touched this code.
 >
-> **The other three checks remain open**, and they are the ones that need
+> Firefox's pdf.js downloads from all of them. `pdfdetach` extracts from all of them,
+> byte-identical. So nothing written here is implicated, and no change to these objects
+> has been shown to help: on this installation Acrobat does not export attachments at all.
+> One machine, one installation, left unexplained rather than guessed at.
+>
+> What follows is a documentation duty and not a code change: **a reader on Acrobat may
+> see the record and be unable to save it**, and has to be told to use Firefox or
+> `pdfdetach`. A route one reader cannot finish is a route that has to be declared. Worth
+> re-testing on a second machine before calling it a property of Acrobat rather than of
+> this one.
+
+> **The other three checks are closed** — see below., and they are the ones that need
 > a real qualified certificate: whether a signing client preserves `/Names/EmbeddedFiles`
 > and `/AF`; whether the result validates in Acrobat and the EU DSS validator; whether
 > level LT survives. Until those come back, `--embed` is a way to ship one file, not a way
