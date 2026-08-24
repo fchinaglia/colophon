@@ -21,6 +21,13 @@ is a complete check of every file the register closes over — no PDF, no PKI, n
 **The legally signed document is the checkfile the reader runs.** That is the whole design
 in one line, and it is why the layout below is not free typography.
 
+THE UNSIGNED COPY STAYS IN THE BUNDLE, and not only for the reason below. Signing a text
+file canonicalises its line endings: `openssl cms -sign` rewrites every \n as \r\n, so the
+copy a reader extracts from the .p7m has digest lines ending in a carriage return, and
+`shasum -c` then looks for `kpi.json\r` and fails on every one of them — under a signature
+that verifies perfectly. This file, as written here, is the one whose bytes the digests
+describe. The .p7m is for the name.
+
 IT STAYS IN THE BUNDLE EVEN WHEN THE PDF IS SIGNED. A PAdES signature over a document
 covers the document; extract the tar from it, hand the tar to a third party, and the legal
 identity is gone. This file travels with the evidence.

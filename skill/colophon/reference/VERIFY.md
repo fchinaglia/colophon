@@ -76,6 +76,20 @@ openssl cms -verify -in attestation.txt.p7m -inform DER -noverify -signer signer
   && openssl x509 -in signer.pem -noout -subject -dates
 ```
 
+**Run the checkfile against `attestation.txt`, not against what you extract.** Signing a
+text file canonicalises its line endings — `openssl cms -sign` rewrites every `\n` as
+`\r\n`, and what comes back out of `-verify -out` is that version. The digest lines then
+carry a trailing carriage return, `shasum -c` looks for `kpi.json\r`, and every line fails
+with *No such file* under a signature that is perfectly valid. If you only have the
+extracted copy:
+
+```bash
+tr -d '\r' < extracted.txt | grep -E '^[0-9a-f]{64}  ' | shasum -a 256 -c -
+```
+
+The unsigned `attestation.txt` travels in the bundle for exactly this reason: its bytes are
+the ones the digests describe. The `.p7m` is there for the name, not for the checkfile.
+
 The second command prints who signed and until when the certificate was valid. For a full
 check against the European Trusted Lists, upload the `.p7m` to the EU DSS validator
 (`ec.europa.eu/digital-building-blocks/DSS/webapp-demo/validation`), which resolves the

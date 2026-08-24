@@ -9,6 +9,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 
 import pytest
@@ -140,3 +141,40 @@ def test_the_attestation_travels_in_the_bundle(manifested, tmp_path):
     with tarfile.open(tmp_path / "out" / "colophon-att.tar") as t:
         names = t.getnames()
     assert "attestation.txt" in names and "attestation.txt.p7m" in names
+
+
+def test_the_documented_recipe_survives_a_real_cms_signature(manifested, tmp_path):
+    """Signing canonicalises line endings, and the checkfile then fails on every line
+    under a signature that verifies perfectly. This asserts both halves: that it breaks,
+    and that the normalisation VERIFY.md prescribes fixes it."""
+    if not shutil.which("openssl"):
+        pytest.skip("no openssl")
+    attest(manifested)
+    txt = os.path.join(manifested, "attestation.txt")
+    key, crt = str(tmp_path / "k.pem"), str(tmp_path / "c.pem")
+    subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-keyout", key,
+                    "-out", crt, "-days", "2", "-nodes", "-subj", "/CN=Test"],
+                   check=True, capture_output=True)
+    p7m = os.path.join(manifested, "attestation.txt.p7m")
+    subprocess.run(["openssl", "cms", "-sign", "-in", txt, "-signer", crt, "-inkey", key,
+                    "-outform", "DER", "-nodetach", "-out", p7m],
+                   check=True, capture_output=True)
+    got = subprocess.run(["openssl", "cms", "-verify", "-in", p7m, "-inform", "DER",
+                          "-noverify"], check=True, capture_output=True).stdout
+
+    raw = got.decode("utf-8")
+    assert "\r\n" in raw, "if signing stops rewriting line endings, relax the docs"
+    # The lines still look like a checkfile; it is the file names that now end in a
+    # carriage return, which is why the failure reads as a missing file rather than as
+    # a bad digest.
+    assert all(n.endswith("\r") for n in CHECKLINE.findall(raw))
+    broken = "\n".join(m.group(0).rstrip("\r") + "\r" for m in CHECKLINE.finditer(raw))
+    r = subprocess.run(["shasum", "-a", "256", "-c", "-"], input=broken, text=True,
+                       capture_output=True, cwd=manifested)
+    assert r.returncode != 0 and "No such file" in r.stdout + r.stderr
+
+    fixed = raw.replace("\r\n", "\n")
+    lines = "\n".join(m.group(0) for m in CHECKLINE.finditer(fixed))
+    r = subprocess.run(["shasum", "-a", "256", "-c", "-"], input=lines, text=True,
+                       capture_output=True, cwd=manifested)
+    assert r.returncode == 0, r.stdout + r.stderr
