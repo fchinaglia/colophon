@@ -124,12 +124,18 @@ def gate(log, given=None, quiet=False):
     return src, manifest, rows
 
 
-def insert_after_title(body, block):
+def insert_after_title(body, block, title=None):
     """Under the title, which is where a reader meets the piece — never at the very top,
-    above the thing they came for."""
+    above the thing they came for.
+
+    A markdown heading is the usual marker. A source written before the deliverable was
+    markdown has none, and there the title is recognised by matching the one `case.json`
+    declares — a fact check against a manifest-covered value, not a guess, and it does
+    nothing when they differ.
+    """
     lines = body.split("\n")
     for i, l in enumerate(lines):
-        if l.startswith("# "):
+        if l.startswith("# ") or (title and l.strip() == title.strip()):
             j = i + 1
             while j < len(lines) and not lines[j].strip():
                 j += 1
@@ -206,7 +212,8 @@ def main(argv=None):
     if not a.no_marker:
         head.append(MARKER[a.lang])
     if head:
-        body = insert_after_title(body, "\n\n".join(head) + "\n\n---")
+        body = insert_after_title(body, "\n\n".join(head) + "\n\n---",
+                                  case.get("title"))
 
     doc = body + "\n\n---\n\n" + block + "\n"
     out = a.out or f"{case.get('case_uid') or 'document'}.md"

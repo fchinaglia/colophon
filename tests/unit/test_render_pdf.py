@@ -307,3 +307,23 @@ def test_the_name_tree_keys_are_sorted(tmp_path):
     appended = m.embed_bundle(pdf, [(str(a), "z"), (str(b), "a")])[len(open(pdf, "rb").read()):]
     names = re.search(rb"/Names\s*\[(.*?)\]", appended, re.S).group(1).decode("latin-1")
     assert names.index("aa.html") < names.index("zz.tar")
+
+
+def test_a_plain_first_line_becomes_the_title_when_case_json_says_so(tmp_path):
+    """A source written before the deliverable was markdown carries its title as an
+    ordinary paragraph, and the renderer set it at body size with the marker above it —
+    the one placement disclosures.md forbids."""
+    m = load("render_pdf")
+    body = m.to_html("How it was written\n\nThe first paragraph.\n")
+    assert body.startswith("<p>")
+    out = m.promote_title(body, "How it was written")
+    assert out.startswith("<h1>How it was written</h1>")
+    assert "The first paragraph." in out
+
+
+def test_it_promotes_nothing_when_the_title_does_not_match(tmp_path):
+    """A fact check, not a guess: when they differ, nothing happens."""
+    m = load("render_pdf")
+    body = m.to_html("Some opening line\n\nBody.\n")
+    assert m.promote_title(body, "A completely different title") == body
+    assert m.promote_title(body, None) == body

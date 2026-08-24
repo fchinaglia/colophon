@@ -196,6 +196,23 @@ def to_html(text):
     return "\n".join(out)
 
 
+def promote_title(body, title):
+    """A source written before the deliverable was markdown carries its title as an
+    ordinary first paragraph, and the renderer would set it at body size with the
+    marker above it — which is the one placement disclosures.md forbids.
+
+    Promoted only when the first paragraph is *exactly* the title `case.json` declares.
+    That is a fact check against a value the manifest covers, not a guess about
+    structure: when they differ, nothing happens, and no word is ever touched.
+    """
+    if not title:
+        return body
+    m = re.match(r"\s*<p>(.*?)</p>", body, re.S)
+    if m and html.unescape(re.sub(r"<[^>]+>", "", m.group(1))).strip() == title.strip():
+        return body[:m.start()] + f"<h1>{m.group(1)}</h1>" + body[m.end():]
+    return body
+
+
 def words(s):
     return re.findall(r"\w+", s, re.UNICODE)
 
@@ -488,6 +505,7 @@ def main(argv=None):
     refuse_unsupported(source)
     body = to_html(source)
     check_nothing_was_rewritten(source, body)
+    body = promote_title(body, case.get("title"))
 
     lines, name, xl, yi = build_block.note_lines(kpi, a.lang, a.gap)
     alt = build_block.T[a.lang]["alt"].format(name=name, x=f"{xl:.0f}", y=f"{yi:.0f}")
