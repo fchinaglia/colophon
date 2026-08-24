@@ -47,7 +47,7 @@ EDGE = 5.0              # build_icon.py's own warning threshold
 
 T = {
     "en": {
-        "words": "words", "spans": "spans",
+        "words": "words", "spans": "spans", "thousands": ",",
         "axes": "human words {x} · human ideas {y}",
         "gap_lex": "The model wrote more words than it brought ideas.",
         "gap_idea": "The ideas came from the model more than the words did.",
@@ -57,7 +57,7 @@ T = {
         "alt": "Provenance quadrant: {name}, human words {x}%, human ideas {y}%.",
     },
     "it": {
-        "words": "parole", "spans": "span",
+        "words": "parole", "spans": "span", "thousands": ".",
         "axes": "parole umane {x} · idee umane {y}",
         "gap_lex": "Il modello ha scritto più parole di quante idee abbia portato.",
         "gap_idea": "Le idee vengono dal modello più di quanto vengano le parole.",
@@ -90,9 +90,15 @@ def note_lines(kpi, lang, gap=None, essential=False):
     yi = 100 - kpi["ai_ideational"]                    # human share of the ideas
     name = " ".join(build_icon.NAMES[(1 if xl >= 50 else 0, 0 if yi >= 50 else 1)])
 
-    head = f"{name} · {kpi['words']:,} {t['words']}"
+    # A thousands separator is not decoration: "1,096 parole" reads to an Italian
+    # eye as one thousand and ninety-six thousandths. The word count is the first
+    # number the reader meets, and it has to be the number the author means.
+    def n(v):
+        return f"{v:,}".replace(",", t["thousands"])
+
+    head = f"{name} · {n(kpi['words'])} {t['words']}"
     if not essential:
-        head += f" · {kpi['spans']:,} {t['spans']}"
+        head += f" · {n(kpi['spans'])} {t['spans']}"
     lines = [(head, None),
              (t["axes"].format(x="\0", y="\1"), (f"{xl:.0f}", f"{yi:.0f}"))]
 

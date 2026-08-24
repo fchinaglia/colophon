@@ -134,3 +134,14 @@ def test_the_inline_icon_form_carries_the_quadrant(case):
     assert run(case, "build_icon.py").returncode == 0
     out = block(case, "--form", "html", "--inline-icon")
     assert "<svg" in out and "<img" not in out
+
+
+def test_the_thousands_separator_follows_the_language(case):
+    """"1,096 parole" reads to an Italian eye as one thousand and ninety-six
+    thousandths. The word count is the first number the reader meets."""
+    import json as _json
+    kpi = _json.load(open(os.path.join(case, "kpi.json"), encoding="utf-8"))
+    kpi["words"] = 1096
+    _json.dump(kpi, open(os.path.join(case, "kpi.json"), "w", encoding="utf-8"))
+    assert "1.096 parole" in block(case, "--form", "text", "--lang", "it")
+    assert "1,096 words" in block(case, "--form", "text", "--lang", "en")
