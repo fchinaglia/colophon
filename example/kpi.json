@@ -20,15 +20,18 @@
  "by_phase": {
   "first_draft": {
    "words": 89,
-   "ai": 0.0
+   "ai_lexical": 0.0,
+   "ai_ideational": 0.0
   },
   "copy_revision": {
    "words": 15,
-   "ai": 100.0
+   "ai_lexical": 100.0,
+   "ai_ideational": 0.0
   },
   "titling": {
    "words": 6,
-   "ai": 50.0
+   "ai_lexical": 50.0,
+   "ai_ideational": 100.0
   }
  }
 }

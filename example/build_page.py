@@ -60,9 +60,15 @@ for pk, data in kpi["by_phase"].items():
         f'data-tip="{PHASE_LABEL.get(pk, pk)} · {lbl}: {pct(q[k])}% '
         f'({round(q[k]*t/100)} words)"></div>'
         for k, lbl in ORIGINS if q[k] > 0)
+    # Two numbers per phase, because the bar shows one axis and a reader who takes the
+    # figure beside it for the whole answer is reading the words as if they were the
+    # ideas. The phases are exactly where the two come apart.
     bars.append(f'<div class="row"><div class="label">{PHASE_LABEL.get(pk, pk)}</div>'
                 f'<div class="bar">{seg}</div>'
-                f'<div class="value">{pct(data["ai"])}%</div>'
+                f'<div class="value" data-tip="{PHASE_LABEL.get(pk, pk)} · AI share of '
+                f'the words">{pct(data["ai_lexical"])}%</div>'
+                f'<div class="value" data-tip="{PHASE_LABEL.get(pk, pk)} · AI share of '
+                f'the ideas">{pct(data["ai_ideational"])}%</div>'
                 f'<div class="words">{t}</div></div>')
 
 blocks, cur = [], None
@@ -107,11 +113,12 @@ article_html = "\n".join(out)
 table_rows = []
 for pk, data in kpi["by_phase"].items():
     q, t = share("lex", lambda s, p=pk: s["phase"] == p)
-    qi, _ = share("idea", lambda s, p=pk: s["phase"] == p)
+    # The ideational figure comes from kpi.json rather than being recomputed here, so
+    # the page cannot print a per-phase number that differs from the measured one.
     table_rows.append(f"<tr><td>{PHASE_LABEL.get(pk, pk)}</td><td class='n'>{t}</td>"
                       f"<td class='n'>{pct(q['U'])}</td><td class='n'>{pct(q['UA'])}</td>"
                       f"<td class='n'>{pct(q['A'])}</td>"
-                      f"<td class='n'>{pct(qi['A'] + qi['UA']/2)}</td></tr>")
+                      f"<td class='n'>{pct(data['ai_ideational'])}</td></tr>")
 
 ai_lex, ai_idea = kpi["ai_lexical"], kpi["ai_ideational"]
 reconstructed = case.get("reconstructed", False)
@@ -218,7 +225,7 @@ h1.page{{font-size:26px;line-height:1.25;margin:0 0 10px;font-weight:650}}
  border-left:2px solid var(--line);padding:12px 16px;border-radius:0 8px 8px 0;margin:0 0 24px}}
 h2.sect{{font-size:13px;letter-spacing:.06em;text-transform:uppercase;
  color:var(--text-muted);margin:44px 0 16px;font-weight:600}}
-.row{{display:grid;grid-template-columns:160px 1fr 52px 46px;align-items:center;
+.row{{display:grid;grid-template-columns:160px 1fr 52px 52px 46px;align-items:center;
  gap:12px;margin-bottom:9px}}
 .label{{font-size:13px;color:var(--text-secondary)}}
 .bar{{display:flex;gap:2px;height:20px}}
@@ -266,7 +273,7 @@ details p{{margin:12px 0}}
  line-height:1.45;background:var(--text-primary);color:var(--surface-1);
  border-radius:7px;pointer-events:none;opacity:0;transition:opacity .1s}}
 @media (max-width:620px){{ .tiles{{grid-template-columns:1fr}}
- .row{{grid-template-columns:110px 1fr 48px}} .words{{display:none}} }}
+ .row{{grid-template-columns:92px 1fr 46px 46px}} .words{{display:none}} }}
 </style></head>
 <body data-view="lex" data-highlight="on"><div class="wrap">
 
@@ -306,7 +313,8 @@ difference is the most informative thing on this page. Mixed is counted as half.
 <span class="chip"><i class="sw" style="background:var(--human)"></i>human</span>
 <span class="chip"><i class="sw" style="background:var(--mixed)"></i>mixed</span>
 <span class="chip"><i class="sw" style="background:var(--ai)"></i>AI</span>
-<span style="color:var(--text-muted)">the percentage on the right is the AI share</span>
+<span style="color:var(--text-muted)">the bar is the words; the two percentages are the
+AI share of the words and of the ideas</span>
 </div>
 
 <h2 class="sect">The text, span by span</h2>
@@ -325,9 +333,13 @@ nor does it imply that the author does not answer for every word: editorial
 responsibility for the text is entirely theirs.</p>
 
 <h2 class="sect">Table</h2>
-<table><thead><tr><th>phase</th><th class="n">words</th><th class="n">human %</th>
-<th class="n">mixed %</th><th class="n">AI %</th><th class="n">AI ideational %</th>
+<table><thead><tr><th>phase</th><th class="n">words</th><th class="n">human words %</th>
+<th class="n">mixed words %</th><th class="n">AI words %</th><th class="n">AI ideas %</th>
 </tr></thead><tbody>{''.join(table_rows)}</tbody></table>
+<p class="note" style="margin-top:16px">The three middle columns are the composition of
+the words in that phase — the author's, indivisible mixed, the AI's — and they add up to
+a hundred. The last column is on the other axis: the AI share of the ideas, with mixed
+counted as half.</p>
 
 {coverage_block}
 

@@ -189,14 +189,23 @@ def main():
     print(f"AI ideational {100*ai_idea:5.1f}%   (A {100*idea_q['A']:.1f} · "
           f"UA {100*idea_q['UA']:.1f} · U {100*idea_q['U']:.1f})\n")
 
-    print(f"{'phase':22}{'words':>8}{'AI share':>10}")
+    # Both axes, per phase, and each one named. The breakdown is the figure the note
+    # prescribed in reference/disclosures.md publishes, and it used to be the lexical
+    # share under a key called "ai": a phase whose words are all the model's and whose
+    # ideas are two thirds the author's came out as "0% mine", which is the opposite of
+    # what happened. The names are the ones this same file already uses at top level.
+    print(f"{'phase':22}{'words':>8}{'AI lexical':>13}{'AI ideational':>16}")
     by_phase = {}
     for f in PHASES:
-        q, t = share("lex", lambda s, ff=f: s["phase"] == ff)
+        ql, t = share("lex", lambda s, ff=f: s["phase"] == ff)
+        qi, _ = share("idea", lambda s, ff=f: s["phase"] == ff)
         if t and any(s["phase"] == f for s in spans):
-            v = q["A"] + q["UA"] / 2
-            by_phase[f] = {"words": t, "ai": round(100 * v, 1)}
-            print(f"{f:22}{t:>8}{100*v:>9.1f}%")
+            vl = ql["A"] + ql["UA"] / 2
+            vi = qi["A"] + qi["UA"] / 2
+            by_phase[f] = {"words": t,
+                           "ai_lexical": round(100 * vl, 1),
+                           "ai_ideational": round(100 * vi, 1)}
+            print(f"{f:22}{t:>8}{100*vl:>12.1f}%{100*vi:>15.1f}%")
 
     kpi = {"words": tot, "spans": len(spans), "integrity": ok,
                "orphans": orphans,
