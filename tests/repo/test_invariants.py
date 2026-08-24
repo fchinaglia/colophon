@@ -32,7 +32,7 @@ def test_the_example_has_not_forked_from_the_skill(name):
     assert a == b, f"example/{name} has drifted from the skill"
 
 
-@pytest.mark.parametrize("pattern", ["validation/**", "example/**", "tests/**"])
+@pytest.mark.parametrize("pattern", ["cases/**", "example/**", "tests/**"])
 def test_line_endings_are_pinned(pattern):
     """A checkout with core.autocrlf=true rewrites every line ending: every digest
     changes and the signature stops verifying, while `record.py --verify` still answers
@@ -80,14 +80,15 @@ def test_pages_serves_dot_directories_and_has_a_front_page():
 
 
 @pytest.mark.parametrize("copy", [("skill", "colophon", "verify.html"),
-                                  ("validation", "verify.html")])
+                                  ("cases", "001", "verify.html"),
+                                  ("cases", "002", "verify.html")])
 def test_every_maintained_verifier_matches_the_built_one(copy):
     """build_bundle.py packs skill/colophon/verify.html into every bundle, and
-    validation/verify.html is what a reader on the published page opens. A stale copy
+    cases/NNN/verify.html is what a reader on the published page opens. A stale copy
     would ship an old verifier beside new evidence — and it would still say everything is
     fine, because an old verifier verifies an old case perfectly.
 
-    The copy inside validation/colophon-001.tar is deliberately not covered here: it is
+    The copy inside each case's bundle is deliberately not covered here: it is
     sealed, its digest is in a signed manifest, and it is the verifier as it stood when
     that case was closed. It is meant to go stale; these are not."""
     a = open(os.path.join(ROOT, "verifier", "verify.html"), "rb").read()

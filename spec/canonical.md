@@ -128,8 +128,8 @@ original timestamp alone. The result is a new register: new chain, new root, new
 signature, new timestamp. It is not the old one repaired — the old one still says what it
 said, and the new one has to name it. What is lost is not recoverable: the original
 timestamp attested that *those bytes* existed on *that date*, and the bytes changed. The
-validation case shipped in `validation/` is a replay, and its register says so in an event
-of its own before the closing manifest. Adopting RFC 8785 would not help either — JCS
+two cases shipped in `cases/` are replays, and each register says so in an event of its
+own before the closing manifest. Adopting RFC 8785 would not help either — JCS
 formats `94.0` as `94`, so it breaks the same registers in the same way. **JCS is not
 backward compatible with what this project has already sealed.**
 

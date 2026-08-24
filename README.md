@@ -167,13 +167,13 @@ Both routes are legitimate; the document says which one it is.
 | [`verifier/`](verifier/) | one self-contained HTML page. No network, no dependencies, no server: drop a bundle on it |
 | [`cli/`](cli/) | `colophon setup` — once, to make a key and check where you publish it |
 | [`example/`](example/) | a small worked case you can run end to end |
-| [`validation/`](validation/) | the case the method was validated on. Open `verify.html`, drop `colophon-001.tar` on it, network off. The PDF carries both as attachments |
+| [`cases/`](cases/) | the two sealed cases. Open `verify.html`, drop the bundle beside it on it, network off. Each PDF carries both as attachments |
 
 ---
 
 ## Contributing
 
-The method has been validated on **one case, by one annotator, and the annotator is an interested party** — the attribution was compiled by the model that co-wrote the text. That is the honest state of it, and it is why contributions are wanted.
+The method has been validated on **two cases, by one annotator, and the annotator is an interested party** — the attribution was compiled by the model that co-wrote the text. That is the honest state of it, and it is why contributions are wanted.
 
 The most valuable thing anyone can bring is **a second case**: run the method on your own writing and publish the case folder. The next most valuable is **inter-rater validation**: annotate the same text independently and measure the agreement.
 

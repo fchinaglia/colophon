@@ -30,7 +30,7 @@ def test_example_regenerates_byte_for_byte(workspace):
 
 def test_the_shipped_bundle_still_measures_the_same(tmp_path):
     """The validation case ships as one file now, so this tests the file we ship rather
-    than a folder beside it: extract `validation/colophon-001.tar`, run today's scripts
+    than a folder beside it: extract `cases/001/colophon-001.tar`, run today's scripts
     over its inputs, and compare with the measurement sealed inside it.
 
     The comparison is on the measured values, not on the bytes. A file compared byte for
@@ -38,7 +38,7 @@ def test_the_shipped_bundle_still_measures_the_same(tmp_path):
     assertion had to be loosened once already — and it passes when a value changes
     representation while staying equal, which is the one thing it was written to catch.
     """
-    bundle = os.path.join(ROOT, "validation", "colophon-001.tar")
+    bundle = os.path.join(ROOT, "cases", "001", "colophon-001.tar")
     wd = tmp_path / "case"
     wd.mkdir()
     with tarfile.open(bundle) as t:

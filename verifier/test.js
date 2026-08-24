@@ -67,7 +67,7 @@ if (fs.existsSync(ex)) {
 // The validation case, as it ships: one tar, read the way the page reads it. Everything
 // below is a real artefact — a real SSHSIG, a real RFC 3161 token, a real manifest — which
 // is why this block exists at all: the vectors cover the format, this covers the world.
-const bundle = path.join(REPO, 'validation', 'colophon-001.tar');
+const bundle = path.join(REPO, 'cases', '001', 'colophon-001.tar');
 if (fs.existsSync(bundle)) {
   head('the shipped bundle');
   const raw = fs.readFileSync(bundle);
