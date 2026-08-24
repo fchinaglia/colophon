@@ -29,7 +29,7 @@ You can move from light to full at any moment without losing anything: the regis
 
 ### 1. Opening
 
-Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_block.py`, `build_bundle.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
+Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_block.py`, `build_bundle.py`, `render_md.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
 
 Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed, and the two addresses — `verification_url`, where the verification page will be readable, and `register_url`, the folder with the register and the files. `build_note.py` puts the first in the technical line and falls back to the second; `build_page.py` uses the second to link the files from the page. Without either, the line tells the reader what to check and not where to find it.
 
@@ -119,8 +119,14 @@ those and finding them inside the signed register is what closes the chain from 
 signature to the published text.
 
 **What it leaves out, deliberately**: the renderings for publication — the article as
-HTML or PDF, and whatever script makes them — and any prose about the case, a README or
-a landing page. A rendering is derivable from what is covered and carries a technical
+markdown, HTML or PDF, and whatever script makes them — and any prose about the case, a
+README or a landing page.
+
+The rule is in the names, so it is not a judgement made file by file: **`build_*` is
+covered by the manifest, `render_*` is not.** A `build_` script produces something the
+measurement depends on and a reader re-runs to check it. A `render_` script produces the
+document a reader receives, which carries the root and therefore cannot exist before the
+seal. A rendering is derivable from what is covered and carries a technical
 line that can only be generated *after* the seal, so freezing it would forbid the very
 step the method requires. Freeze one and you will be reopening a sealed case to correct
 a rendering.
