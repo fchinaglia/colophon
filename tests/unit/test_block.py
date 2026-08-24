@@ -182,3 +182,36 @@ def test_the_line_states_the_route_and_there_are_three(case):
 
     for form in (held, attached, published):
         assert "root " in form, "the root is what makes two copies comparable"
+
+
+def test_the_card_never_clips_a_line(case):
+    """The first render of this form clipped the boundary warning off the right edge —
+    the one line whose whole job is to stop a reader over-reading the label. Lines wrap
+    rather than the note shrinking: a card has vertical room, and the note is what a
+    reader actually reads."""
+    import re as _re
+    out = block(case, "--form", "card", "--ratio", "4:5",
+                "--gap", "una frase molto lunga che non entra su una riga sola e deve "
+                         "quindi andare a capo invece di uscire dal bordo destro")
+    w = float(_re.search(r'viewBox="0 0 ([\d.]+) ', out).group(1))
+    m = 0.075 * w
+    for t in _re.findall(r'<text[^>]*font-size="(\d+)"[^>]*>(.*?)</text>', out, _re.S):
+        size, body = int(t[0]), _re.sub(r"<[^>]+>", "", t[1])
+        assert len(body) * size * 0.52 <= w - 2 * m + 1, f"riga fuori dal bordo: {body!r}"
+
+
+def test_a_landscape_card_refuses_rather_than_shrinking_the_icon(case):
+    """Below a hundred pixels a side the four labels become illegible, and an unreadable
+    quadrant is worse than no icon at all: it looks like a claim while being none."""
+    r = run(case, "build_block.py", "--form", "card", "--ratio", "1.91:1")
+    assert r.returncode != 0
+    assert "illegible" in r.stdout + r.stderr
+    assert "--form svg" in r.stdout + r.stderr, "a refusal has to name what to do instead"
+
+
+def test_the_card_keeps_the_whole_root(case):
+    """A clipped root cannot be compared, and comparing is the only thing a root is for."""
+    import re as _re
+    out = block(case, "--form", "card")
+    root = _re.search(r"root ([0-9a-f]{64})", out)
+    assert root, "the card dropped or truncated the root"

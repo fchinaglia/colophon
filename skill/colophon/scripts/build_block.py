@@ -22,7 +22,8 @@ its direction and --gap replaces it.
 
     python3 build_block.py                  an HTML fragment, styled, ready to paste
     python3 build_block.py --lang it        Italian wording
-    python3 build_block.py --form svg       the whole block as one image
+    python3 build_block.py --form svg       the whole block as one image, wide
+    python3 build_block.py --form card      stacked, for a feed: 4:5, 1:1 or 1.91:1
     python3 build_block.py --form text      plain lines, for a plain-text context
     python3 build_block.py --essential      the card form: drop the third and fifth lines
     python3 build_block.py --inline-icon    icon.svg inlined, for a fragment that travels
@@ -156,6 +157,100 @@ def as_text(lines, tech):
     return "\n".join(render_line(t, b, "", "") for t, b in lines) + "\n" + tech
 
 
+RATIOS = {"4:5": (1080, 1350), "1:1": (1080, 1080), "1.91:1": (1200, 628)}
+# Rough advance width of the sans stack, as a fraction of the font size. Only ever used
+# to decide where to wrap, so an estimate on the generous side is the safe direction.
+CHAR = 0.52
+# Below this the quadrant stops being readable at the sizes a feed renders it.
+ICON_FLOOR = 240
+
+
+def as_card(lines, tech, icon_svg, alt, ratio="4:5"):
+    """The block stacked, for a feed.
+
+    disclosures.md puts the icon left and the note right, and adds that on a narrow
+    column it stacks in the same order **without shrinking the icon**. A social card is
+    the narrowest column there is: side by side it becomes a 3.6:1 strip that a feed
+    crops or shrinks past legibility, and the four labels are the one thing the icon
+    cannot survive losing.
+
+    So: same three parts, same order, same rule about the labels — turned ninety degrees.
+    """
+    W, H = RATIOS[ratio]
+    M = int(W * 0.075)
+    inner = icon_svg.split(">", 1)[1].rsplit("</svg>", 1)[0]
+
+    note = max(20, int(W * 0.033))          # the note carries the meaning: size it first
+    lead = int(note * 1.45)
+    # Wrap rather than shrink. A card has vertical room and the note is what a reader
+    # actually reads; setting it small enough for the longest line to fit on one would
+    # trade the thing that carries the meaning for the thing that carries the layout.
+    # The first render of this form clipped the boundary warning off the right edge —
+    # the one line whose whole job is to stop a reader over-reading the label.
+    wrapped = []
+    for txt, bolds in lines:
+        if bolds or len(txt) * note * CHAR <= W - 2 * M:
+            wrapped.append((txt, bolds))
+            continue
+        cur = ""
+        for word in txt.split(" "):
+            trial = f"{cur} {word}".strip()
+            if len(trial) * note * CHAR > W - 2 * M and cur:
+                wrapped.append((cur, None)); cur = word
+            else:
+                cur = trial
+        if cur:
+            wrapped.append((cur, None))
+    lines = wrapped
+    mono = max(13, int(W * 0.0195))
+    tech_rows = tech.split("\n")
+    # The root is 64 characters with nowhere to break. Shrink the technical line until it
+    # fits rather than letting it run off the card: a clipped root cannot be compared,
+    # which is the only thing a root is for.
+    while mono > 9 and max(len(r) for r in tech_rows) * mono * 0.6 > W - 2 * M:
+        mono -= 1
+    tech_h = len(tech_rows) * int(mono * 1.5)
+
+    text_h = len(lines) * lead + int(note * 0.9) + tech_h
+    # The icon is capped as well as fitted: given the room, it would take two thirds of
+    # the card and leave the note crushed at the foot. disclosures.md forbids shrinking
+    # it below legibility, not enlarging it past proportion.
+    icon_w = min(W - 2 * M, int(W * 0.62), int((H - 2 * M - text_h) * 215 / 200))
+    # Refuse rather than shrink. disclosures.md: below a hundred pixels a side the four
+    # labels become illegible, and an unreadable quadrant is worse than no icon because
+    # it looks like a claim while being none. A landscape card cannot hold the stacked
+    # block and the icon at once, and squeezing it produces exactly that.
+    if icon_w < ICON_FLOOR:
+        raise SystemExit(
+            f"! {ratio} cannot hold this block stacked: the icon would come out "
+            f"{max(icon_w, 0)}px wide\n  and its four labels illegible, which is worse "
+            f"than no icon at all.\n  Use --form svg for a wide canvas, or --essential "
+            f"to drop three lines, or a taller ratio.")
+    icon_h = icon_w * 200 / 215
+    k = icon_w / 215
+    top = M + max(0, (H - 2 * M - icon_h - text_h) / 2)
+
+    p = [f'<rect width="{W}" height="{H}" fill="#fcfcfb"/>',
+         f'<g transform="translate({M},{top:.0f}) scale({k:.4f})">{inner}</g>']
+    y = top + icon_h + note * 0.9
+    for txt, bolds in lines:
+        t = esc(txt)
+        for i, b in enumerate(bolds or []):
+            t = t.replace(chr(i), f'</tspan><tspan font-weight="700">{esc(b)}%</tspan>'
+                                  f'<tspan>', 1)
+        p.append(f'<text x="{M}" y="{y:.0f}" font-size="{note}" fill="#16171a">'
+                 f'<tspan>{t}</tspan></text>')
+        y += lead
+    y += note * 0.5
+    for row in tech_rows:
+        p.append(f'<text x="{M}" y="{y:.0f}" font-size="{mono}" fill="#7a7975"'
+                 f' font-family="ui-monospace,monospace">{esc(row)}</text>')
+        y += int(mono * 1.5)
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}"'
+            ' font-family="ui-sans-serif,-apple-system,sans-serif"'
+            f' role="img" aria-label="{esc(alt)}">' + "".join(p) + '</svg>')
+
+
 def as_svg(lines, tech, icon_svg, alt):
     """One image, for a post, a slide or a newsletter — anywhere that takes neither an
     HTML fragment nor an image and a caption that stay together."""
@@ -195,7 +290,9 @@ def main(argv=None):
     p.add_argument("--log", default="events.jsonl")
     p.add_argument("--icon", default="icon.svg")
     p.add_argument("--lang", choices=sorted(T), default="en")
-    p.add_argument("--form", choices=("html", "svg", "text"), default="html")
+    p.add_argument("--form", choices=("html", "svg", "card", "text"), default="html")
+    p.add_argument("--ratio", choices=sorted(RATIOS), default="4:5",
+                   help="card only: 4:5 for a feed, 1:1 square, 1.91:1 for a link preview")
     p.add_argument("--essential", action="store_true",
                    help="the card form: the first two lines and the boundary warning")
     p.add_argument("--gap", default=None,
@@ -222,9 +319,10 @@ def main(argv=None):
     tech = technical(a.log, a.lang, a.url, a.form, a.short_root, a.attached,
                      a.bundle)
 
-    if a.form == "svg":
+    if a.form in ("svg", "card"):
         svg, _ = build_icon.icon(xl / 100, yi / 100)
-        out = as_svg(lines, tech, svg, alt)
+        out = (as_svg(lines, tech, svg, alt) if a.form == "svg"
+               else as_card(lines, tech, svg, alt, a.ratio))
     elif a.form == "text":
         out = as_text(lines, tech)
     else:
