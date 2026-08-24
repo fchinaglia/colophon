@@ -150,6 +150,19 @@ deposit into read-only: writes refused, the existing tree still served. **Do not
 it.** Its address is in a published technical line; removing it produces exactly the
 failure the method exists to prevent.
 
+> **Done, 24 August.** `colophon-prova-colophon.tar`, 256,000 bytes, 21 entries; run
+> through `core.js` as the browser runs it: chain ok over 38 events, root matching the
+> block, no pre-spec floats, signature ok, 15 manifest entries matched, none missing,
+> timestamp committing over sha512. On the instance: reads `200`, `bundle.tar` `200`,
+> `POST /c` `410` with the plain-text body naming `build_bundle.py`, and the key at the
+> apex still `200`. The live nginx file turned out to be
+> `/etc/nginx/sites-enabled/deposit.conf`, not a symlink from `sites-available`, and it
+> differed from the repository by one stale comment and no directive.
+>
+> The instance's own `bundle.tar` is 225,280 bytes against the packer's 256,000: the
+> difference is `verify.html`. A reader who fetched the deposited bundle got the evidence
+> and had to go and find the tool.
+
 ### Step 5 — remove `server/` and `deploy/`
 
 Only now. **One file survives**: `deploy/deposit.colophonmethod.com.conf`, the frozen
