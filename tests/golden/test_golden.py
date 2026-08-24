@@ -13,7 +13,7 @@ import pytest
 
 from conftest import ROOT, run
 
-OUTPUTS = ["kpi.json", "spans.json", "icon.svg", "verification.html"]
+OUTPUTS = ["kpi.json", "spans.json", "icon.svg", "index.html"]
 
 
 def test_example_regenerates_byte_for_byte(workspace):

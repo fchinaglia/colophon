@@ -61,7 +61,7 @@ cases/001-my-article/
 ├── versions/           every version of the text as it was saved
 ├── spans.json          the spans, expanded
 ├── kpi.json            the measurement
-├── verification.html   the page a reader can open
+├── index.html          the verification page, at an address that ends at the folder
 ├── icon.svg            the quadrant, generated from kpi.json
 └── record.py measure.py build_page.py build_icon.py build_note.py seal.sh
 ```

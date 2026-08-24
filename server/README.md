@@ -102,6 +102,11 @@ Measured, `docker compose up --build`, depositing `cases/001` and reading it bac
 /c/                         404      <- no listing
 ```
 
+The page is `verification.html` there because `cases/001` was sealed before
+`build_page.py` wrote `index.html`, and `/c/<id>/` answers 200 only because the server
+falls back to the older name. A case sealed today deposits the page as `index.html`,
+and the folder answers with it directly.
+
 `Cache-Control: public, max-age=31536000, immutable`, and no `Content-Encoding` even
 when the client asks for one. The bundle fetched through nginx verifies: chain refused
 as pre-spec rather than broken, signature valid, 16 of 16 manifest digests, measurement

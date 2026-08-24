@@ -4,7 +4,7 @@ The method rests on one validated case, annotated by one annotator who was also 
 
 ## What is worth most
 
-**A second case.** Run the method on something you were going to write anyway, and publish the case folder: `events.jsonl`, `annotation.json`, the versions, `kpi.json`, `verification.html`. A case in another language, another genre, or another working style is worth more than any amount of discussion about the method. Open a pull request adding it under `cases/`, or open an issue with a link if you would rather host it yourself.
+**A second case.** Run the method on something you were going to write anyway, and publish the case folder: `events.jsonl`, `annotation.json`, the versions, `kpi.json`, `index.html`. A case in another language, another genre, or another working style is worth more than any amount of discussion about the method. Open a pull request adding it under `cases/`, or open an issue with a link if you would rather host it yourself.
 
 Say in the case what went wrong. A case where the reconstruction check failed twice and you had to re-annotate is more useful than a clean one.
 

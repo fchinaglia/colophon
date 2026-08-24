@@ -47,7 +47,7 @@ def test_page_survives_extra_notes_as_string_and_as_list(workspace):
         data["extra_notes"] = value
         case.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
         assert run(wd, "build_page.py").returncode == 0, f"failed on {type(value).__name__}"
-        html = (wd / "verification.html").read_text(encoding="utf-8")
+        html = (wd / "index.html").read_text(encoding="utf-8")
         assert html.count("<p>") < 200, "the note was iterated character by character"
 
 

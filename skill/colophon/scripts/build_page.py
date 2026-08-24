@@ -5,7 +5,10 @@
 Generate the verification page from the annotated spans.
 
 Reads spans.json, kpi.json, events.jsonl and case.json.
-Writes verification.html: a self-contained document, no external dependencies.
+Writes index.html: a self-contained document, no external dependencies. The name
+is the address — served as an index, a case's URL ends at the folder, which is
+what survives a link detector that cuts at the first underscore. A page under any
+other name answers 404 at the address the note beneath the article prints.
 
 case.json:
   {"title": "...", "author": "...", "date": "19 August 2026",
@@ -367,5 +370,8 @@ document.querySelectorAll('[data-tip]').forEach(el=>{{
  el.addEventListener('blur',()=>tip.style.opacity=0);}});
 </script></body></html>"""
 
-open("verification.html", "w", encoding="utf-8").write(HTML)
-print(f"verification.html — AI lexical {pct(ai_lex)}% · ideational {pct(ai_idea)}%")
+# index.html, and nothing writes verification.html any more: two manifest-covered
+# files with identical content are two things that can drift apart, and the one
+# name the address needs is this one.
+open("index.html", "w", encoding="utf-8").write(HTML)
+print(f"index.html — AI lexical {pct(ai_lex)}% · ideational {pct(ai_idea)}%")

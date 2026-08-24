@@ -347,11 +347,15 @@ def manifest_of(rows):
 # version, the annotation, the measurement, case.json, the icon, the verification
 # page and every script a reader runs. Two things sit outside it and still belong in
 # a deposit — the seal artifacts, which cannot be inside a manifest that precedes
-# them, and the two reader-facing files the manifest deliberately leaves out.
+# them, and the reader-facing files the manifest deliberately leaves out.
 SEAL_PREFIX = "events.jsonl"
-# index.html and README.md are prose the manifest excludes on purpose; allowed_signers
-# is the ready-made form of the key a reader feeds to `ssh-keygen -Y verify`, and it is
-# there for reproduction, not for trust — the binding to a person lives elsewhere.
+# index.html is the verification page and the manifest covers it, so it is kept twice
+# over; it stays named here because a case sealed before build_page.py took that name
+# carries an index.html that is prose about the case, outside its manifest, and that
+# file is still the door a reader arrives at. README.md is prose in every case.
+# allowed_signers is the ready-made form of the key a reader feeds to
+# `ssh-keygen -Y verify`, and it is there for reproduction, not for trust — the
+# binding to a person lives elsewhere.
 READER = {"index.html", "README.md", "allowed_signers"}
 
 # Used only when a case has no manifest at all, which the caller has already warned
