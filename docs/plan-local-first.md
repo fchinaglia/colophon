@@ -275,6 +275,11 @@ does level LT survive.
 > has been shown to help: on this installation Acrobat does not export attachments at all.
 > One machine, one installation, left unexplained rather than guessed at.
 >
+> Measured on macOS 25.5 with **Adobe Reader 2026.001.21789**, **Firefox 154.0**, **poppler
+> 26.08.0**, Chrome 151.0.7922.170, Python 3.9.6. The versions are recorded because
+> without them the sentence *"Acrobat does not export"* ages into folklore — which is the
+> thing this project exists to refuse.
+>
 > What follows is a documentation duty and not a code change: **a reader on Acrobat may
 > see the record and be unable to save it**, and has to be told to use Firefox or
 > `pdfdetach`. A route one reader cannot finish is a route that has to be declared. Worth

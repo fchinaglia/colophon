@@ -289,10 +289,14 @@ def _pdf_string(s):
 # /Subtype, with and without /AF, a .zip name, an uncompressed stream — plus one written
 # by poppler's own `pdfattach`, which never touched this code.
 #
-#     Firefox (pdf.js)      downloads the attachment from every one of them
-#     poppler pdfdetach     lists and extracts every one, byte-identical
-#     Adobe Reader          shows the attachment and exports none of them,
-#                           "Impossibile esportare … il file selezionato", after the click
+#     Firefox 154.0             downloads the attachment from every one of them
+#     poppler 26.08.0           lists and extracts every one, byte-identical
+#     Adobe Reader 2026.001.21789   shows the attachment and exports none of them,
+#                               "Impossibile esportare … il file selezionato", after the
+#                               click. macOS 25.5.
+#
+# Rendered by Chrome 151.0.7922.170; written and run on Python 3.9.6, the oldest version
+# this project supports.
 #
 # Including the file poppler wrote. So this is not a property of what is written here, and
 # no change to these objects has been shown to help; on that installation Acrobat does not
