@@ -74,3 +74,13 @@ def test_pages_serves_dot_directories_and_has_a_front_page():
     front page — so the front page has to exist as a file."""
     assert os.path.exists(os.path.join(ROOT, ".nojekyll"))
     assert os.path.exists(os.path.join(ROOT, "index.html"))
+
+
+def test_the_skills_verifier_matches_the_built_one():
+    """build_bundle.py packs skill/colophon/verify.html into every bundle, and
+    verifier/build.py writes both copies from one source. A stale skill copy would ship
+    an old verifier inside new evidence — and it would still say everything is fine,
+    because an old verifier verifies an old case perfectly."""
+    a = open(os.path.join(ROOT, "verifier", "verify.html"), "rb").read()
+    b = open(os.path.join(ROOT, "skill", "colophon", "verify.html"), "rb").read()
+    assert a == b, "skill/colophon/verify.html is stale — run python3 verifier/build.py"

@@ -29,7 +29,7 @@ You can move from light to full at any moment without losing anything: the regis
 
 ### 1. Opening
 
-Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `seal.sh`. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
+Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_bundle.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
 
 Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed, and the two addresses — `verification_url`, where the verification page will be readable, and `register_url`, the folder with the register and the files. `build_note.py` puts the first in the technical line and falls back to the second; `build_page.py` uses the second to link the files from the page. Without either, the line tells the reader what to check and not where to find it.
 
@@ -92,7 +92,8 @@ python3 build_icon.py       # quadrant icon, from kpi.json
                             # then the closing manifest — see below
 bash seal.sh events.jsonl   # Ed25519 signature + timestamp + anchoring
 python3 build_note.py       # the technical line of the note
-                            # then the deposit, and the check that it answers — see below
+python3 build_bundle.py     # the bundle: the evidence and the verifier, in one file
+                            # then publication, if any — see below
 ```
 
 ### The closing manifest
@@ -113,7 +114,7 @@ python3 record.py '{"type":"status","actor":"system","phase":"—","meta":true,"
 
 **What it covers**: the source version, `annotation.json`, `kpi.json`, `spans.json`,
 `case.json`, `icon.svg`, `index.html` — the verification page, under the name the
-address needs — and every script in the folder. Hashing
+address needs — `verify.html`, and every script in the folder. Hashing
 those and finding them inside the signed register is what closes the chain from the
 signature to the published text.
 
@@ -123,6 +124,12 @@ a landing page. A rendering is derivable from what is covered and carries a tech
 line that can only be generated *after* the seal, so freezing it would forbid the very
 step the method requires. Freeze one and you will be reopening a sealed case to correct
 a rendering.
+
+**And the bundle, for a different reason.** `build_bundle.py` writes a tar that contains
+the manifest, so the manifest cannot contain the tar. That is not a gap: the tar is
+transport, not evidence. `verify.html` hashes each *file* inside it against the manifest,
+so tampering with anything the case depends on is caught, and tampering with the
+container only breaks extraction. Nobody should try to hash it.
 
 **Two rules of order, and the second is where people trip.**
 

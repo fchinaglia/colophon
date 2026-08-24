@@ -9,6 +9,12 @@ The verifier ships as ONE file so a reader can save it and keep verifying offlin
 forever, with no network and no dependencies. core.js stays separate in the repository
 only so that verifier/test.js can exercise it directly.
 
+It is written twice, to the same bytes: verifier/verify.html, and skill/colophon/
+verify.html, which is the copy the skill hands to a case at Opening and build_bundle.py
+packs into the tar. Two copies of one build are not two versions — there is one source,
+and tests/repo asserts they match — but a hand-edited second copy would be, which is why
+nobody should edit either.
+
 Prints the digest of what it wrote: publish that alongside, so the verifier is itself
 verifiable.
 """
@@ -38,13 +44,17 @@ def main():
         return 1
 
     html = shell.replace("//__CORE__", core)
-    out = os.path.join(HERE, "verify.html")
-    with open(out, "w", encoding="utf-8", newline="\n") as f:
-        f.write(html)
+    targets = [os.path.join(HERE, "verify.html"),
+               os.path.join(HERE, "..", "skill", "colophon", "verify.html")]
+    for out in targets:
+        with open(out, "w", encoding="utf-8", newline="\n") as f:
+            f.write(html)
 
-    data = open(out, "rb").read()
+    data = open(targets[0], "rb").read()
     print(f"verify.html  {len(data):,} bytes")
     print(f"sha256       {hashlib.sha256(data).hexdigest()}")
+    for out in targets:
+        print(f"  wrote     {os.path.relpath(os.path.abspath(out), os.path.join(HERE, '..'))}")
     return 0
 
 
