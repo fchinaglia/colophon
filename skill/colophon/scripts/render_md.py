@@ -96,6 +96,34 @@ def covered_source(manifest, given):
                      f"({', '.join(versions)}) — name the one to publish with --source")
 
 
+def gate(log, given=None, quiet=False):
+    """The check that keeps two claims apart, shared by every renderer.
+
+    Returns (source_path, manifest, rows). Exits on a mismatch: a document rendered from
+    a file the measurement never saw carries percentages about a different text, and once
+    a signature is over it the reader will read *this file is unaltered* as *this text is
+    the text that was measured*.
+    """
+    manifest, rows = manifest_of(log)
+    src = covered_source(manifest, given)
+    if not os.path.exists(src):
+        raise SystemExit(f"missing {src}, which the manifest covers")
+    got, want = sha256_file(src), manifest[src]
+    if got != want:
+        raise SystemExit(
+            f"! {src} is not the file the manifest covers.\n"
+            f"    manifest {want}\n"
+            f"    on disk  {got}\n"
+            f"  The measurement describes the covered bytes. Rendering these ones would\n"
+            f"  publish percentages about a different text. Either restore the file, or\n"
+            f"  reopen the case: a new event saying why, a new manifest, a new seal.")
+    if not quiet and not os.path.exists(log + ".sig"):
+        print(f"  ! {log}.sig is missing: this document will carry the root of an "
+              f"unsigned register.\n    The block says so to the reader, but seal first "
+              f"and render after.", file=sys.stderr)
+    return src, manifest, rows
+
+
 def insert_after_title(body, block):
     """Under the title, which is where a reader meets the piece — never at the very top,
     above the thing they came for."""
@@ -128,25 +156,8 @@ def main(argv=None):
     p.add_argument("-o", "--out", default=None)
     a = p.parse_args(argv)
 
-    manifest, rows = manifest_of(a.log)
-    src = covered_source(manifest, a.source)
-    if not os.path.exists(src):
-        raise SystemExit(f"missing {src}, which the manifest covers")
-
-    got, want = sha256_file(src), manifest[src]
-    if got != want:
-        raise SystemExit(
-            f"! {src} is not the file the manifest covers.\n"
-            f"    manifest {want}\n"
-            f"    on disk  {got}\n"
-            f"  The measurement describes the covered bytes. Rendering these ones would\n"
-            f"  publish percentages about a different text. Either restore the file, or\n"
-            f"  reopen the case: a new event saying why, a new manifest, a new seal.")
-
-    if not os.path.exists(a.log + ".sig"):
-        print(f"  ! {a.log}.sig is missing: this document will carry the root of an "
-              f"unsigned register.\n    The block says so to the reader, but seal first "
-              f"and render after.", file=sys.stderr)
+    src, manifest, rows = gate(a.log, a.source)
+    want = manifest[src]
 
     kpi = json.load(open(a.kpi, encoding="utf-8"))
     build_icon.refuse_if_ungated(kpi, a.kpi)

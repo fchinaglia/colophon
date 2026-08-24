@@ -207,6 +207,21 @@ one gate: the builder hashes the source and refuses if it does not match the man
 digest. Without it a signed PDF attests *this file is unchanged since signing* and the
 reader will read it as *this text is the text that was measured*.
 
+> **Done, 24 August.** `render_pdf.py`, 8 tests. The gate is `render_md.gate()`, factored
+> out so there is one of it rather than two that could drift. Three pages on the real
+> case, against the hand-made PDF's three.
+>
+> Cheap turned out to include a markdown converter, because the deliverable is markdown
+> and the old `render_post.py` only escaped blank-line-separated blocks. It implements a
+> deliberately small subset and **refuses by line number** on anything outside it: a
+> converter that silently mangles a table publishes something the author did not write,
+> under a signature saying they did, and it is invisible in the finished PDF.
+>
+> Its one rule — it wraps, it never rewrites — is asserted rather than intended. Every
+> word of the source comes out the other side, compared as sequences, with the things the
+> converter is allowed to drop removed first: link targets, raw HTML lines, the markers.
+> A test drops one word from the rendered output and requires the check to fire.
+
 **7b, expensive and gated.** Embedding the bundle needs an incremental-update writer —
 an `EmbeddedFile` stream, a `/Names/EmbeddedFiles` tree, `/AF` associations — roughly
 200–300 lines of stdlib, and a malformed incremental update opens in some readers and not
