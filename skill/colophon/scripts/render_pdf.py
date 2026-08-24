@@ -25,9 +25,19 @@ build_* is covered, render_* is not. Both carry the root, which is the hash of t
 manifest event, so neither can exist before the seal.
 
     python3 render_pdf.py                  the HTML and the PDF
+    python3 render_pdf.py --embed          with the bundle inside it, as one file
     python3 render_pdf.py --html-only      stop before Chrome
     python3 render_pdf.py --lang it
     python3 render_pdf.py --gap "…"        the sentence that is a judgement
+
+EMBEDDING IS AN INCREMENTAL UPDATE, and the order is fixed: **embed, then sign.** PAdES
+is itself an incremental update, so a signature added after this covers the revision that
+holds the attachment; signing first and embedding after leaves the signature over an
+earlier revision, which Acrobat reports as *signed, then modified* — worse than broken,
+because it reads as tampering. Verified here: poppler lists and extracts the bundle byte
+for byte, the document still renders in poppler and PDFium, and the original bytes are
+untouched. **What is not verified is what a real signing client does to it** — see the
+four checks in docs/plan-local-first.md before relying on a signed embedded bundle.
 
 NOT PDF/A-3. Chrome's output has no output intent, no conformant XMP and no guaranteed
 embedded fonts. Calling it PDF/A without a veraPDF run would be exactly the unbackable
@@ -36,6 +46,7 @@ compliance claim disclosures.md forbids, in the one artefact whose job is to be 
 Usage: python3 render_pdf.py [--lang it|en] [-o OUT]
 """
 import argparse
+import hashlib
 import html
 import json
 import os
@@ -43,9 +54,11 @@ import re
 import shutil
 import subprocess
 import sys
+import zlib
 
 import build_block
 import build_icon
+import build_note
 import render_md
 
 CHROMES = ("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -211,6 +224,168 @@ def check_nothing_was_rewritten(source, rendered):
                          f"  This is the one thing it may never do. Do not publish.")
 
 
+# ---------------------------------------------------------------- embedding, --embed
+#
+# An incremental update: the original bytes are not touched, new objects are appended
+# after them, and a new cross-reference section points at both. That is the only shape
+# that survives being signed afterwards — PAdES is itself an incremental update, so a
+# signature added later covers this revision, while embedding into a signed file would
+# make Acrobat report "signed, then modified", which reads as tampering rather than as
+# breakage. **Embed first, sign second, always.**
+#
+# What is implemented is what headless Chrome writes and nothing else: PDF 1.4, a classic
+# xref table, no object streams, no cross-reference streams, no encryption. Every one of
+# those is checked and refused rather than guessed at. A malformed incremental update
+# opens in some readers and not in others, silently, which is the worst failure available
+# here — a document that looks fine on the author's machine and carries nothing on the
+# reader's.
+
+MAXOBJ = 8388607          # the PDF 1.4 limit on object numbers
+
+
+def _balanced_dict(buf, start):
+    """The extent of the << >> beginning at `start`, skipping literal strings.
+
+    Written out rather than regexed because a regex cannot count, and the catalog is the
+    one object here that has to be rewritten correctly or the file has no root."""
+    assert buf[start:start + 2] == b"<<"
+    i, depth = start + 2, 1
+    while i < len(buf) and depth:
+        c = buf[i:i + 1]
+        if buf[i:i + 2] == b"<<":
+            depth += 1; i += 2; continue
+        if buf[i:i + 2] == b">>":
+            depth -= 1; i += 2; continue
+        if c == b"(":                       # a literal string may contain << or >>
+            i += 1
+            nest = 1
+            while i < len(buf) and nest:
+                if buf[i:i + 1] == b"\\":
+                    i += 2; continue
+                if buf[i:i + 1] == b"(":
+                    nest += 1
+                elif buf[i:i + 1] == b")":
+                    nest -= 1
+                i += 1
+            continue
+        i += 1
+    if depth:
+        raise SystemExit("! the catalog dictionary does not close — refusing to write "
+                         "an incremental update over a file this script cannot read.")
+    return i
+
+
+def _pdf_string(s):
+    return "(" + re.sub(r"([()\\])", r"\\\1", s) + ")"
+
+
+def embed_bundle(pdf, tar_path, desc):
+    """Return the PDF with `tar_path` embedded, as an incremental update."""
+    data = open(pdf, "rb").read()
+    payload = open(tar_path, "rb").read()
+    name = os.path.basename(tar_path)
+
+    for marker, why in ((b"/Encrypt", "it is encrypted"),
+                        (b"/ObjStm", "it uses object streams"),
+                        (b"/Type /XRef", "it uses a cross-reference stream"),
+                        (b"/Type/XRef", "it uses a cross-reference stream")):
+        if marker in data:
+            raise SystemExit(f"! this PDF cannot be updated by this script: {why}.\n"
+                             f"  Only the shape headless Chrome writes is implemented, "
+                             f"and guessing at\n  the rest produces a file that opens "
+                             f"in some readers and not others.")
+
+    k = data.rfind(b"trailer")
+    if k < 0:
+        raise SystemExit("! no trailer: this is not a PDF with a classic xref table.")
+    tstart = data.index(b"<<", k)
+    trailer = data[tstart:_balanced_dict(data, tstart)]
+    m_root = re.search(rb"/Root\s+(\d+)\s+0\s+R", trailer)
+    m_size = re.search(rb"/Size\s+(\d+)", trailer)
+    if not (m_root and m_size):
+        raise SystemExit("! the trailer names no /Root or no /Size.")
+    root, size = int(m_root.group(1)), int(m_size.group(1))
+
+    m_sx = re.search(rb"startxref\s+(\d+)\s*%%EOF\s*$", data)
+    if not m_sx:
+        raise SystemExit("! no startxref at the end of the file.")
+    prev = int(m_sx.group(1))
+
+    m_cat = re.search(rb"(?m)^%d\s+0\s+obj\b" % root, data)
+    if not m_cat:
+        raise SystemExit(f"! object {root} (the catalog) is not a plain object in this "
+                         f"file.")
+    dstart = data.index(b"<<", m_cat.end())
+    catalog = data[dstart:_balanced_dict(data, dstart)]
+    for key in (b"/Names", b"/AF"):
+        if key in catalog:
+            raise SystemExit(f"! the catalog already carries {key.decode()}. Merging one "
+                             f"in blindly would\n  break whatever is already there; this "
+                             f"script refuses instead.")
+
+    n_ef, n_fs, n_nm = size, size + 1, size + 2
+    if n_nm > MAXOBJ:
+        raise SystemExit("! too many objects in this PDF.")
+
+    body = zlib.compress(payload, 9)
+    # /CheckSum is an MD5 by specification (PDF 32000-1, 7.11.4). It is a format field,
+    # not a claim: what a reader checks this bundle against is the manifest inside it.
+    params = (f"<< /Size {len(payload)} /CheckSum <{hashlib.md5(payload).hexdigest()}> >>")
+
+    out = [data]
+    if not data.endswith(b"\n"):
+        out.append(b"\n")
+    offsets = {}
+    pos = sum(len(x) for x in out)
+
+    def add(num, text, stream=None):
+        nonlocal pos
+        offsets[num] = pos
+        chunk = f"{num} 0 obj\n{text}\n".encode("utf-8")
+        if stream is not None:
+            chunk += b"stream\n" + stream + b"\nendstream\n"
+        chunk += b"endobj\n"
+        out.append(chunk)
+        pos += len(chunk)
+
+    add(n_ef, f"<< /Type /EmbeddedFile /Subtype /application#2Fx-tar"
+              f" /Filter /FlateDecode /Length {len(body)} /Params {params} >>", body)
+    add(n_fs, f"<< /Type /Filespec /F {_pdf_string(name)} /UF {_pdf_string(name)}"
+              f" /EF << /F {n_ef} 0 R >> /AFRelationship /Supplement"
+              f" /Desc {_pdf_string(desc)} >>")
+    add(n_nm, f"<< /Names [ {_pdf_string(name)} {n_fs} 0 R ] >>")
+    add(root, (catalog[:-2].decode("latin-1")
+               + f" /Names << /EmbeddedFiles {n_nm} 0 R >> /AF [ {n_fs} 0 R ] >>"))
+
+    xref_at = pos
+    rows = ["xref"]
+    for first, count in _runs(sorted(offsets)):
+        rows.append(f"{first} {count}")
+        for n in range(first, first + count):
+            rows.append(f"{offsets[n]:010d} 00000 n ")
+    keep = re.sub(rb"/Prev\s+\d+", b"", trailer[2:-2]).decode("latin-1").strip()
+    keep = re.sub(r"/Size\s+\d+", "", keep).strip()
+    rows += ["trailer", f"<< /Size {n_nm + 1} {keep} /Prev {prev} >>",
+             "startxref", str(xref_at), "%%EOF", ""]
+    out.append("\n".join(rows).encode("latin-1"))
+    return b"".join(out)
+
+
+def _runs(nums):
+    """Contiguous runs, because an xref subsection header is `first count`."""
+    runs, start, last = [], None, None
+    for n in nums:
+        if start is None:
+            start = last = n
+        elif n == last + 1:
+            last = n
+        else:
+            runs.append((start, last - start + 1)); start = last = n
+    if start is not None:
+        runs.append((start, last - start + 1))
+    return runs
+
+
 def find_chrome():
     for c in CHROMES:
         if os.path.exists(c):
@@ -239,6 +414,10 @@ def main(argv=None):
     p.add_argument("--bundle", default=None,
                    help="where that bundle is, if not beside the case")
     p.add_argument("--html-only", action="store_true", help="stop before Chrome")
+    p.add_argument("--embed", nargs="?", const=True, default=None,
+                   metavar="TAR",
+                   help="embed the bundle in the PDF as an incremental update; "
+                        "without a path, the one --attached would name")
     p.add_argument("-o", "--out", default=None, help="the PDF path")
     a = p.parse_args(argv)
 
@@ -306,6 +485,32 @@ def main(argv=None):
                     f"--print-to-pdf={os.path.abspath(out_pdf)}",
                     os.path.abspath(out_html)], check=True, capture_output=True)
     print(f"  {out_pdf}  {os.path.getsize(out_pdf):,} bytes")
+
+    if a.embed:
+        base = os.path.dirname(os.path.abspath(a.log))
+        tar = (a.embed if a.embed is not True else
+               build_note.find_bundle(base, a.bundle,
+                                      build_note.bundle_name(base)))
+        if not tar or not os.path.exists(tar):
+            print("! nothing to embed: build_bundle.py first, or name the tar.",
+                  file=sys.stderr)
+            return 1
+        before = open(out_pdf, "rb").read()
+        merged = embed_bundle(out_pdf, tar,
+                              "Colophon: the register, the seal and the measurement "
+                              "for this document. Drop it on verify.html.")
+        if merged[:len(before)] != before:
+            print("! the update rewrote existing bytes. Refusing to write it.",
+                  file=sys.stderr)
+            return 1
+        with open(out_pdf, "wb") as f:
+            f.write(merged)
+        print(f"  embedded  {os.path.basename(tar)}  "
+              f"{os.path.getsize(tar):,} bytes → {len(merged):,}")
+        print("  the original bytes are untouched: this is an incremental update, so a\n"
+              "  PAdES signature added AFTER this covers it. Signing first and embedding\n"
+              "  after reads as tampering, not as breakage.")
+
     print("  not PDF/A-3, and do not call it that: no output intent, no conformant XMP.")
     return 0
 

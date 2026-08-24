@@ -231,6 +231,25 @@ signing preserve `/Names/EmbeddedFiles` and `/AF`; does the signature validate i
 does level LT survive. Start with Aruba Sign, the one client with a confirmed level
 chooser.
 
+> **Writer done, 24 August; the gate is not.** `render_pdf.py --embed` writes the
+> incremental update: an `EmbeddedFile` stream, a `/Names/EmbeddedFiles` tree, an `/AF`
+> association, a new xref section and a trailer with `/Prev`. 8 tests. It refuses every
+> shape it does not implement — encryption, cross-reference streams, object streams, a
+> catalog that already carries `/Names` — rather than guessing, because a malformed
+> update opens in some readers and not others, silently.
+>
+> Verified against somebody else's implementation, which is the only verification worth
+> having here: **poppler lists the attachment and extracts it byte for byte**, the
+> extracted tar still verifies through `core.js` (chain, signature, 15 manifest digests,
+> timestamp), and the document still renders in poppler and in PDFium. The original bytes
+> are untouched — asserted, not assumed.
+>
+> **Three of the four tooling checks below remain open**, and they are the ones that need
+> a real qualified certificate: whether a signing client preserves `/Names/EmbeddedFiles`
+> and `/AF`; whether the result validates in Acrobat and the EU DSS validator; whether
+> level LT survives. Until those come back, `--embed` is a way to ship one file, not a way
+> to ship a signed one.
+
 **Order is fixed: embed, then sign.** PAdES is an incremental update, so signing first
 leaves the signature covering an earlier revision, which Acrobat reports as *signed, then
 modified* — worse than broken, because it reads as tampering.

@@ -10,7 +10,9 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import shutil
+import subprocess
 import sys
 
 import pytest
@@ -136,3 +138,110 @@ def test_it_prints_a_pdf(manifested):
     assert r.returncode == 0, r.stdout + r.stderr
     data = open(os.path.join(manifested, "out.pdf"), "rb").read()
     assert data.startswith(b"%PDF-") and len(data) > 1000
+
+
+# ------------------------------------------------------------------ embedding, --embed
+
+def a_pdf(tmp_path):
+    """A real one, from Chrome, because the point is the shape Chrome writes."""
+    m = load("render_pdf")
+    chrome = next((c for c in m.CHROMES if os.path.exists(c) or shutil.which(c)), None)
+    if not chrome:
+        pytest.skip("no Chrome or Chromium")
+    src = tmp_path / "p.html"
+    src.write_text("<h1>Title</h1><p>Body.</p>", encoding="utf-8")
+    out = tmp_path / "p.pdf"
+    subprocess.run([chrome if os.path.exists(chrome) else shutil.which(chrome),
+                    "--headless", "--disable-gpu", "--no-pdf-header-footer",
+                    f"--print-to-pdf={out}", str(src)], check=True, capture_output=True)
+    return str(out)
+
+
+def test_the_original_bytes_are_never_touched(tmp_path):
+    """That is what an incremental update is, and it is why a PAdES signature added
+    afterwards covers this revision instead of contradicting it."""
+    m = load("render_pdf")
+    pdf = a_pdf(tmp_path)
+    tar = tmp_path / "colophon-x.tar"
+    tar.write_bytes(os.urandom(4096))
+    before = open(pdf, "rb").read()
+    after = m.embed_bundle(pdf, str(tar), "d")
+    assert after[:len(before)] == before
+    assert len(after) > len(before)
+
+
+def test_an_independent_reader_gets_the_bundle_back_byte_for_byte(tmp_path):
+    """Our writer and our reader agreeing proves nothing. poppler is somebody else's."""
+    if not shutil.which("pdfdetach"):
+        pytest.skip("no poppler")
+    m = load("render_pdf")
+    pdf = a_pdf(tmp_path)
+    payload = os.urandom(20000)
+    tar = tmp_path / "colophon-x.tar"
+    tar.write_bytes(payload)
+    merged = m.embed_bundle(pdf, str(tar), "the record")
+    open(pdf, "wb").write(merged)
+
+    listing = subprocess.run(["pdfdetach", "-list", pdf], capture_output=True, text=True)
+    assert "colophon-x.tar" in listing.stdout, listing.stdout
+    d = tmp_path / "out"
+    d.mkdir()
+    subprocess.run(["pdfdetach", "-saveall", pdf], cwd=d, check=True, capture_output=True)
+    assert (d / "colophon-x.tar").read_bytes() == payload
+
+
+def test_the_document_still_reads_afterwards(tmp_path):
+    if not shutil.which("pdftotext"):
+        pytest.skip("no poppler")
+    m = load("render_pdf")
+    pdf = a_pdf(tmp_path)
+    tar = tmp_path / "colophon-x.tar"
+    tar.write_bytes(b"x" * 1000)
+    merged = m.embed_bundle(pdf, str(tar), "d")
+    open(pdf, "wb").write(merged)
+    r = subprocess.run(["pdftotext", pdf, "-"], capture_output=True, text=True)
+    assert "Title" in r.stdout and "Body." in r.stdout
+
+
+@pytest.mark.parametrize("marker,why", [
+    (b"/Encrypt 9 0 R", "encrypted"),
+    (b"/Type /XRef", "cross-reference stream"),
+    (b"/ObjStm", "object streams"),
+])
+def test_it_refuses_shapes_it_does_not_implement(tmp_path, marker, why):
+    """A malformed incremental update opens in some readers and not others, silently.
+    Guessing is the one thing this must not do."""
+    m = load("render_pdf")
+    pdf = a_pdf(tmp_path)
+    data = open(pdf, "rb").read()
+    open(pdf, "wb").write(data[:100] + marker + data[100:])
+    tar = tmp_path / "colophon-x.tar"
+    tar.write_bytes(b"x")
+    with pytest.raises(SystemExit) as e:
+        m.embed_bundle(pdf, str(tar), "d")
+    assert "cannot be updated" in str(e.value)
+
+
+def test_it_refuses_a_catalog_that_already_has_names(tmp_path):
+    """Merging one in blindly would break whatever is already there."""
+    m = load("render_pdf")
+    pdf = a_pdf(tmp_path)
+    data = open(pdf, "rb").read()
+    root = int(re.search(rb"/Root\s+(\d+)", data).group(1))
+    k = re.search(rb"(?m)^%d\s+0\s+obj\b" % root, data).end()
+    j = data.index(b"<<", k)
+    open(pdf, "wb").write(data[:j + 2] + b" /Names 1 0 R" + data[j + 2:])
+    tar = tmp_path / "colophon-x.tar"
+    tar.write_bytes(b"x")
+    with pytest.raises(SystemExit) as e:
+        m.embed_bundle(pdf, str(tar), "d")
+    assert "already carries" in str(e.value)
+
+
+def test_the_dictionary_scanner_counts_rather_than_matching(tmp_path):
+    """A regex cannot count, and the catalog is the one object that has to be rewritten
+    correctly or the file has no root."""
+    m = load("render_pdf")
+    buf = rb"<< /A << /B 1 >> /C (a \) string with >> inside) /D 2 >>tail"
+    assert buf[:m._balanced_dict(buf, 0)].endswith(b">>")
+    assert buf[m._balanced_dict(buf, 0):] == b"tail"
