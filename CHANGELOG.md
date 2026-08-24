@@ -4,6 +4,68 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [2.4.0] — 2026-08-24
+
+Closes #14 and #13. The mechanism shipped in 2.3.0; this is what the author actually
+hears, which was left to the model and is now written out.
+
+### Measured first
+
+The closing section of `SKILL.md` went from **668 words on 23 August to 1,943** the next
+day — almost tripling in a day, because `### Publication` and `### The last read` did not
+exist before it. That growth is the defect, and the word budgets added here are the only
+thing in this release that would have caught it happening.
+
+### Added
+
+- **`## What the author hears`** — the rule, stated generally. *When the measurement
+  stops* had it right in one place: it reclassifies the event before describing it, fixes
+  a budget a model can obey, gives the content of the sentence rather than its wording,
+  and states the reason from the author's chair. The other two boundaries now follow it,
+  and the section names what never reaches the author at all.
+- **`## Before the first case`** (#13). `SKILL.md` described the cycle and said nothing
+  about the one-time setup that precedes it, so the model had no reason to conduct that
+  conversation and the author was left running a command nobody had mentioned. It states
+  the split as a rule: ask, explain and check in conversation; leave the signature and the
+  digests to the script — a model retyping a fingerprint is the class of error this
+  project exists to prevent.
+- **What you say at the opening and at the closing**, written out. Four things in order,
+  then four decisions. The author never meets `open` and `confidential`; the model maps
+  their answer, and anything that is not a clear no is `confidential`, because being wrong
+  that way costs a page that explains itself and being wrong the other way cannot be
+  undone.
+- **One sentence for each refusal** the closing sequence gained this week — the render
+  gate, the markdown subset, the review after the manifest, packing before sealing. The
+  section is now `## When something stops`, because five things stop and only one of them
+  is the measurement.
+- **`tests/repo/test_vocabulary.py`** — that the review's strings carry none of the twelve
+  words nothing can be done with, that the warning stayed one line, and that four sections
+  stay inside a word budget. Its docstring says what it cannot cover, which is most of the
+  issue: nothing here executes a model.
+
+### Fixed
+
+- **The red-list warning printed one line per matching field.** Case 002's seq 68 matches
+  in five, so it would have produced seven lines of warning about one event, into a
+  conversation where somebody is writing an article. And it printed a JSON path at the one
+  moment nothing can be done with it — by construction, since the decision happens at the
+  review — while carrying no `seq`, so it was a poor locator for the transcript reader it
+  was written for. One line, located by `seq`, no path.
+- **`review.py`'s three headers were three shouts of equal weight**, which says the three
+  lists are the same kind of thing. Two are *worth a look*; the first is *a thing you were
+  already told once*. One shout and two invitations now, and the entries are numbered
+  across all three so the author says "3 and 7" and the model finds the path — the file's
+  own rule that the author is never asked to edit anything, applied to the review.
+
+### Not done
+
+Roughly 700 words of rationale still sit in `SKILL.md` that belong in `reference/`. Only
+the moves with an existing home were made: the `curl | shasum` recipe into `VERIFY.md`,
+the route rationale into `disclosures.md`. The rest needs a fifth reference file, which is
+a fifth thing to keep in step. **So the author hears less and the file the model reads is
+longer**, and the budgets are set at today's numbers rather than at the targets: they
+guard against further growth, they do not claim a reduction that did not happen.
+
 ## [2.3.0] — 2026-08-24
 
 Closes #6. A case travels as one file handed to whoever the author hands it to, so the
