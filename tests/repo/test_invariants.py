@@ -22,7 +22,8 @@ DOCS = ["skill/colophon/SKILL.md",
 
 @pytest.mark.parametrize("name", ["record.py", "measure.py", "build_page.py",
                                   "build_icon.py", "build_note.py",
-                                  "build_block.py", "build_bundle.py", "render_md.py"])
+                                  "build_block.py", "build_bundle.py", "build_attestation.py",
+                                  "render_md.py"])
 def test_the_example_has_not_forked_from_the_skill(name):
     """example/ is the worked case a reader runs. If it drifts, the golden tests are
     measuring a copy nobody ships."""
@@ -52,7 +53,7 @@ def test_every_documented_flag_exists():
     helps = {}
     for script in ("record.py", "measure.py", "build_page.py", "build_icon.py",
                    "build_note.py", "build_block.py", "build_bundle.py",
-                   "render_md.py"):
+                   "build_attestation.py", "render_md.py"):
         r = subprocess.run([sys.executable, os.path.join(SCRIPTS, script), "--help"],
                            capture_output=True, text=True, stdin=subprocess.DEVNULL)
         helps[script] = r.stdout + r.stderr

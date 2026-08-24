@@ -66,6 +66,12 @@ SEAL_PREFIX = "events.jsonl"
 # allowed_signers is the ready-made form of the key a reader feeds to
 # `ssh-keygen -Y verify`, and it is there for reproduction, not for trust.
 READER = {"index.html", "README.md", "allowed_signers"}
+# The attestation and its signature. Generated after the manifest — they carry the root,
+# which is the hash of the manifest event — so no manifest can cover them, and without
+# this they would be withheld as uncovered: the one file in the bundle that carries a
+# legal name would be the one that did not travel. Prefix, because the file is
+# attestazione.txt in an Italian case and the signed form appends .p7m to the whole name.
+ATTESTATION = ("attestation.", "attestazione.")
 
 # Used only when a case has no manifest at all, which the caller has already refused
 # over: better a conservative list than everything on disk.
@@ -108,8 +114,8 @@ def collect(case_dir, manifest, extra_skip=()):
                 continue
             full = os.path.join(base, fn)
             rel = os.path.relpath(full, case_dir)
-            if rel.startswith(SEAL_PREFIX) or rel in READER:
-                keep[rel] = full                      # register, seals, landing page
+            if rel.startswith(SEAL_PREFIX) or rel in READER or fn.startswith(ATTESTATION):
+                keep[rel] = full                      # register, seals, landing, attestation
             elif rel in covered or (not manifest and rel in FALLBACK):
                 keep[rel] = full
             elif rel.startswith("versions/"):

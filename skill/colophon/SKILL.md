@@ -29,7 +29,7 @@ You can move from light to full at any moment without losing anything: the regis
 
 ### 1. Opening
 
-Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_block.py`, `build_bundle.py`, `render_md.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
+Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_block.py`, `build_attestation.py`, `build_bundle.py`, `render_md.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
 
 Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed, and — **if the case will live at an address** — `verification_url`, where the verification page will be readable, and `register_url`, the folder with the register and the files. `build_note.py` puts the first in the technical line and falls back to the second; `build_page.py` uses the second to link the files from the page. Leave both out and the line says the record travels with the document, which is true when it does. See *Publication* for the three routes.
 
@@ -93,6 +93,7 @@ python3 build_icon.py       # quadrant icon, from kpi.json
                             # then the closing manifest — see below
 bash seal.sh events.jsonl   # Ed25519 signature + timestamp + anchoring
 python3 build_note.py       # the technical line of the note
+python3 build_attestation.py # one page to sign by hand, if you hold a qualified signature
 python3 build_bundle.py     # the bundle: the evidence and the verifier, in one file
                             # then publication, if any — see below
 ```

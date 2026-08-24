@@ -188,6 +188,18 @@ It stays in the bundle even when the PDF is signed, because **the PAdES signatur
 not travel with the evidence**: extract the tar, hand it to a third party, and the legal
 identity is gone.
 
+> **Done, 24 August.** 10 tests, and the one that matters runs `shasum -a 256 -c -` over
+> the flush-left lines of the generated page: 19 files on the real case, all `OK`, and a
+> single appended byte anywhere turns one into `FAILED`. Two things the earlier sample
+> did not have: `events.jsonl` is itself in the checkfile — a `-c` run that checks
+> everything except the file the page is about would be a strange thing to have signed —
+> and the paragraph names whichever of `VERIFY.md`/`VERIFICA.md` the manifest actually
+> covers, because the real Italian case carries the English name.
+>
+> `collect()` had to learn about it. The attestation carries the root, so no manifest can
+> cover it, and without an exception the one file in the bundle carrying a legal name
+> would have been the one withheld as uncovered.
+
 ### Step 7 — the PDF, in two pieces
 
 **7a, cheap.** Chrome renders document plus disclaimer block plus appendix. New here is
