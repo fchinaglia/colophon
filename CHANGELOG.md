@@ -4,7 +4,13 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
-## [Unreleased] — the local-first turn
+## [2.0.0] — 2026-08-24 — the local-first turn
+
+**Breaking.** `colophon deposit` and `colophon address` are gone, and so is the
+`server/` directory that ran the instance they talked to. Nothing replaces them:
+a case is packed and handed over. The instance at `deposit.colophonmethod.com` is
+frozen, not deleted — it still serves every case already on it, at the same
+addresses, because one of those addresses is printed inside a published PDF.
 
 Colophon stops being a thing with a server in it. A case now travels as a document plus a
 bundle its author packs, and nothing has to stay online for a reader to check it. The
@@ -28,6 +34,23 @@ reasoning, the order of work and what it costs are in `docs/plan-local-first.md`
   and there is no flag to skip it**: the source is hashed against the manifest, and a
   mismatch refuses. Once a signature is over a document, a reader reads *this file is
   unaltered* as *this text is the text that was measured*, and those are two claims.
+- **`build_attestation.py`** — one page of plain text restating the case identity, the
+  register root and every digest the manifest closes over, flush-left in `sha256sum`
+  format, so `grep -E '^[0-9a-f]{64}  ' attestation.txt | shasum -a 256 -c -` checks the
+  whole case with no PDF, no PKI and no browser. It also states what the apparatus does
+  not claim, in a sentence a person reads.
+- **`render_pdf.py`** — the same document printed through headless Chrome, behind the same
+  gate. It carries a markdown converter implementing a deliberately small subset and
+  **refusing by line number** on anything outside it: one that silently mangles a table
+  publishes something the author did not write, invisibly. Its one rule — it wraps, it
+  never rewrites — is asserted, and a test deletes a word from the output to prove the
+  assertion fires.
+- **`render_pdf.py --embed`** — the bundle inside the PDF, as an incremental update. The
+  original bytes are never rewritten, which is what makes a PAdES signature added
+  afterwards cover this revision instead of contradicting it: **embed first, sign second.**
+  It implements the shape headless Chrome writes and refuses every other — encryption,
+  cross-reference streams, object streams, a catalog already carrying `/Names` — because a
+  malformed incremental update opens in some readers and not in others, silently.
 - The manifest rule is now in the names rather than decided file by file: **`build_*` is
   covered, `render_*` is not.**
 
@@ -60,6 +83,11 @@ reasoning, the order of work and what it costs are in `docs/plan-local-first.md`
   validator, and the warning nobody prints — a CAdES-B signature carries no revocation
   evidence, and when the certificate expires CAD art. 24 c. 4-bis treats the signature as
   never made. Level LT is what survives that.
+- **The technical line's middle row is the route, and `--attached` has to find the file it
+  names.** It printed *attached to this file* and named a tar while nothing checked that
+  the tar had ever been built — a route under a disclosure leading nowhere, silently. The
+  wording is now *enclosed* / *accluso*, true of a PDF attachment, a sibling file, a mail
+  or an archive, and the flag refuses when the bundle is not there.
 - **`attestation.txt` is not the file you sign, and the reason is measured.** Signing a
   text file canonicalises its line endings: the copy extracted from a `.p7m` has digest
   lines ending in a carriage return, `shasum -c` looks for `kpi.json\r`, and every line
@@ -77,6 +105,31 @@ reasoning, the order of work and what it costs are in `docs/plan-local-first.md`
   is the container and never the author, and two additions to *What never to write*: no
   PDF/A claim on a Chrome rendering, and nothing that lets a signature over the document
   stand in for the measurement.
+
+### Measured
+
+Three verifications that a real machine settled and no analysis had.
+
+- **A qualified signature over an embedded bundle survives it.** One Italian client, one
+  real certificate: the signature is an incremental update, the 321,051 original bytes are
+  intact, the `/EmbeddedFile` sits inside the signed byte range, `pdfdetach` returns the
+  bundle byte-identical from the signed file, and the extracted tar still verifies through
+  `core.js`. The signature is **PAdES B-LT** — `signingCertificateV2` and
+  `signatureTimeStampToken` in the CMS, `/DSS` with `/OCSPs` and `/VRI` appended after it.
+  `pdfsig` reports *"Not total document signed"* and that **is** what LT looks like: the
+  revocation evidence is appended after the signature and lies outside its range by
+  construction.
+- **Adobe Reader shows an embedded bundle and exports none of them.** Eight builds varying
+  one thing at a time — literal against UTF-16BE name strings, with and without
+  `/Subtype`, with and without `/AF`, a `.zip` name, an uncompressed stream — behave
+  identically, and so does a PDF written by poppler's own `pdfattach`, which never touched
+  this code. Firefox 154.0 and poppler 26.08.0 read all of them. Adobe Reader
+  2026.001.21789 on macOS 25.5 reads none. Left unexplained rather than guessed at, and
+  declared in `VERIFY.md`: a reader on Acrobat has to use Firefox or `pdfdetach`.
+- **Signing a tar as text destroys it** — OpenSSL's own default turns 256,000 bytes into
+  6,367 and *Unrecognized archive format*, with the signature valid over the wreckage. The
+  client tested does not do this; the check that establishes it is one text file, one
+  extraction, one digest comparison, and it is written down.
 
 ### Removed
 
@@ -124,9 +177,10 @@ which is both accurate and what keeps the skill the one GitHub calls *latest*.
 - Writing them found something this file had not recorded: **`.gitattributes` did not
   cover `example/`**, the register every contributor is told to run before opening a PR.
 
-## [Unreleased]
+<!-- These shipped in 1.5.0 and the heading was never moved. Kept as a subsection
+     rather than a release of its own: nothing here was ever released separately. -->
 
-### Added
+### Added in 1.5.0 — tests and CI
 
 - **A test suite, and CI.** 32 assertions in about a second, in three layers. The golden
   layer earns the most for the least code: `example/` regenerates its four outputs byte
@@ -142,7 +196,7 @@ which is both accurate and what keeps the skill the one GitHub calls *latest*.
 - CI runs on Python 3.9 and 3.13, on Ubuntu and macOS, plus a Windows job whose only
   purpose is to fail loudly on the line-ending hazard, on the platform that causes it.
 
-### Fixed
+### Fixed in 1.5.0
 
 All three were found the same way, and that is the part worth keeping: a full run of
 the method on a real article, in a session that did nothing but follow `SKILL.md`. The
