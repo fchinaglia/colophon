@@ -61,7 +61,8 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
 @pytest.mark.parametrize("section,end,budget", [
     ("### 1. Opening", "### 2. While writing", 1200),
     ("### 4. Closing", "## The annotation", 2300),
-    ("## What the author hears", "## The cycle", 400),
+    ("## What the author hears", "## Before the first case", 400),
+    ("## Before the first case", "## The cycle", 500),
 ])
 def test_a_section_of_the_skill_stays_within_its_budget(section, end, budget):
     """Blunt, and the only thing here that would have fired on 24 August, when the

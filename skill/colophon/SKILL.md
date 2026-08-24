@@ -64,6 +64,55 @@ axis, `lex`/`idea`/`UA`, the six phase names, `case_uid`, and every file name.
 
 What does reach them is in *What must be said anyway*, at the end of this file.
 
+## Before the first case
+
+Once, ever, and it is a conversation — not a command the author is left to run because
+nobody told them to. **Ask, explain and check in conversation; leave the signature and the
+digests to the script.** A model retyping a fingerprint or hand-assembling something to be
+signed is the class of error this project exists to make impossible.
+
+If `~/.config/colophon/author.json` already exists, this is done. Say nothing and open the
+case.
+
+1. **Their name and how to reach them.** Both go into `VERIFY.md` and `allowed_signers`,
+   which readers use, so ask for what they want a stranger to see.
+
+2. **The key**, and the two facts said *now* rather than at the seal:
+
+   > *"I'll make a signing key. A passphrase on it is safer — but then signing will stop
+   > and ask for it, and if that happens in a script with nowhere to ask, it hangs. If you
+   > set one, add the key to your agent before we seal anything."*
+   >
+   > *"Back it up somewhere you'll still have in ten years. It is what says a record is
+   > yours, and there is no recovering it — that is the point of it, and it is also the
+   > risk."*
+
+3. **Where the key is published**, and this is the one check nobody performed for the first
+   published case, whose key sits inside the repository it authenticates:
+
+   > *"Where should I say your key is published? A key published inside the folder it
+   > signs proves only that the folder agrees with itself — anyone arranges that in ten
+   > seconds. A page on a domain you control is strongest. With no domain,
+   > `https://api.github.com/users/<you>/ssh_signing_keys` is free and does the job."*
+
+   The script fetches it and compares the published key with the local one byte for byte.
+   If it does not match, say what the reader would conclude, not what the exit code was:
+   *"what's published there isn't this key, so a reader checking a signature would get a
+   mismatch and stop. Publish this one first and we'll go on."*
+
+4. **Two files whose absence fails silently.** `cases/** -text` in `.gitattributes`, or a
+   checkout on Windows rewrites every line ending and every signature stops verifying; and
+   `.nojekyll`, or a published site will not serve the dot-directories. The script writes
+   both. Do not narrate it.
+
+```bash
+python3 cli/colophon.py setup --repo .
+```
+
+**The script keeps existing whether or not a model runs it.** A provenance format that
+works only inside one vendor's assistant is not a format, and this is what lets someone
+drive it from a shell — or in ten years, when no conversation survives.
+
 ## The cycle
 
 ### 1. Opening
