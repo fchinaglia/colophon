@@ -4,6 +4,59 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [2.3.0] — 2026-08-24
+
+Closes #6. A case travels as one file handed to whoever the author hands it to, so the
+question stopped being what may be deposited and became what may be recorded.
+
+### Added
+
+- **Two regimes, declared before the brief: `open` and `confidential`.** Under
+  `confidential` the author's instructions are recorded as **what they required, never as
+  what they said** — and that is the whole of the difference. Every event, every editorial
+  decision, every attribution and every change is still recorded, and `build_page.py` says
+  so to the reader, because someone who counts the events and assumes none were held back
+  is being misled by omission.
+- **A red list the author declares**, matched word-bounded after NFD, accent stripping and
+  casefolding. `record.py` **warns and records**; it does not refuse. What may not be said
+  about a third party is a judgement, and the only part a machine decides is whether a
+  string named in advance is present. The check lives in `redlist_violations()`, never in
+  `violations()`: `spec/canonical.md` §4 is normative about what `append()` refuses and a
+  second implementation must reproduce it, while a machine-local list is reproducible by
+  nobody. The list lives in the config directory, never in the case folder.
+- **`review.py`, the last read before the register is sealed** — and the guard the warning
+  is not. A warning printed into a conversation while somebody is writing an article is a
+  warning nobody reads, so every hit comes back here, beside two structural filters: every
+  `human_contribution` event whole, and every payload string reproducing thirty characters
+  of a draft. `--set` rewrites a value and rebuilds the chain; **values are rewritten,
+  events are never deleted**. Every original timestamp survives, and the measurement does
+  not move — `measure.py` reads `payload.change` and nothing else, asserted by a test that
+  compares `kpi.json` across a rewrite.
+- `review.py --done` records **one event, always, in both regimes**, whether or not
+  anything changed: that the author read what the register says about other people, and
+  whether something was removed. Never which events, never how many. A review that only
+  appears when something was found is itself the disclosure.
+
+### Fixed
+
+- **`save_config()` chmodded the file and left the directory at umask.** With red lists in
+  that directory — named after `case_uid`, which is public, because the bundle is called
+  after it — a world-traversable directory would have exposed the names the list exists to
+  keep out of the record. This one is worth taking even if you never declare a red list.
+
+### Measured
+
+The first design of this gated `record.py` on quotation-shaped field names. The four
+events case 002 actually had to redact used `caso_A`, `caso_B`, `cambiamenti`, `rimossi`
+and `sostituzioni` — **none of them quotation-shaped** — so it would have caught nothing,
+and the inspector that printed "every quoted string" would have printed none of it either.
+Both were withdrawn. Two of those four events were *already summaries*, which is why
+`summarised` is a writing habit here and not a regime a register can promise.
+
+What none of it reaches is in case 002's own words at seq 67: *"i quattro dettagli
+restringevano la famiglia di aziende descritta"* — four details that narrowed the family
+of companies described, with no name anywhere. Identification by intersection.
+
 ## [2.2.0] — 2026-08-24
 
 ### Added
