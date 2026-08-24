@@ -1,6 +1,6 @@
 {
  "source": "versions/v04_final_article.md",
- "excluded": [1, 57, 58],
+ "excluded": [],
  "explained": {"R12": "superseded by R19",
                "R25": "diffuse terminology pass, attributions unchanged"},
  "blocks": {

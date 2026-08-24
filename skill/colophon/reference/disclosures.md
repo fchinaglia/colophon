@@ -128,11 +128,25 @@ Publishing it is what separates this from a declaration. `reference/VERIFY.md` i
 
 ---
 
-## Excluding the disclosure from your own count
+## The disclosure does not go in the source
 
-The blocks of the disclosure go in `excluded` inside `annotation.json`. The disclosure does not measure itself, and that has to be said.
+**Do not type the marker or the note into the text.** `render_md.py` and `render_pdf.py`
+generate both at render time, from the measurement, so a source that carries its own gets
+them twice. That is not hypothetical: the two cases sealed before this was true printed
+the level-1 marker once from the renderer and once from the text, and carried a paragraph
+note the generated block had already superseded — one of them naming an address that had
+stopped holding the register.
 
-**Better still, do not put it in the source at all.** `render_md.py` and `render_pdf.py` generate the marker and the block at render time, so a source that carries its own gets both twice — measured on the two cases sealed before this was true, which printed the level-1 marker once from the renderer and once from the text. The renderers now omit the blocks `excluded` names, for exactly this reason: the field already means *the blocks of the disclosure*, and nothing is lost, because those blocks stay in the sealed source where the manifest covers them.
+There is a second reason, and it is the stronger one. A note typed into the source is
+frozen by the manifest, and the numbers in it were true when they were typed. The
+generated one is derived from `kpi.json` every time, so it cannot drift from the
+measurement it reports — which is the same argument that made `build_note.py` generate the
+technical line rather than let anyone type a root.
+
+`annotation.json` keeps an `excluded` list for a source that already carries one: the
+disclosure does not measure itself, and that has to be said. The renderers also omit those
+blocks, so an older case renders correctly without being reopened. For a case opened
+today, the list is empty.
 
 ---
 
