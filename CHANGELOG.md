@@ -4,6 +4,61 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [Unreleased] — the local-first turn
+
+Colophon stops being a thing with a server in it. A case now travels as a document plus a
+bundle its author packs, and nothing has to stay online for a reader to check it. The
+reasoning, the order of work and what it costs are in `docs/plan-local-first.md`.
+
+### Added
+
+- **`build_bundle.py`** — writes `colophon-<case_uid>.tar`: everything the closing
+  manifest covers, the seal, and `verify.html`. Dropped on the verifier with the network
+  off, it gives the chain, the signature, every manifest digest and the timestamp. Four
+  refusals, each guarding a bundle that would travel looking complete: no manifest, no
+  seal, an output path inside the case folder, no verifier found. Deterministic — two
+  authors packing one case get the same bytes.
+- **`build_block.py`** — the disclosure block as one generated object instead of a shape
+  retyped from a specification two hundred lines below the pointer that sends you there.
+  It composes: the category and the boundary margin come from `build_icon.py`, the
+  technical line from `build_note.py`, so the block cannot disagree with the icon beside
+  it. Three forms — an HTML fragment, one SVG, plain text. Closes #17.
+- **`render_md.py`** — the published document: the covered version, the marker under the
+  title, the block at the foot. It adds and never rewrites. **The gate is not optional
+  and there is no flag to skip it**: the source is hashed against the manifest, and a
+  mismatch refuses. Once a signature is over a document, a reader reads *this file is
+  unaltered* as *this text is the text that was measured*, and those are two claims.
+- The manifest rule is now in the names rather than decided file by file: **`build_*` is
+  covered, `render_*` is not.**
+
+### Changed
+
+- `verifier/build.py` writes both copies of `verify.html` — `verifier/` and
+  `skill/colophon/` — from one source, with a repo invariant asserting they match. A
+  stale skill copy would ship an old verifier inside new evidence, and an old verifier
+  verifies an old case perfectly.
+- **SKILL.md §Publication** is three routes, not one: attached, at an address, or
+  neither, with what each buys and what the attachment cannot do. A bundle in a reader's
+  hands is frozen and cannot announce that it has been superseded — which is why the root
+  is printed in the document.
+- The thousands separator follows the language. `1,096 parole` reads to an Italian eye as
+  one thousand and ninety-six thousandths, and the word count is the first number a
+  reader meets. Found by running the generator against a real case.
+
+### Removed
+
+- **`server/`** — ingest, the two compose files, the Dockerfile, the container nginx, and
+  their 31 tests. The instance at `deposit.colophonmethod.com` is **frozen, not deleted**:
+  it serves the cases it holds, at the same addresses, and answers `410` at `/c` with a
+  plain-text body naming `build_bundle.py`. One of those cases has its address printed in
+  a signed technical line inside a published PDF, and a PDF cannot be edited.
+- **`colophon deposit` and `colophon address`**, and everything only they used: the base58
+  case id, `author_secret`, the evidence base URL, the submission signature. The client is
+  one command now. This also removes the promised-but-absent `--unpublished` flag and the
+  write-only `deferred` key.
+- `deploy/` keeps what is still live and nothing else: the apex, the key at
+  `/.well-known/colophon/keys`, and the frozen instance configuration.
+
 ## [1.5.0] — 2026-08-23
 
 Two deliverables now live in this repository and they are versioned separately.

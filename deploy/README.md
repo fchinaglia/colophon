@@ -11,7 +11,7 @@ Two names, one canonical.
 ```
 colophonmethod.com          the site, and /.well-known/colophon/keys
 www.colophonmethod.com      301 to the apex, permanently
-deposit.colophonmethod.com  the instance, when it exists — a different host on purpose
+deposit.colophonmethod.com  the instance, frozen — reads only, forever
 ```
 
 The apex is canonical because the address gets printed into notes and frozen into PDFs,
@@ -65,62 +65,46 @@ Step 4 is the one that matters: an anchor nobody is told about anchors nothing.
 **The private key never goes on the server.** Only `keys`, which is public by design.
 A server that can sign registers is a server that can forge them.
 
-## The instance — deposit.colophonmethod.com
+## The instance — deposit.colophonmethod.com, frozen
 
-Its own name, on purpose: **the key that vouches for a depositor must not be served by
-the same machine that stores their case.** The apex serves the keys; this name serves
-cases and nothing else.
+It ran from 23 to 24 August 2026 and accepted deposits for one day. It now serves what
+it holds and nothing else: `nginx` answers `410` at `/c` with a plain-text body naming
+`build_bundle.py`, and the ingest container is stopped.
 
-One nginx, not two. The host already runs one for the apex, so the production stack
-brings only the write process; the host serves the data directory directly and proxies
-`POST /c` to loopback. `compose.prod.yml` binds the port to `127.0.0.1`, so nothing
-reaches ingest except through nginx, which is where TLS, the size cap and the rate
-limits live.
+`deposit.colophonmethod.com.conf` in this directory is that frozen configuration, and it
+is the file to keep. The live copy is at `/etc/nginx/sites-enabled/deposit.conf` — a real
+file, not a symlink from `sites-available`.
+
+**Do not take it down and do not delete `/srv/deposit`.** One case deposited there has
+its address printed in a signed technical line inside a published PDF, and a PDF cannot
+be edited. Removing the host would turn that line into a dead link under a disclosure —
+which `disclosures.md` calls evidence from a distance and the opposite of it up close,
+and which is the failure the whole method exists to prevent.
 
 ```bash
-# 1. the data directory, owned by the container's user BEFORE anything writes there
-mkdir -p /srv/deposit/public/c /srv/deposit/public/k
-chown -R 65534:65534 /srv/deposit          # nobody:nogroup inside the image
-chmod 755 /srv /srv/deposit /srv/deposit/public
-
-# 2. docker
-curl -fsSL https://get.docker.com | sh
-
-# 3. the certificate, before the config that names it
-cp /root/deposit.colophonmethod.com.conf /etc/nginx/sites-enabled/deposit.conf.off
-certbot certonly --webroot -w /var/www/certbot -d deposit.colophonmethod.com
-
-# 4. the config, then the stack
-mv /etc/nginx/sites-enabled/deposit.conf.off /etc/nginx/sites-enabled/deposit.conf
+# what the freeze was
 nginx -t && systemctl reload nginx
-cd /root/colophon-proto/server && docker compose -f compose.prod.yml up --build -d
+cd /srv/colophon/server && docker compose -f compose.prod.yml stop ingest
 
-# 5. invite-only while it is being tested
-printf '# trial\nSOMECODE\n' > /srv/deposit/invites.txt
-chown 65534:65534 /srv/deposit/invites.txt
+# what it should answer, forever
+curl -sI https://deposit.colophonmethod.com/c/<case>/ | head -1    # 200
+curl -s  -X POST https://deposit.colophonmethod.com/c              # 410, plain text
 ```
 
-**Step 1 is not boilerplate.** The image runs as `nobody` and drops privileges; a bind
-mount arrives with the host's ownership, so without the `chown` the container cannot
-create `/data/public` and **crash-loops while `docker compose ps` reports it running** —
-`restart: unless-stopped` hides it. That happened on the first local run and it will
-happen here for the same reason. And the mode matters too: nginx runs as a different
-user again, and a directory it cannot traverse produces a 404 on a file that is sitting
-right there, with `Permission denied` only in the error log.
+The `server/` directory that built the ingest container is gone from the repository. The
+container image on the droplet is stopped, not removed; leaving it costs nothing and
+makes the freeze reversible while the data is still there.
 
-### Then check it from outside
+## What is left to keep alive
 
-```bash
-curl -s https://deposit.colophonmethod.com/health
-colophon deposit <case> --to https://deposit.colophonmethod.com --invite SOMECODE --mirror
-curl -sO https://deposit.colophonmethod.com/c/<id>/events.jsonl   # digest must match
-```
+Two files, on one droplet, and neither is a service.
 
-The digest is the check that matters: it proves the bytes survived storage, the proxy
-and TLS. Everything else can look right while that has quietly changed.
+`/.well-known/colophon/keys` at the apex. Without it every signature this project has
+made is circular again: a key published inside the repository it authenticates proves
+that the repository agrees with itself.
 
-## Still not decided
+The frozen instance, serving one case at the address its PDF prints.
 
-Fixed-price hosting with included bandwidth — never anything billed per request or per
-byte, so a flood degrades into a slowdown instead of a bill. The droplet appears to be
-that already; it is worth confirming rather than assuming.
+Both want fixed-price hosting with included bandwidth — never anything billed per
+request or per byte, so a flood degrades into a slowdown instead of a bill. The droplet
+appears to be that already; it is worth confirming rather than assuming.

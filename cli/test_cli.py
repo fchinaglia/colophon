@@ -40,37 +40,6 @@ def head(s):
     print(f"\n{s}")
 
 
-# --------------------------------------------------------------- base58 / case_id
-head("addresses")
-
-# alphabet[0] is "1", so two zero bytes are "11" and the value 1 is "2"
-ok(C.b58encode(b"\x00\x00\x01") == "112", "base58 keeps leading zero bytes",
-   C.b58encode(b"\x00\x00\x01"))
-ok(C.b58encode(bytes([255] * 16)), "base58 encodes 16 bytes")
-
-SECRET = "11" * 32
-cid1 = C.case_id(SECRET, "my-first-piece")
-cid2 = C.case_id(SECRET, "my-first-piece")
-cid3 = C.case_id(SECRET, "my-second-piece")
-cid4 = C.case_id("22" * 32, "my-first-piece")
-ok(cid1 == cid2, "the same secret and uid give the same address")
-ok(cid1 != cid3, "a different uid gives a different address")
-ok(cid1 != cid4, "a different secret gives a different address")
-ok(len(cid1) == 22, "22 characters", f"got {len(cid1)}: {cid1}")
-ok(all(ch in C.B58 for ch in cid1), "base58 alphabet only")
-ok("_" not in cid1 and "0" not in cid1 and "O" not in cid1 and "l" not in cid1,
-   "no underscore and no look-alike characters", cid1)
-
-# --------------------------------------------------------------- url checks
-head("url checks")
-
-ok(C.check_base_url("https://example.com/colophon/") == [], "a good base URL passes")
-ok(any("https" in p for p in C.check_base_url("http://example.com/c/")), "rejects http")
-ok(any("/" in p for p in C.check_base_url("https://example.com/c")), "wants a trailing /")
-ok(any("underscore" in p for p in C.check_base_url("https://example.com/my_cases/")),
-   "rejects an underscore in the path")
-ok(C.check_base_url("https://my_host.example.com/c/") != [], "rejects it in the host too")
-
 # --------------------------------------------------------------- setup, in a sandbox
 head("setup")
 
@@ -96,12 +65,12 @@ r = run_cli("setup", "--batch", "--name", "Test Author",
 cfg_path = os.path.join(home, ".config", "colophon", "author.json")
 ok(os.path.exists(cfg_path), "config written")
 cfg = json.load(open(cfg_path, encoding="utf-8"))
-ok(oct(os.stat(cfg_path).st_mode)[-3:] == "600", "config is mode 600 — it holds the secret",
+ok(oct(os.stat(cfg_path).st_mode)[-3:] == "600", "config is mode 600",
    oct(os.stat(cfg_path).st_mode))
 ok(cfg["key_fingerprint"].startswith("SHA256:"), "fingerprint recorded",
    cfg.get("key_fingerprint"))
-ok(len(bytes.fromhex(cfg["author_secret"])) == 32, "author_secret is 32 bytes")
-ok(cfg["deferred"] is True, "no URLs yet, so recorded as deferred")
+ok("author_secret" not in cfg and "base_url" not in cfg,
+   "nothing left over from the deposit: both derived an address that no longer exists")
 ok(os.path.exists(key) and os.path.exists(key + ".pub"), "key generated")
 
 ga = open(os.path.join(repo_copy, ".gitattributes"), encoding="utf-8").read()
@@ -112,92 +81,9 @@ r = run_cli("setup")
 ok("Already set up" in r.stdout, "a second setup refuses to clobber the first")
 
 r = run_cli("setup", "--batch", "--force", "--name", "T", "--contact", "t@e.com",
-            "--key", key, "--base-url", "https://example.com/bad_path/", expect=1)
-ok("underscore" in r.stdout, "setup stops on a bad base URL")
-
-# --------------------------------------------------------------- deposit
-head("deposit")
-
-case_src = os.path.join(REPO, "cases", "001")
-if not os.path.isdir(case_src):
-    print(f"  (skipped: {case_src} not found)")
-else:
-    case = os.path.join(home, "case")
-    shutil.copytree(case_src, case)
-    cj = os.path.join(case, "case.json")
-    d = json.load(open(cj, encoding="utf-8"))
-    d["case_uid"] = "test-loop-case"          # fixed when a case is opened
-    json.dump(d, open(cj, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
-    r = run_cli("deposit", case)
-    tar_path = os.path.join(case, "deposit.tar")
-    ok(os.path.exists(tar_path), "deposit.tar written")
-    with tarfile.open(tar_path) as tf:
-        names = tf.getnames()
-        ok(names[0] == "submission.json",
-           "submission.json is the FIRST member — the server reads it before extracting",
-           str(names[:2]))
-        out = json.loads(tf.extractfile("submission.json").read().decode("utf-8"))
-        ok(set(names[1:]) == set(out["submission"]["files"]),
-           "the tar carries exactly the declared files")
-    sub = out["submission"]
-    ok(out["public_key"].startswith("ssh-ed25519"), "the public key travels with it")
-
-    rows = [json.loads(l) for l in open(os.path.join(case, "events.jsonl"),
-                                        encoding="utf-8") if l.strip()]
-    ok(sub["root"] == rows[-1]["hash"], "root is the last event's hash")
-    ok(sub["case_id"] == C.case_id(cfg["author_secret"], sub["case_uid"]),
-       "address is recomputable from the uid and the secret")
-    ok(sub["case_uid"] == "test-loop-case", "the uid travels in the submission")
-    ok(sub["key_fingerprint"] == cfg["key_fingerprint"], "carries the fingerprint")
-
-    files = sub["files"]
-    ok("events.jsonl" in files, "the register is deposited")
-    ok("events.jsonl.sig" in files and "events.jsonl.v1.sig" in files,
-       "every seal artifact goes, superseded ones included")
-    ok("kpi.json" in files and "annotation.json" in files, "the measurement goes")
-
-    drafts = [f for f in files if f.startswith("versions/")]
-    ok(drafts == ["versions/v22_final.txt"],
-       "exactly one version — the source the manifest covers", str(drafts))
-    ok("versions/v1.txt" not in files, "the drafts are withheld")
-    ok("post.pdf" not in files and "post.html" not in files, "renderings are withheld")
-    ok("render_post.py" not in files,
-       "a script the manifest does not cover is withheld, despite the .py")
-    ok("submission.json" not in files, "the submission does not deposit itself")
-    ok("deposit.tar" not in files, "the tar does not contain itself")
-
-    # every declared digest is right
-    bad = [f for f, d in files.items()
-           if C.sha256_file(os.path.join(case, f)) != d]
-    ok(not bad, "every declared digest matches the file", str(bad))
-
-    # the signature verifies, under its own namespace and no other
-    body = json.dumps(sub, sort_keys=True, separators=(",", ":"),
-                      ensure_ascii=False).encode("utf-8")
-    d = tempfile.mkdtemp()
-    payload, sigfile = os.path.join(d, "p"), os.path.join(d, "p.sig")
-    open(payload, "wb").write(body)
-    open(sigfile, "w", encoding="utf-8").write(out["signature"])
-    allowed = os.path.join(d, "allowed_signers")
-    open(allowed, "w", encoding="utf-8").write(
-        f'test@example.com namespaces="colophon-deposit" '
-        f'{open(key + ".pub", encoding="utf-8").read().strip()}\n')
-
-    def verify(ns):
-        return subprocess.run(
-            ["ssh-keygen", "-Y", "verify", "-f", allowed, "-I", "test@example.com",
-             "-n", ns, "-s", sigfile],
-            stdin=open(payload, "rb"), capture_output=True, text=True)
-
-    ok(verify("colophon-deposit").returncode == 0, "the submission signature verifies")
-    ok(verify("colophon").returncode != 0,
-       "it does NOT verify under the register's namespace — namespaces are separated")
-
-    tampered = bytearray(body)
-    tampered[-3] ^= 1
-    open(payload, "wb").write(bytes(tampered))
-    ok(verify("colophon-deposit").returncode != 0, "a tampered submission fails")
-    shutil.rmtree(d, ignore_errors=True)
+            "--key", key, "--key-url", "https://example.invalid/nope", expect=1)
+ok("Publish the key there first" in r.stdout + r.stderr,
+   "a key URL that does not serve this key stops setup")
 
 shutil.rmtree(home, ignore_errors=True)
 print(f"\n{passed} passed, {failed} failed")

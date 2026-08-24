@@ -22,7 +22,7 @@ DOCS = ["skill/colophon/SKILL.md",
 
 @pytest.mark.parametrize("name", ["record.py", "measure.py", "build_page.py",
                                   "build_icon.py", "build_note.py",
-                                  "build_block.py", "render_md.py"])
+                                  "build_block.py", "build_bundle.py", "render_md.py"])
 def test_the_example_has_not_forked_from_the_skill(name):
     """example/ is the worked case a reader runs. If it drifts, the golden tests are
     measuring a copy nobody ships."""

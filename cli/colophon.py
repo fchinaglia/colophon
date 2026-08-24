@@ -2,10 +2,18 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2026 Fabio Chinaglia
 """
-colophon — set up an author, and deposit a sealed case.
+colophon — set up an author.
 
     colophon setup                  once, before the first case
-    colophon deposit <case-dir>     build and sign a submission
+
+One command, and it does one thing: make a signing key, and check that the place you
+say you publish it really serves it. Everything else a case needs is in the case
+folder, run from there, by the scripts the skill copies in.
+
+`deposit` used to live here. It is gone with the instance it talked to: a case now
+travels as a bundle its author packs — `build_bundle.py` in the case folder — and
+nothing has to stay online for a reader to check it. The reasoning is in
+docs/plan-local-first.md.
 
 Standard library only, like every script this project ships: a case folder has to
 still work in ten years with no `pip install`.
@@ -15,18 +23,10 @@ never an authority — `case.json` remains the per-case record, and it is the on
 manifest covers.
 """
 import argparse
-import hashlib
-import hmac
-import io
 import json
 import os
-import re
-import secrets
-import shutil
 import subprocess
-import tarfile
 import sys
-import tempfile
 import urllib.error
 import urllib.request
 
@@ -59,50 +59,6 @@ def save_config(cfg):
     os.chmod(config_path(), 0o600)          # it holds author_secret
 
 
-# --------------------------------------------------------------------------- base58
-
-# Bitcoin's alphabet: no 0/O, no I/l. The address gets printed in a PDF and retyped
-# by hand, and it must survive a URL detector, which cuts a link at an underscore.
-B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-CASE_ID_LEN = 22
-
-
-def b58encode(data: bytes) -> str:
-    n = int.from_bytes(data, "big")
-    out = ""
-    while n:
-        n, r = divmod(n, 58)
-        out = B58[r] + out
-    return "1" * (len(data) - len(data.lstrip(b"\0"))) + out
-
-
-def case_id(author_secret_hex: str, case_uid: str) -> str:
-    """The address a case lives at.
-
-        case_id = base58( HMAC-SHA256(author_secret, case_uid)[:16] )   padded to 22
-
-    Derived from an identifier the author fixes when the case is OPENED, not from the
-    register's root. That is what makes the address exist before the case is sealed, so
-    it can go into case.json and be covered by the manifest — a root-derived address
-    cannot, because the root is the hash of the manifest event and the manifest covers
-    case.json.
-
-    HMAC rather than a random id, so the author recomputes any case's address from its
-    uid and their secret and never has to store a URL. To anyone else it is
-    indistinguishable from 128 random bits: holding one address is no help in finding
-    another, and there is no author component, so two cases by the same person cannot be
-    linked from their addresses.
-
-    What it gives up is that the address no longer commits to the content — but that was
-    already given up when the root left the path, and link substitution stays detectable
-    from a better anchor: the note prints the root, so the reader compares against the
-    article in their hands rather than against the URL somebody sent them.
-    """
-    mac = hmac.new(bytes.fromhex(author_secret_hex), case_uid.encode("utf-8"),
-                   hashlib.sha256).digest()
-    return b58encode(mac[:16]).rjust(CASE_ID_LEN, "1")
-
-
 # --------------------------------------------------------------------------- ssh
 
 def ssh_keygen(*args, **kw):
@@ -130,38 +86,7 @@ def key_blob(pub_path):
     raise RuntimeError(f"{pub_path} does not look like a public key")
 
 
-def sign(key_path, namespace, data: bytes) -> str:
-    """Detached SSHSIG over `data`, returned armored."""
-    d = tempfile.mkdtemp(prefix="colophon-sign-")
-    try:
-        f = os.path.join(d, "payload")
-        with open(f, "wb") as fh:
-            fh.write(data)
-        r = ssh_keygen("-Y", "sign", "-f", key_path, "-n", namespace, f)
-        if r.returncode:
-            raise RuntimeError(r.stderr.strip() or "ssh-keygen -Y sign failed")
-        with open(f + ".sig", encoding="utf-8") as fh:
-            return fh.read()
-    finally:
-        shutil.rmtree(d, ignore_errors=True)
-
-
 # --------------------------------------------------------------------------- checks
-
-UNDERSCORE = "an underscore: URL detectors cut a link at the first one, so the address " \
-             "arrives at the reader truncated and 404s while the printed line reads right"
-
-
-def check_base_url(url):
-    problems = []
-    if not url.startswith("https://"):
-        problems.append("it is not https")
-    if not url.endswith("/"):
-        problems.append("it does not end in / — it is a prefix, each case hangs off it")
-    if "_" in url.split("://", 1)[-1]:
-        problems.append(UNDERSCORE)
-    return problems
-
 
 def fetch(url, timeout=15):
     req = urllib.request.Request(url, headers={"User-Agent": "colophon-setup"})
@@ -242,13 +167,9 @@ def cmd_setup(a):
     fp = fingerprint(pub_path)
     print(f"  fingerprint: {fp}")
 
-    # -- the secret that makes an address recomputable
-    secret = (cfg or {}).get("author_secret") or secrets.token_hex(32)
-
-    print("\n  Back up BOTH the private key and this config now.")
-    print("  The key is your identity: it signs registers and it is what withdraws a")
-    print("  deposited case. There is no cryptographic recovery, and there must not be.")
-    print("  The config holds author_secret, which is what recomputes a case's address.")
+    print("\n  Back up the private key now. It is your identity: it signs registers,")
+    print("  and a register nobody can attribute is a register nobody has to believe.")
+    print("  There is no cryptographic recovery, and there must not be.")
 
     # -- key url
     key_url = a.key_url or ""
@@ -269,30 +190,15 @@ def cmd_setup(a):
             print("  key URL verified: the published key is this key")
             verified = True
     else:
-        print("  ! no key URL. Recorded as deferred — full mode will refuse to seal")
-        print("    until there is one, or until you pass --unpublished explicitly.")
+        print("  ! no key URL. A register signed by a key nobody can fetch proves that")
+        print("    the folder is consistent with itself, which anyone arranges in ten")
+        print("    seconds. Publish the key and re-run: it is once, not per case.")
         verified = None
-
-    # -- evidence base
-    base_url = a.base_url or ("" if a.batch else prompt(
-        "\n  evidence base URL, a prefix like https://example.com/colophon/"))
-    if base_url:
-        bad = check_base_url(base_url)
-        if bad:
-            for b in bad:
-                print(f"  ! {b}")
-            return 1
-        print("  This address is a promise. It is rendered into every note and frozen")
-        print("  into every PDF. Do not move a case once it is published.")
 
     cfg = {
         "name": name, "contact": contact, "author_id": author_id or None,
         "key_path": key_path, "key_fingerprint": fp,
         "key_url": key_url or None, "key_url_verified": verified,
-        "author_secret": secret,
-        "base_url": base_url or None,
-        "previous_bases": (cfg or {}).get("previous_bases", []),
-        "deferred": not (key_url and base_url),
     }
     save_config(cfg)
     print(f"\n  written: {config_path()}  (mode 600)")
@@ -320,247 +226,6 @@ def tidy(repo):
     return 0
 
 
-# --------------------------------------------------------------------------- deposit
-
-def read_register(case_dir):
-    p = os.path.join(case_dir, "events.jsonl")
-    with open(p, "rb") as f:
-        raw = f.read()
-    rows = [json.loads(l) for l in raw.decode("utf-8").splitlines() if l.strip()]
-    if not rows:
-        raise RuntimeError("the register is empty")
-    if "hash" not in rows[-1]:
-        raise RuntimeError("the last event carries no hash")
-    return raw, rows
-
-
-def manifest_of(rows):
-    """The closing manifest: the last event carrying a payload.sha256 table."""
-    for r in reversed(rows):
-        d = (r.get("payload") or {}).get("sha256")
-        if isinstance(d, dict):
-            return d
-    return None
-
-
-# The manifest is the authority on what belongs to a case: it covers the source
-# version, the annotation, the measurement, case.json, the icon, the verification
-# page and every script a reader runs. Two things sit outside it and still belong in
-# a deposit — the seal artifacts, which cannot be inside a manifest that precedes
-# them, and the reader-facing files the manifest deliberately leaves out.
-SEAL_PREFIX = "events.jsonl"
-# index.html is the verification page and the manifest covers it, so it is kept twice
-# over; it stays named here because a case sealed before build_page.py took that name
-# carries an index.html that is prose about the case, outside its manifest, and that
-# file is still the door a reader arrives at. README.md is prose in every case.
-# allowed_signers is the ready-made form of the key a reader feeds to
-# `ssh-keygen -Y verify`, and it is there for reproduction, not for trust — the
-# binding to a person lives elsewhere.
-READER = {"index.html", "README.md", "allowed_signers"}
-
-# Used only when a case has no manifest at all, which the caller has already warned
-# about: better a conservative list than everything on disk.
-FALLBACK = {
-    "annotation.json", "spans.json", "kpi.json", "case.json", "icon.svg",
-    "verification.html", "colophon.pub", "allowed_signers", "VERIFY.md",
-    "VERIFICA.md", "LICENSE",
-}
-
-
-def collect(case_dir, manifest):
-    """What may be deposited, what may not, and why not.
-
-    Drafts are the reason this exists. `versions/` holds unpublished writing, and the
-    register holds briefs and editorial reasoning that may name people who consented
-    to nothing. Only the one version the manifest covers goes: it is the published
-    text, the one measure.py reconstructs. The register commits to the digests of the
-    rest, so they stay attested without being revealed.
-    """
-    keep, refused = {}, []
-    covered = set(manifest or ())
-    for base, dirs, files in os.walk(case_dir):
-        dirs[:] = [d for d in dirs if not d.startswith(".")]
-        for fn in sorted(files):
-            if fn.startswith(".") or fn == "submission.json":
-                continue
-            full = os.path.join(base, fn)
-            rel = os.path.relpath(full, case_dir)
-            if rel.startswith(SEAL_PREFIX) or rel in READER:
-                keep[rel] = full                      # register, seals, landing page
-            elif rel in covered or (not manifest and rel in FALLBACK):
-                keep[rel] = full
-            elif rel.startswith("versions/"):
-                refused.append((rel, "a draft"))
-            elif rel.lower().endswith((".pdf", ".html", ".md", ".png", ".jpg")):
-                refused.append((rel, "a rendering — derivable from what is covered"))
-            else:
-                refused.append((rel, "not covered by the manifest"))
-    return keep, refused
-
-
-def sha256_file(path):
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1 << 16), b""):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-def cmd_deposit(a):
-    cfg = load_config()
-    if not cfg:
-        print("! not set up yet — run `colophon setup` first.", file=sys.stderr)
-        return 1
-
-    case_dir = os.path.abspath(a.case_dir)
-    try:
-        raw, rows = read_register(case_dir)
-    except (OSError, RuntimeError, ValueError) as e:
-        print(f"! {case_dir}: {e}", file=sys.stderr)
-        return 1
-
-    root = rows[-1]["hash"]
-    try:
-        case_json = json.load(open(os.path.join(case_dir, "case.json"), encoding="utf-8"))
-    except (OSError, ValueError):
-        case_json = {}
-    uid = a.uid or case_json.get("case_uid")
-    if not uid:
-        print("! this case has no `case_uid` in case.json, and none was given with --uid.",
-              file=sys.stderr)
-        print("  The address is derived from it, and it must be fixed when the case is",
-              file=sys.stderr)
-        print("  opened — before the manifest, which covers case.json.", file=sys.stderr)
-        return 1
-    cid = case_id(cfg["author_secret"], uid)
-    manifest = manifest_of(rows)
-    keep, refused = collect(case_dir, manifest)
-
-    if a.mirror:
-        print("\n  Mirroring requested. A copy will be pushed to a public archive, and")
-        print("  that is permanent: it is what keeps this case reachable if the instance")
-        print("  goes away, and it cannot be undone afterwards.")
-    print(f"\n  case      {case_dir}")
-    print(f"  events    {len(rows)}")
-    print(f"  root      {root}")
-    print(f"  address   /c/{cid}/")
-    if not manifest:
-        print("  ! no closing manifest in this register. The signature would commit to")
-        print("    the register and nothing else — seal the case properly first.")
-        if not a.force:
-            return 1
-
-    print(f"\n  depositing {len(keep)} files:")
-    for rel in sorted(keep):
-        print(f"    {sha256_file(keep[rel])[:12]}…  {rel}")
-    if refused:
-        print(f"\n  withheld {len(refused)}:")
-        for rel, why in sorted(refused):
-            print(f"    {rel}  ({why})")
-        print("\n  Drafts are never deposited. The register commits to their digests,")
-        print("  so they are attested without being revealed — the reader keeps every")
-        print("  check and loses only the ability to read your drafts.")
-
-    submission = {
-        "case_id": cid,
-        "case_uid": uid,
-        "mirror": bool(a.mirror),
-        "root": root,
-        "sha256_events": hashlib.sha256(raw).hexdigest(),
-        "files": {rel: sha256_file(p) for rel, p in sorted(keep.items())},
-        "key_fingerprint": cfg["key_fingerprint"],
-    }
-    body = json.dumps(submission, sort_keys=True, separators=(",", ":"),
-                      ensure_ascii=False).encode("utf-8")
-
-    if a.no_sign:
-        sig = None
-        print("\n  not signed (--no-sign)")
-    else:
-        try:
-            sig = sign(cfg["key_path"], "colophon-deposit", body)
-        except RuntimeError as e:
-            print(f"\n! signing failed: {e}", file=sys.stderr)
-            return 1
-        print(f"\n  signed under namespace colophon-deposit ({len(sig)} bytes armored)")
-
-    with open(cfg["key_path"] + ".pub", encoding="utf-8") as f:
-        pub_line = f.read().strip()
-    envelope = {"submission": submission, "signature": sig, "public_key": pub_line}
-
-    out = a.out or os.path.join(case_dir, "deposit.tar")
-    build_tar(out, envelope, keep, case_dir)
-    print(f"  written   {out}  ({os.path.getsize(out):,} bytes)")
-
-    if not a.to:
-        print("\n  No instance given. Pass --to <instance> to send it;")
-        print("  the address above is already final, because it is derived from the")
-        print("  root and your secret, and you can recompute it at any time.")
-        return 0
-
-    url = a.to.rstrip("/") + "/c"
-    print(f"\n  POST {url}")
-    with open(out, "rb") as f:
-        payload = f.read()
-    req = urllib.request.Request(url, data=payload, method="POST")
-    req.add_header("Content-Type", "application/x-tar")
-    if a.invite:
-        req.add_header("X-Colophon-Invite", a.invite)
-    try:
-        with urllib.request.urlopen(req, timeout=60) as r:
-            answer = json.loads(r.read().decode("utf-8"))
-            status = r.status
-    except urllib.error.HTTPError as e:
-        answer, status = json.loads(e.read().decode("utf-8") or "{}"), e.code
-    except Exception as e:                                          # noqa: BLE001
-        print(f"  ! {e}", file=sys.stderr)
-        return 1
-
-    if status == 201:
-        print(f"  {status}  stored at {a.to.rstrip('/')}{answer.get('url','')}")
-        print(f"        bundle: {a.to.rstrip('/')}{answer.get('bundle','')}")
-        print(f"        {answer.get('register','')}")
-        print(f"\n  {answer.get('note','')}")
-        return 0
-    print(f"  {status}  refused: {answer.get('refused') or answer}", file=sys.stderr)
-    return 1
-
-
-def build_tar(path, envelope, keep, case_dir):
-    """submission.json FIRST, so the server can read it and check the signature
-    before extracting anything else — cheapest check first is the whole ordering."""
-    tmp = path + ".tmp"
-    with tarfile.open(tmp, "w", format=tarfile.USTAR_FORMAT) as t:
-        blob = json.dumps(envelope, indent=1, sort_keys=True,
-                          ensure_ascii=False).encode("utf-8")
-        info = tarfile.TarInfo("submission.json")
-        info.size, info.mtime, info.mode = len(blob), 0, 0o644
-        t.addfile(info, io.BytesIO(blob))
-        for rel in sorted(keep):
-            info = t.gettarinfo(keep[rel], arcname=rel)
-            info.mtime, info.uid, info.gid = 0, 0, 0
-            info.uname = info.gname = ""
-            with open(keep[rel], "rb") as f:
-                t.addfile(info, f)
-    os.replace(tmp, path)
-
-
-def cmd_address(a):
-    """Print where a case will live, given its uid. Run this when the case is opened:
-    the answer goes into case.json, and the manifest then covers it."""
-    cfg = load_config()
-    if not cfg:
-        print("! not set up yet — run `colophon setup` first.", file=sys.stderr)
-        return 1
-    cid = case_id(cfg["author_secret"], a.uid)
-    base = (cfg.get("base_url") or "").rstrip("/")
-    print(f"  uid      {a.uid}")
-    print(f"  case_id  {cid}")
-    if base:
-        print(f"  url      {base}/c/{cid}/")
-    return 0
-
-
 # --------------------------------------------------------------------------- cli
 
 def main(argv=None):
@@ -568,39 +233,18 @@ def main(argv=None):
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
 
-    a2 = sub.add_parser("address", help="the address a case will live at, before it exists")
-    a2.add_argument("uid")
-    a2.set_defaults(func=cmd_address)
-
     s = sub.add_parser("setup", help="once, before the first case")
     s.add_argument("--force", action="store_true", help="replace an existing config")
     s.add_argument("--repo", help="repository root to tidy (.gitattributes, .nojekyll)")
     s.add_argument("--key", help="key path (default $COLOPHON_KEY or ~/.ssh/colophon)")
     s.add_argument("--allow-unverified", action="store_true",
                    help="accept a key URL that does not serve this key")
-    for f in ("name", "contact", "author-id", "key-url", "base-url"):
+    for f in ("name", "contact", "author-id", "key-url"):
         s.add_argument(f"--{f}")
     s.add_argument("--batch", action="store_true", help="no prompts; use the flags")
     s.set_defaults(func=cmd_setup)
 
-    d = sub.add_parser("deposit", help="build and sign a submission")
-    d.add_argument("case_dir")
-    d.add_argument("--to", help="instance base URL")
-    d.add_argument("--invite", help="invite code, while an instance is invite-only")
-    d.add_argument("--uid", help="the case uid, if case.json does not carry one")
-    d.add_argument("--mirror", action="store_true",
-                   help="ask the instance to push a copy to a public archive. Permanent "
-                        "and public: it is what makes the instance one location rather "
-                        "than the only one, and it is your choice, not its")
-    d.add_argument("--out", help="where to write the submission (default: in the case)")
-    d.add_argument("--no-sign", action="store_true")
-    d.add_argument("--force", action="store_true", help="deposit without a manifest")
-    d.set_defaults(func=cmd_deposit)
-
     a = p.parse_args(argv)
-    for attr in ("author_id", "key_url", "base_url"):
-        if not hasattr(a, attr):
-            setattr(a, attr, None)
     try:
         return a.func(a)
     except KeyboardInterrupt:
