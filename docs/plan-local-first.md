@@ -244,7 +244,21 @@ chooser.
 > timestamp), and the document still renders in poppler and in PDFium. The original bytes
 > are untouched — asserted, not assumed.
 >
-> **Three of the four tooling checks below remain open**, and they are the ones that need
+> **Check (c) closed, 24 August, by the author on a real machine.** Firefox's pdf.js lists
+> the attachment and downloads it; the downloaded tar, dropped on `verify.html` **with the
+> network off**, verifies. `pdfdetach` gets the same bytes. Two independent readers.
+>
+> **Adobe Reader shows the attachment and refuses to export it** — *"Impossibile esportare
+> da Adobe Acrobat il file selezionato"*, after the click, on every variant tried:
+> UTF-16 name strings, no `/AF`, no `/Subtype`, a `.zip` name, an uncompressed stream.
+> **It fails identically on a PDF written by poppler's own `pdfattach`**, which never
+> touched this code, so the writer is not implicated and no change to it would help. Left
+> unexplained rather than guessed at; what it needs is a second machine, and until then
+> the documentation has to say that a reader on Acrobat sees the attachment and cannot
+> save it, and name Firefox or `pdfdetach` instead. A route one reader in three cannot
+> finish is a route that has to be declared.
+>
+> **The other three checks remain open**, and they are the ones that need
 > a real qualified certificate: whether a signing client preserves `/Names/EmbeddedFiles`
 > and `/AF`; whether the result validates in Acrobat and the EU DSS validator; whether
 > level LT survives. Until those come back, `--embed` is a way to ship one file, not a way
