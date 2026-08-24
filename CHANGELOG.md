@@ -4,6 +4,35 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [2.2.0] — 2026-08-24
+
+### Added
+
+- **`build_block.py --form card`** — the block stacked, for a feed. `--form svg` produced
+  a 3.6:1 strip that a feed crops or shrinks past reading; a post is a container
+  `disclosures.md` names, and until now the skill could not serve it. 4:5, 1:1 and 1.91:1.
+  Lines wrap rather than the note shrinking, and a landscape ratio **refuses** rather than
+  producing an icon whose four labels are illegible — which is worse than no icon at all,
+  because it looks like a claim while being none.
+
+### Fixed
+
+- **A source that carries its own disclosure was getting it twice.** Both renderers
+  generate the marker and the block, so the two published cases printed the level-1 marker
+  once from the renderer and once from the text, and carried a paragraph note the
+  generated block had already superseded — one naming an address that had stopped holding
+  the register. The renderers now omit the blocks `excluded` names, which is what
+  `disclosures.md` defines that field to be. No case was reopened: a PDF is a rendering,
+  no manifest covers it, and both bundles come out of the new PDFs byte for byte identical.
+- **And three places still taught the pattern that caused it.**
+  `annotation_example.json` shipped case 002's excluded blocks as the example,
+  `disclosures.md`'s section led with *"the blocks of the disclosure go in `excluded`"*,
+  and `SKILL.md` said the block is generated without ever saying not to type it. All three
+  now lead with the rule: **the disclosure does not go in the source.** Not for the
+  duplication — for the drift. A typed note freezes numbers that were true when they were
+  typed; a generated one is derived from `kpi.json` every time. It is the argument that
+  made `build_note.py` generate the root rather than let anyone copy it.
+
 ## [2.1.0] — 2026-08-24
 
 Two sealed cases are published in the current format, and getting them there found two
