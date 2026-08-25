@@ -5,7 +5,7 @@
 ## A method for recording, measuring and declaring human and AI contribution in writing
 
 **Fabio Chinaglia** · August 2026  
-*Methodological document, version 0.1*
+*Methodological document, version 0.2*
 
 > **The colophon** is the note that, since the fifteenth century, closes a book by declaring how it was produced: printer, typeface, paper, date. This method moves that function from the book to text written together with a language model. The payoff line, instead, comes from the palimpsest, the reused manuscript in which the earlier writing remains visible beneath the new one — and it is also the formal property of the register: append-only, no event overwritten, every revision added rather than replaced.
 
@@ -359,6 +359,12 @@ It was produced by a language model at the author's request, starting from the r
 It has not been annotated span by span. The percentages in §9.2 refer to the **article** that was the object of validation, not to this document.
 
 This English version is a translation of the Italian original, produced by a language model and reviewed by the author. The translation is recorded in the register of the validation case. Where the two versions diverge, the Italian text prevails: it is the one the measurement was taken on.
+
+**Revisions.**
+
+*0.1, 23 August 2026* — first complete draft, written against the implementation as it stood at the validation case.
+
+*0.2, 25 August 2026* — brought back into line with an implementation that had moved. §7 no longer labels the Ed25519 signature *who*: with the public key travelling inside the bundle rather than published at an address, it establishes which key sealed the register and not whose it is. The same section previously held that the qualified signature was unusable, because the Italian one engulfs the document, and proposed periodic manifest signing instead; that route was never built, and the one that was — the register carried as an attachment inside a signed PDF, so it is never wrapped — keeps the objection and answers it, which is now what §7 describes. §8 listed half the scripts and omitted the verifier altogether; it is complete, and §8.1 states what a reader actually receives. §9.2 reported 75 events in the chain of the validation case, which was the span count: the register holds 83. Nothing in §1 to §6 or in the results changed.
 
 ---
 

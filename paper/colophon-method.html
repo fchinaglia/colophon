@@ -36,7 +36,7 @@ a { color: inherit; text-decoration: none; }
 <h1>Colophon</h1>
 <p><em>Written over, never erased.</em></p>
 <h2>A method for recording, measuring and declaring human and AI contribution in writing</h2>
-<p><strong>Fabio Chinaglia</strong> · August 2026 <em>Methodological document, version 0.1</em></p>
+<p><strong>Fabio Chinaglia</strong> · August 2026 <em>Methodological document, version 0.2</em></p>
 <blockquote><p><strong>The colophon</strong> is the note that, since the fifteenth century, closes a book by declaring how it was produced: printer, typeface, paper, date. This method moves that function from the book to text written together with a language model. The payoff line, instead, comes from the palimpsest, the reused manuscript in which the earlier writing remains visible beneath the new one — and it is also the formal property of the register: append-only, no event overwritten, every revision added rather than replaced.</p></blockquote>
 <hr>
 <h2>Abstract</h2>
@@ -202,6 +202,9 @@ scripts/seal.sh              signature, timestamp, anchoring</code></pre>
 <p>It was produced by a language model at the author's request, starting from the research material, the event register and the artefacts of the validation case produced in the same session. The lexical AI share is close to total; the ideational share is mixed, because the method it describes was born of the joint work documented in the register — and in particular the three categories in §4.3 emerged from the observation of the author's interventions, not from a proposal by the model.</p>
 <p>It has not been annotated span by span. The percentages in §9.2 refer to the <strong>article</strong> that was the object of validation, not to this document.</p>
 <p>This English version is a translation of the Italian original, produced by a language model and reviewed by the author. The translation is recorded in the register of the validation case. Where the two versions diverge, the Italian text prevails: it is the one the measurement was taken on.</p>
+<p><strong>Revisions.</strong></p>
+<p><em>0.1, 23 August 2026</em> — first complete draft, written against the implementation as it stood at the validation case.</p>
+<p><em>0.2, 25 August 2026</em> — brought back into line with an implementation that had moved. §7 no longer labels the Ed25519 signature <em>who</em>: with the public key travelling inside the bundle rather than published at an address, it establishes which key sealed the register and not whose it is. The same section previously held that the qualified signature was unusable, because the Italian one engulfs the document, and proposed periodic manifest signing instead; that route was never built, and the one that was — the register carried as an attachment inside a signed PDF, so it is never wrapped — keeps the objection and answers it, which is now what §7 describes. §8 listed half the scripts and omitted the verifier altogether; it is complete, and §8.1 states what a reader actually receives. §9.2 reported 75 events in the chain of the validation case, which was the span count: the register holds 83. Nothing in §1 to §6 or in the results changed.</p>
 <hr>
 <h2>References</h2>
 <p>The complete references, with URLs and verification notes, are in the survey documents that accompany this work:</p>
