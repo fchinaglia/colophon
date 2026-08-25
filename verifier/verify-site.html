@@ -39,9 +39,16 @@
 
 /* --- chrome: the only part that is ours --- */
 * { box-sizing:border-box; }
+/* These four lines are not decoration: without them the same typeface renders
+   visibly heavier here than on every other page of the site, and the tool looks
+   like a different document from the one that links to it. */
 body { margin:0; background:var(--bg); color:var(--fg);
-       font:19px/1.58 var(--font-serif); }
+       font-family:var(--font-serif); font-size:1.1875rem; line-height:1.58;
+       font-synthesis-weight:none;
+       -webkit-font-smoothing:antialiased;
+       text-rendering:optimizeLegibility; }
 code, pre, .mono { font-family:var(--font-mono); }
+strong, b { font-weight:600; }
 a { color:inherit; }
 
 .page { max-width:58rem; margin:0 auto; padding:0 1.25rem; }
@@ -61,8 +68,8 @@ a { color:inherit; }
   border-bottom:2px solid var(--point); }
 
 main { padding:2.5rem 0 4rem; }
-h1 { font-size:1.9rem; line-height:1.14; margin:0 0 .4rem; font-weight:400;
-     letter-spacing:-.008em; }
+h1 { font-size:2.375rem; line-height:1.05; margin:0 0 .4rem; font-weight:500;
+     letter-spacing:-.02em; text-wrap:balance; }
 .eyebrow { font-family:var(--font-mono); font-size:.75rem; letter-spacing:.12em;
            text-transform:uppercase; color:var(--quieter); margin:0 0 .6rem; }
 .sub { color:var(--dim); margin:0 0 1.1rem; font-size:1rem; max-width:34rem; }
@@ -121,6 +128,18 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
   border:1px solid var(--line); border-radius:10px; background:var(--card); display:block; }
 /* main is the site's container here, so the tool sits in the page column. */
 main .page > #out, main .page > #drop { margin-left:0; margin-right:0; }
+
+/* The components carry the verifier's own weights, tuned for a system sans. This
+   page is set in the site's serif, where 640 reads as heavy and 500 is what every
+   other heading uses. Weight is chrome: the components themselves are untouched
+   and identical in both builds. */
+section.card h2 { font-weight:500; font-size:1.35rem; letter-spacing:-.012em; }
+#tabs button[aria-selected="true"] { font-weight:500; }
+#tabs button { font-family:var(--font-mono); font-size:.8125rem;
+               letter-spacing:.04em; }
+.badge { font-family:var(--font-mono); font-weight:400; }
+dt, .note, footer, .rephead p { font-size:.9375rem; }
+label.btn, a.ghost { font-family:var(--font-mono); font-size:.8125rem; }
 </style>
 </head>
 <body>
