@@ -4,6 +4,106 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [3.0.0] — 2026-08-25
+
+**Breaking, twice.** A case no longer has an address, and a key is no longer published at
+one. What is left is a file the author hands over and, if they want a name attached to it,
+a qualified signature on the document that carries it.
+
+### Measured first
+
+Both changes came out of one test run, and neither was a bug report about code.
+
+At the closing, the model offered the author a choice between a self-contained file and
+depositing the case at `deposit.colophon.com` — **a host that has never existed**. The
+deposit instance was withdrawn in 2.0.0, but `### Publication` still described three
+routes and the second was *"a web address people can link to"*. A route stated as a choice
+gets filled in, and the model filled it in with an address it invented.
+
+The second was worse because nothing was invented. `colophon setup` fetched the key URL
+and returned `1` with *"Publish the key there first, then re-run"* when it did not answer
+— so with `colophonmethod.com` refusing connections on 443, an author could not finish
+setup at all, before writing a word. The check was added in 1.x as *the one check nobody
+performed for the first published case*. It was a good check. It was also the only step in
+the whole method that could stop an author because of somebody else's DNS.
+
+### Removed
+
+- **The address route.** `verification_url` and `register_url` in `case.json` (and the
+  Italian aliases), `--url` in `build_note.py`, `build_block.py`, `render_md.py` and
+  `render_pdf.py`, the link to the raw files on the verification page, and the two address
+  rows in `attestation.txt`. An address left in an old `case.json` is now ignored, never
+  printed; `tests/unit/test_block.py` pins that.
+- **The published key.** `key_url` in `case.json`, `--key-url` and `--allow-unverified` in
+  `colophon setup`, the ranked key-URL menu, `check_key_url`, and the `urllib` import that
+  made it possible. `colophon setup` now opens no network connection at all, and
+  `cli/test_cli.py` asserts the source names no `.well-known` and imports no `urllib` —
+  because that check came back once already and would come back again.
+- **The third form of the technical line.** There were three routes and three forms; there
+  is one route and two forms, `signed register, enclosed` and `signed register, not
+  enclosed`. A file is either there or it is not, and that exhausts the vocabulary.
+
+### Added
+
+- **`colophon.pub`, in the bundle.** `seal.sh` copies the public half of the signing key
+  into the case folder and `build_bundle.py` packs it, so the signature is checked against
+  the copy that arrived with the evidence, offline. `build_bundle.py` refuses to stay quiet
+  about a signed register packed without one: the reader would fall back to the key inside
+  the signature, which verifies just as well and can be compared with nothing.
+- **The fingerprint check, in the verifier.** A key inside the package it signs is
+  circular. `case.json` is not: the closing manifest covers it, so the `key_fingerprint`
+  it declares is committed to by the signature itself. `verify.html` now compares the two
+  and says **DOES NOT MATCH** in the signature card when they differ. Run against the
+  sealed `cases/001` bundle, they match — and with the fingerprint swapped, it is caught.
+  That is a real check, and it is still not identity.
+- **`### The qualified signature`**, and a fourth decision at the closing — the only one
+  after the seal. `render_pdf.py --embed` already put the bundle inside the PDF; what was
+  missing was anyone saying why that matters. A qualified electronic signature over that
+  PDF covers the article *and* the evidence in one act, and a supervised trust service
+  identified the signer first, so the reader gets a natural person rather than a domain.
+  It is offered once, it is optional, and it is never allowed to sound like a claim about
+  the numbers: it says *this file came from this person and has not changed since*, and
+  letting it stand in for the measurement stays on the list of mistakes in
+  `reference/disclosures.md`.
+
+### Changed
+
+- **`VERIFY.md` §2 no longer sends the reader to a domain.** It verifies against
+  `colophon.pub`, compares the fingerprint with `case.json`, and then says plainly what
+  none of that proves. §2b stops being *only if a `.p7m` is here* and becomes the section
+  about identity, because it is now the only source of it.
+- **`SKILL.md` forbids what it used to offer.** *Never ask where the key is published,
+  never offer to publish it, and never name an address for it* — no `.well-known`, no
+  GitHub endpoint. Same for the case: *never offer an address, a hosted copy or a link.*
+  A prohibition is what a description of a route that no longer exists has to become.
+- **`deploy/README.md` marks the published key legacy.** It claimed that without
+  `/.well-known/colophon/keys` every signature in the project is circular again. That was
+  true when it was written. The file stays served because cases 001 and 002 were sealed
+  naming it — but both bundles carry `colophon.pub`, so a reader who never reaches the
+  domain can still check them.
+
+### Fixed
+
+- **A `.pytest_cache` shipped inside `colophon.zip`**, and `check_package.py` passed it.
+  The junk filter matched on the basename, and a pytest cache contains files called
+  `README.md` and `.gitignore`; the folder walk ignored caches on both sides, so the zip
+  and the folder agreed about a directory neither should have carried. Caches are now
+  tolerated in the working folder and refused in the package, like every other kind of
+  junk, with a regression test.
+
+### Not done
+
+**The two sealed cases keep their addresses.** `cases/001` and `cases/002` carry
+`key_url`, `register_url` and `verification_url` in a `case.json` that a signed manifest
+covers, and their published `VERIFY.md` still tells a reader to fetch a key from
+`colophonmethod.com`. Changing any of it means reopening both cases, and the scripts
+ignore those fields anyway. What the method now says and what its two worked examples say
+are not the same thing, and that gap closes only when a third case is sealed.
+
+`docs/plan-local-first.md` and `docs/service-and-onboarding.md` still argue for the key
+URL at length. They are the record of decisions taken, not instructions, and they are left
+as they were.
+
 ## [2.4.0] — 2026-08-24
 
 Closes #14 and #13. The mechanism shipped in 2.3.0; this is what the author actually
