@@ -419,21 +419,21 @@ scripts read none: an address is a promise about a server somebody keeps renewin
 dead link under a disclosure looks like evidence from a distance.
 
 **With no bundle either**, the line says so — `signed register, not enclosed`, and the
-root. Legitimate, said plainly rather than implied away.
+root. Legitimate, said plainly.
 
 **What the attachment cannot do, and you say so once.** A bundle in a reader's hands is
 frozen: it verifies and cannot announce that it has been superseded. That is why the root
-is printed in the document — two copies with two roots are two states of the same case,
-and that comparison stands in for a live address.
+is printed in the document — two copies with two roots are two states of the same case.
 
 **The key travels too, and is circular on its own.** `colophon.pub` is in the bundle
 because a reader with no network needs something to check the signature against, and a key
 inside the folder it authenticates proves only that the folder agrees with itself. The
-fingerprint in `case.json`, covered by the sealed manifest, is what ties it to the chain.
-What ties any of it to a person is below.
+fingerprint in `case.json`, covered by the sealed manifest, ties it to the chain; what ties
+any of it to a person is below. Why sign at all, then: the bundle also travels alone, and
+one key seals every case an author closes. reference/VERIFY.md §2 has the rest.
 
 **Packing records no event**, like the technical line: a new event would change the root.
-So do not pack or render before the manifest, and do not record having done so after.
+Do not pack or render before the manifest, nor record having done so after.
 
 **A bundle that was not built is not done.** `build_note.py --attached` refuses when the
 tar is not on disk, and `render_pdf.py` refuses to promise an enclosure it is not putting

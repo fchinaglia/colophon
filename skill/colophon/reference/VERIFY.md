@@ -107,7 +107,28 @@ already commits to. That is a real check and it is worth running.
 **What it still does not tell you.** A key inside the folder it signs cannot say whose
 key it is: whoever could fabricate this folder could fabricate a key to sign it with, in
 about ten seconds. Everything above proves the record is intact, internally consistent
-and unchanged since it was sealed. None of it proves who made it. For that, read on.
+and unchanged since it was sealed. None of it proves who made it.
+
+**So why is it signed at all?** Four reasons, and the first is the one that applies most
+often.
+
+A qualified signature covers the *document* this record arrived in. **This record also
+travels on its own** — the bundle is published beside the case, and it can be forwarded,
+archived or extracted alone. At that point there is no document and no qualified
+signature, and this key is the only one left in the package.
+
+The same key seals every case its author closes, and `key_fingerprint` is inside each
+sealed manifest. That makes a body of work one body, rather than a series of folders that
+merely resemble each other — and it is a claim no signature on any single document can
+make.
+
+If the author ever publishes that key, **every case sealed with it gains an anchor
+retroactively**. An unsigned register can never do that: the door closes at the seal.
+
+And when a case is reopened, the old seal is kept beside the new one — renamed
+`events.jsonl.v1.*`. The history of a case's states is carried by these files.
+
+None of that is identity. For identity, read on.
 
 ## 2b. Signed by a named person — the only step that says who
 

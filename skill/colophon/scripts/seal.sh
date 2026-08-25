@@ -5,9 +5,14 @@
 #
 # Produces three DETACHED files next to the register, which stays intact and
 # readable:
-#   <file>.sig   who   — Ed25519 signature (ssh-keygen), free
-#   <file>.tsr   when  — RFC 3161 timestamp
-#   <file>.ots   when  — OpenTimestamps anchor on Bitcoin, free, redundant
+#   <file>.sig   sealed by  — Ed25519 signature (ssh-keygen), free
+#   <file>.tsr   when       — RFC 3161 timestamp
+#   <file>.ots   when       — OpenTimestamps anchor on Bitcoin, free, redundant
+#
+# `sealed by`, not `who`. The key is published nowhere, so on its own the signature
+# names nobody — it says one key closed this register in one act, and that the same
+# key closed the author's other cases. Naming a person is the qualified signature's
+# job, below. reference/VERIFY.md §2 says why this one is still worth making.
 #
 # And it copies the public half of the key in as colophon.pub, so the signature can
 # be checked by whoever is holding the bundle, with no network and no address to keep
@@ -99,7 +104,7 @@ if curl -sS --max-time "${COLOPHON_TSA_TIMEOUT:-30}" \
 else
   rm -f "$FILE.tsr"
   echo "   ! TSA unreachable or too slow — the signature above stands; run the" >&2
-  echo "     timestamp again later, it is a claim about when, not about who" >&2
+  echo "     timestamp again later. It fixes the date, which the signature does not" >&2
 fi
 rm -f "$FILE.tsq"
 
