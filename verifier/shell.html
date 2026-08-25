@@ -70,7 +70,8 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
 
   <div id="drop">
     <p><strong>Drop a case folder here</strong></p>
-    <p>or a <code>bundle.tar</code>, or the files themselves</p>
+    <p>or a <code>bundle.tar</code>, or the signed <code>.pdf</code> that carries one,
+    or the files themselves</p>
     <div class="pickers">
       <label class="btn">Choose a folder<input type="file" id="dir" webkitdirectory multiple></label>
       <label class="btn">Choose files<input type="file" id="fil" multiple></label>
@@ -108,15 +109,33 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
   const dl = pairs => '<dl>' + pairs.filter(Boolean)
     .map(([k, v]) => `<dt>${esc(k)}</dt><dd class="mono">${esc(v)}</dd>`).join('') + '</dl>';
 
+  const own = b => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+
   async function collect(fileList) {
-    const map = new Map();
+    const map = new Map(), from = [];
     for (const f of fileList) {
       const rel = f.webkitRelativePath || f.name;
       const buf = new Uint8Array(await f.arrayBuffer());
       if (/\.tar$/i.test(f.name)) { for (const [k, v] of untar(buf.buffer)) map.set(k, v); }
+      else if (isPdf(buf)) {
+        // The record travels inside the document. Making the reader extract it first is
+        // the one step the enclosure exists to remove.
+        const atts = await pdfAttachments(buf);
+        if (!atts.length) throw new Error(`${f.name} carries no attachment. If your reader `
+          + `shows one it could not save, the bundle is still in there — try Firefox or `
+          + `\`pdfdetach -saveall\`, and drop the tar.`);
+        for (const a of atts) {
+          if (a.error) { from.push({ pdf: f.name, name: a.name, error: a.error }); continue; }
+          if (!a.tar) continue;
+          for (const [k, v] of untar(own(a.bytes))) map.set(k, v);
+          from.push({ pdf: f.name, name: a.name, bytes: a.bytes.length });
+        }
+        if (!from.some(x => x.bytes)) throw new Error(`${f.name} has attachments `
+          + `(${atts.map(a => a.name || 'unnamed').join(', ')}) but none of them is a case bundle.`);
+      }
       else map.set(rel, buf);
     }
-    return normalise(map);
+    return { files: normalise(map), from };
   }
 
   // The page the case publishes, read out of what was supplied. build_page.py inlines
@@ -151,8 +170,24 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
     return 'b-ok';
   }
 
-  function render(r, files) {
+  function render(r, files, from) {
     let html = '';
+
+    // Where the bytes came from, said before anything is claimed about them. And what
+    // this page could not look at: the signature over the container is the one thing that
+    // names a person, and validating it needs a trust list this page will never carry.
+    if (from && from.length) {
+      const got = from.some(x => x.bytes);
+      html += card('Read from the PDF', got ? 'attachment opened' : 'attachment unreadable',
+        got ? 'b-ok' : 'b-bad',
+        dl(from.map(x => [x.name || 'unnamed',
+                          x.error || `${x.bytes.toLocaleString()} bytes, from ${x.pdf}`])) +
+        `<p class="note">Everything below is about those bytes, checked against the manifest
+         sealed inside them — not about the PDF around them. <strong>The document's own
+         signature is not checked here.</strong> A qualified signature is what names a
+         person, and validating one needs a trust list and a certificate store this page
+         does not carry: open the signature panel of your PDF reader for that.</p>`);
+    }
 
     if (r.fatal) {
       out.innerHTML = card('Not a case folder', 'stop', 'b-bad',
@@ -304,8 +339,8 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
   async function handle(fileList) {
     out.innerHTML = card('Working', '', '', '<p class="note">Verifying locally…</p>');
     try {
-      const files = await collect(fileList);
-      render(verifyCase(files), files);
+      const { files, from } = await collect(fileList);
+      render(verifyCase(files), files, from);
     } catch (e) {
       out.innerHTML = card('Something went wrong', 'error', 'b-bad',
         `<p class="note">${esc(e.message)}</p>`);

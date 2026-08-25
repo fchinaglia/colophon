@@ -451,6 +451,110 @@ function checkManifest(manifest, files) {
 // A bundle is a tar, so reading one is part of reading a case. It lives here rather
 // than in the page because three callers need it — the page, the test harness, and
 // anyone driving core.js from node — and three copies of a parser is how they drift.
+// ---------------------------------------------------------------- PDF attachments
+//
+// A colophon PDF carries the whole record as an attachment: render_pdf.py --embed writes
+// the bundle and the verifier into it as an incremental update. Handing that PDF to this
+// page and being told to go and extract a tar first is the one step a reader should not
+// have to perform — the file they were sent already holds everything.
+//
+// What is NOT done here, and it matters: the PDF's own signature is not validated. A
+// qualified signature over the document is where identity comes from, and checking it
+// needs a trust list and a certificate store this page has neither of. The attachment is
+// read; who signed the container is the reader's PDF viewer's answer to give.
+
+function isPdf(bytes) {
+  return bytes.length > 4 && bytes[0] === 0x25 && bytes[1] === 0x50 &&
+         bytes[2] === 0x44 && bytes[3] === 0x46;                  // %PDF
+}
+
+function looksLikeTar(b) {
+  return b.length >= 512 && String.fromCharCode(...b.subarray(257, 262)) === 'ustar';
+}
+
+function latin1(bytes) {
+  // Byte offsets and string indices must agree, so this is not a UTF-8 decode.
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000)
+    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return s;
+}
+
+async function inflate(bytes) {
+  if (typeof DecompressionStream !== 'function')
+    throw new Error('this browser cannot decompress the attachment; extract it with ' +
+                    '`pdfdetach -saveall` or Firefox and drop the tar instead');
+  const ds = new DecompressionStream('deflate');                  // zlib-wrapped, as written
+  const r = new Blob([bytes]).stream().pipeThrough(ds).getReader();
+  const parts = [];
+  let n = 0;
+  for (;;) {
+    const { done, value } = await r.read();
+    if (done) break;
+    parts.push(value); n += value.length;
+  }
+  const out = new Uint8Array(n);
+  let at = 0;
+  for (const p of parts) { out.set(p, at); at += p.length; }
+  return out;
+}
+
+// The file is scanned rather than parsed through its xref chain, and that is deliberate.
+// Embedding is an incremental update and a PAdES signature adds another, so a colophon PDF
+// has several revisions by design; a scanner reads them all and the last definition of an
+// object number wins, which is what a revision means. A crafted PDF could hide an
+// attachment from this — and it would gain nothing, because everything the page then says
+// is said about the bytes it did find, each checked against the manifest inside them.
+async function pdfAttachments(bytes) {
+  const s = latin1(bytes), names = new Map(), found = new Map();
+
+  // Both scans anchor on the /Type they want and then look outwards for the object that
+  // holds it. Matching `N 0 obj << ... >>` forwards instead walks straight past any
+  // object that has no stream, swallowing everything up to the next one that does.
+  const objNumBefore = at => {
+    const w = s.slice(Math.max(0, at - 400), at);
+    let n = null;
+    for (let m, re = /(\d+)\s+0\s+obj/g; (m = re.exec(w)); ) n = +m[1];
+    return n;
+  };
+
+  for (let m, re = /\/Type\s*\/Filespec\b/g; (m = re.exec(s)); ) {
+    const stop = s.indexOf('endobj', m.index);
+    const body = s.slice(m.index, stop < 0 ? m.index + 2000 : stop);
+    const ef = /\/EF\s*<<[^>]*?\/F\s+(\d+)\s+0\s+R/.exec(body);
+    const nm = /\/F\s*\(((?:\\.|[^\\()])*)\)/.exec(body);
+    if (ef) names.set(+ef[1], nm ? nm[1].replace(/\\([()\\])/g, '$1') : null);
+  }
+
+  for (let m, re = /\/Type\s*\/EmbeddedFile\b/g; (m = re.exec(s)); ) {
+    const num = objNumBefore(m.index);
+    const open = s.indexOf('stream', m.index);
+    if (num === null || open < 0) continue;
+    const dict = s.slice(m.index, open);
+    const start = open + (s[open + 6] === '\r' ? 8 : 7);
+    const len = /\/Length\s+(\d+)(?!\s+\d+\s+R)/.exec(dict);
+    let end;
+    if (len) end = start + +len[1];
+    else { end = s.indexOf('endstream', start); if (end < 0) continue; }
+    found.set(num, { dict, raw: bytes.subarray(start, end) });     // later revision wins
+  }
+
+  const out = [];
+  for (const [num, { dict, raw }] of found) {
+    let data;
+    try {
+      data = /\/Filter\s*\/FlateDecode\b/.test(dict) ? await inflate(raw) : raw.slice();
+    } catch (e) { out.push({ name: names.get(num) || null, error: e.message }); continue; }
+    const size = /\/Size\s+(\d+)/.exec(dict);
+    if (size && data.length !== +size[1])
+      { out.push({ name: names.get(num) || null,
+                   error: `the attachment is ${data.length} bytes and the PDF says ${size[1]}` });
+        continue; }
+    out.push({ name: names.get(num) || null, bytes: data, tar: looksLikeTar(data) });
+  }
+  return out;
+}
+
 function untar(buf) {
   const b = new Uint8Array(buf), files = new Map(), td = new TextDecoder();
   let off = 0;
@@ -574,6 +678,6 @@ if (typeof module !== 'undefined') {
   module.exports = { sha256, sha512, hex, canonical, cpCompare, preSpecReason, verifyChain,
                      parseSshsig, sshsigPreimage, parsePubLine, verifySignature,
                      ed25519Verify, findManifest, checkManifest, checkTimestamp,
-                     untar, normalise,
+                     untar, normalise, isPdf, looksLikeTar, pdfAttachments, inflate,
                      isQualifiedTimestamp, verifyCase, utf8, concat, b64decode };
 }

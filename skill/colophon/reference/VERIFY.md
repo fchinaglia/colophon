@@ -27,7 +27,9 @@ endings and `shasum` will then look for `kpi.json\r`:
 tr -d '\r' < extracted.txt | grep -E '^[0-9a-f]{64}  ' | shasum -a 256 -c -
 ```
 
-**If it arrived inside a PDF**, the bundle is an attachment. Firefox opens the attachments
+**If it arrived inside a PDF**, the simplest route is to drop the PDF itself on
+`verify.html`: it reads the attachment out and checks the case inside it, with no network
+and nothing saved to disk. To get the file out instead, Firefox opens the attachments
 panel and downloads it; `pdfdetach -saveall file.pdf` does the same from a terminal.
 **Adobe Reader may show the attachment and refuse to save it** — measured on Adobe Reader
 2026.001.21789 on macOS, on every file tried, including ones written by other tools

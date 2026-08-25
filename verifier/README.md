@@ -1,8 +1,8 @@
 # The verifier
 
 One self-contained HTML file. No network, no dependencies, no server. A reader drops a
-case folder — or a `bundle.tar`, or the loose files — onto it, and everything runs on
-their own machine. Saved locally it keeps working, forever.
+case folder — or a `bundle.tar`, or **the PDF that carries one**, or the loose files —
+onto it, and everything runs on their own machine. Saved locally it keeps working, forever.
 
 ```
 core.js       the whole implementation, DOM-free so it can be tested
@@ -13,7 +13,7 @@ verify.html   THE DELIVERABLE (generated — do not edit)
 ```
 
 ```bash
-node verifier/test.js          # 54 assertions
+node verifier/test.js          # 61 assertions
 python3 verifier/build.py      # rebuild verify.html and print its sha256
 ```
 
@@ -24,6 +24,26 @@ python3 verifier/build.py      # rebuild verify.html and print its sha256
 - **the manifest**, every digest against the file in front of it
 - **the RFC 3161 token**, that its imprint commits to *these exact bytes*, plus whether it
   carries the eIDAS qualified marker
+
+## What it opens
+
+`render_pdf.py --embed` writes the bundle into the document as an incremental update,
+Flate-compressed, and a PAdES signature adds a further revision on top. Dropping that PDF
+here reads the attachment back out, so the reader is not sent to `pdfdetach` for a file
+they were already handed. The published `cases/001/colophon-001.pdf` is a test fixture:
+what comes out is compared with the tar beside it byte for byte, not merely parsed.
+
+The file is scanned rather than walked through its xref chain, and that is the point:
+several revisions are the normal shape of a colophon PDF, and the last definition of an
+object number wins, which is what a revision means. Decompression is
+`DecompressionStream('deflate')` — native, offline, no inflate of our own to carry for ten
+years. Where it is missing, the page says to use `pdfdetach` or Firefox rather than
+failing obscurely.
+
+**The document's signature is not checked**, and the page says so where it says everything
+else. A qualified signature is the one thing that names a person; validating it needs a
+trust list and a certificate store this page will never carry. It reads the attachment and
+tells the reader that the signature panel is elsewhere.
 
 ## What it also shows
 

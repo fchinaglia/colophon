@@ -130,5 +130,53 @@ if (fs.existsSync(bundle)) {
   }
 }
 
-console.log(`\n${pass} passed, ${fail} failed`);
-process.exit(fail ? 1 : 0);
+// ---------------------------------------------------------------- the PDF that carries it
+// The published PDF embeds the bundle as an incremental update, Flate-compressed, and a
+// PAdES signature would add a further revision on top. Reading it back is what spares a
+// reader `pdfdetach` — so it is checked against the tar beside it, byte for byte, rather
+// than against "it parsed".
+const pdf = path.join(REPO, 'cases', '001', 'colophon-001.pdf');
+if (fs.existsSync(pdf) && fs.existsSync(bundle)) {
+  head('the PDF that carries the bundle');
+  (async () => {
+    const raw = fs.readFileSync(pdf);
+    const b = new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength);
+    ok(C.isPdf(b), 'pdf: recognised by its magic');
+
+    const atts = await C.pdfAttachments(b);
+    ok(atts.length === 2, 'pdf: both attachments found',
+       atts.map(a => a.name).join(', '));
+    ok(atts.every(a => !a.error), 'pdf: every attachment decompressed',
+       atts.map(a => a.error).filter(Boolean).join('; '));
+
+    const tar = atts.find(a => a.tar);
+    ok(!!tar && tar.name === 'colophon-001.tar', 'pdf: the bundle is named and looks like a tar',
+       tar && tar.name);
+
+    const onDisk = fs.readFileSync(bundle);
+    ok(C.hex(C.sha256(tar.bytes)) ===
+       C.hex(C.sha256(new Uint8Array(onDisk.buffer, onDisk.byteOffset, onDisk.byteLength))),
+       'pdf: the extracted bundle is byte-identical to the published tar');
+
+    const files = C.normalise(C.untar(
+      tar.bytes.buffer.slice(tar.bytes.byteOffset, tar.bytes.byteOffset + tar.bytes.byteLength)));
+    const r = C.verifyCase(files);
+    ok(r.chain.ok && r.signature.ok && r.signature.declared.matches &&
+       !r.manifest.mismatched.length && !r.manifest.missing.length,
+       'pdf: the whole case verifies straight out of the document',
+       JSON.stringify({ chain: r.chain.ok, sig: r.signature.ok }));
+
+    // A PDF with nothing in it must come back empty rather than throwing: the page turns
+    // that into "this document carries no attachment", which is a different sentence from
+    // "something went wrong".
+    const bare = Buffer.from('%PDF-1.4\n1 0 obj\n<< /Type /Catalog >>\nendobj\n%%EOF\n');
+    ok((await C.pdfAttachments(new Uint8Array(bare))).length === 0,
+       'pdf: a document with no attachment yields none, and does not throw');
+
+    console.log(`\n${pass} passed, ${fail} failed`);
+    process.exit(fail ? 1 : 0);
+  })();
+} else {
+  console.log(`\n${pass} passed, ${fail} failed`);
+  process.exit(fail ? 1 : 0);
+}
