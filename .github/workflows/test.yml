@@ -52,3 +52,22 @@ jobs:
       - name: the chain still verifies after a CRLF checkout
         shell: bash
         run: cd example && python record.py --verify
+
+  # The plugin route has no equivalent of check_package.py: nothing else notices when
+  # plugin.json and the marketplace entry drift apart, or when `skills` stops pointing at
+  # a directory that exists. `validate .` reads the marketplace manifest when both are
+  # present, so the plugin manifest needs its own invocation.
+  manifests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g @anthropic-ai/claude-code
+      - run: claude plugin validate . --strict
+      - run: claude plugin validate .claude-plugin/plugin.json --strict
+
+      # The two `version` fields are load-bearing for anyone who installed through
+      # `/plugin install`: left behind at the previous number they do not fail, they
+      # quietly stop offering the update.
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: python3 check_manifests.py
