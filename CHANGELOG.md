@@ -110,6 +110,20 @@ untouched: weight and face are chrome, which is the line this pair of shells exi
   because addresses get printed and the key kept off the machine that holds the evidence,
   and `well-known/colophon/keys` stays in the directory because it is what the two cases
   were signed against.
+- **The hat on the served page is one line.** It argued a case nobody had made — which
+  copy to trust, and why not this one — in three sentences, on a page whose visitor is
+  already holding a case and looking for a drop target. What is left is the fact without
+  the argument around it: this is a convenience copy, and a case carries its own verifier
+  inside it. Nothing true was lost in the cut. That the two builds differ in chrome and
+  palette only is asserted by `build.py` and by `tests/repo/`, which is where a property
+  belongs — a paragraph asking the reader to take it on faith was the weaker of the two
+  statements, and the digests it linked to are printed by the build itself. `MIT` is
+  written `MIT Licence` wherever the name stands alone, in the page's closing note and in
+  the site footer, to match colophonmethod.com, which serves this build byte for byte.
+  `SPDX-License-Identifier` is untouched: that one is an identifier with a fixed
+  vocabulary, not a name. **`verify.html` does not move** — all four copies stay
+  `2e8a461a…`, and only the served build changes, from `e216aef8…` at 70,348 bytes to
+  `d826e0a3…` at 69,937.
 
 ### Removed
 
