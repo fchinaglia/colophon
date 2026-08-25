@@ -90,11 +90,18 @@ def test_the_package_check_refuses_a_tool_cache(tmp_path):
     assert ".pytest_cache" in r.stdout, r.stdout
 
 
-def test_pages_serves_dot_directories_and_has_a_front_page():
-    """.nojekyll makes /.well-known servable and stops Jekyll rendering README.md as the
-    front page — so the front page has to exist as a file."""
+def test_the_repository_does_not_publish_a_front_page():
+    """It used to. `index.html` was the front page because Pages was where
+    colophonmethod.com pointed, and `.nojekyll` had stopped Jekyll rendering README.md
+    into one. The site is served from its own source now and Pages is off, so a front page
+    here would be a second homepage under the same name — reachable, indexable and
+    orphaned at once, which is the combination that gets a stale page found and quoted.
+
+    `.nojekyll` stays: zero bytes, and the guard that has to be in place before Pages
+    rather than after, if it is ever turned back on."""
     assert os.path.exists(os.path.join(ROOT, ".nojekyll"))
-    assert os.path.exists(os.path.join(ROOT, "index.html"))
+    assert not os.path.exists(os.path.join(ROOT, "index.html")), \
+        "the homepage is colophonmethod.com, served elsewhere — see deploy/README.md"
 
 
 @pytest.mark.parametrize("copy", [("skill", "colophon", "verify.html"),

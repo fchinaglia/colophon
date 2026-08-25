@@ -6,9 +6,9 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
-The repository becomes installable in one command, and the served build looks like the site
-now, rather than nearly like it. Nothing that travels in a case is touched: `verify.html`
-is still `2e8a461a…` and the four copies do not move.
+The repository becomes installable in one command, stops being a website, and the served
+build looks like the site now rather than nearly like it. Nothing that travels in a case is
+touched: `verify.html` is still `2e8a461a…` and the four copies do not move.
 
 ### Added
 
@@ -93,6 +93,40 @@ untouched: weight and face are chrome, which is the line this pair of shells exi
   must persist for as long as you are writing and `seal.sh` must reach a key that must never
   leave it. One that executes in a cloud sandbox can hold the conversation and produce the
   annotation, and cannot seal.
+- **`deploy/` says that it is a record, and not instructions.** The directory described a
+  deployment that has since been replaced, and did not say so: the live configuration
+  sends a content security policy, HSTS and a `404` page of its own, and
+  `colophonmethod.conf` here carries none of them. Both addresses it stood up are closed —
+  `/.well-known/colophon/keys` answers `404` since the site was republished, and
+  `deposit.colophonmethod.com` no longer resolves. The README promised in bold that both
+  would be kept alive, which a reader would reasonably have taken for the state of the
+  world. It records the decision instead. Cases 001 and 002 print the anchor URL three
+  times in their `VERIFICA.md` and again in their PDF, and it does not matter: both
+  bundles carry `colophon.pub`, the verifier checks the signature against the key it finds
+  in the bundle, and neither case needs the network to come out `VALID`. They are worked
+  examples for somebody reading the repository, not evidence anyone is asked to trust from
+  a distance — which is the distinction that decides whether a printed URL going dead is a
+  failure or a fact. The reasoning that outlived the servers is kept, the apex canonical
+  because addresses get printed and the key kept off the machine that holds the evidence,
+  and `well-known/colophon/keys` stays in the directory because it is what the two cases
+  were signed against.
+
+### Removed
+
+- **The repository stops publishing a homepage of its own.** `index.html` was written when
+  `.nojekyll` stopped Jekyll rendering `README.md` and GitHub Pages was what
+  `colophonmethod.com` pointed at — it was the front page because there had to be one. The
+  site is served from its own source on its own machine now, and the two had drifted into
+  different pages under the same `<title>`: twenty kilobytes with the mark and the
+  navigation at one address, three with four links at the other. Nothing pointed at the
+  second one. The string `github.io` does not occur anywhere in this repository, the site
+  links `github.com/fchinaglia/colophon` and `releases/latest`, and the case pages carry no
+  `href` at all — so it was reachable, indexable and orphaned at the same time, which is
+  the combination that gets a stale page found by somebody who then quotes it. Pages is
+  switched off with the file. `.nojekyll` stays: it is zero bytes, and it is the guard that
+  has to be in place before Pages, not after, if it is ever turned back on. The invariant
+  in `tests/repo/` that required a front page now forbids one, which is the same test doing
+  the same job on the other side of the decision.
 
 ## [3.2.0] — 2026-08-25
 

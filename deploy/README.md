@@ -1,119 +1,63 @@
-# Deploying colophonmethod.com
+# deploy/ — what this directory was
 
-> **The instance is frozen, 24 August 2026.** `deposit.colophonmethod.com` serves what it
-> already holds and accepts nothing new; `deposit.colophonmethod.com.conf` in this
-> directory is that frozen configuration, and it is the one file here that outlives the
-> rest.
->
-> **And the published key is legacy, 25 August 2026.** The method no longer has a key
-> address: `seal.sh` copies the public half into the case as `colophon.pub`,
-> `build_bundle.py` packs it, and identity comes from a qualified electronic signature on
-> the PDF rather than from a domain. `/.well-known/colophon/keys` stays up only because
-> cases 001 and 002 were sealed naming it and their `VERIFY.md` sends readers there —
-> both bundles carry `colophon.pub` too, so a reader who never reaches the domain can
-> still check them. **Nothing new should point at it, and nothing in the skill does.**
+**Nothing here is current, and saying so is the whole job of this note.**
+`colophonmethod.com` is a product site now, served from its own source rather than from
+this repository, and both of the addresses this directory stood up have been closed. What
+is left is one configuration kept as a record, one public key kept because two sealed
+cases were signed against it, and the reasoning, which outlived the deployment it was
+written for.
 
-Two names, one canonical.
+## What was closed, and why it strands nobody
 
-```
-colophonmethod.com          the site, and /.well-known/colophon/keys
-www.colophonmethod.com      301 to the apex, permanently
-deposit.colophonmethod.com  the instance, frozen — reads only, forever
-```
+**`/.well-known/colophon/keys` — the key anchor.** A static file served under TLS, so that
+a reader could say "whoever controlled colophonmethod.com published this key", which
+somebody who rewrites the repository cannot forge. It answers `404` since the site was
+republished, and it is not coming back.
 
-The apex is canonical because the address gets printed into notes and frozen into PDFs,
-and shorter survives being retyped from paper. The instance lives on its own name so
-that **the key and the evidence do not share a server**: a depositor's key must not be
-vouched for by the same machine that stores their case, which is the circularity this
-project found in its own first case and does not want to reproduce.
+Cases 001 and 002 were sealed naming that URL, and print it three times in their
+`VERIFICA.md` and again in their PDF, so the address inside two published documents is
+dead. **That costs their reader nothing, and the reason is worth stating rather than
+assumed**: both bundles carry `colophon.pub`, the verifier checks the signature against
+the key it finds in the bundle, and neither case needs the network to come out `VALID`.
+The two are worked examples for somebody reading this repository, not evidence anyone is
+asked to trust from a distance. A printed URL that 404s is a real failure when the
+disclosure leans on it. It is not one when the disclosure carries its own key.
 
-## What goes up first, and why it is not the server
+**The method had already moved off the domain before the site did.** `seal.sh` copies the
+public half into the case as `colophon.pub`, `build_bundle.py` packs it, and identity
+comes from a qualified electronic signature on the PDF rather than from a hostname.
+Nothing in the skill points at the anchor, and nothing new should.
 
-`/.well-known/colophon/keys` is a static file, and it is the reason this argument was
-made: served from a domain under TLS, the claim becomes "whoever controlled
-colophonmethod.com published this key", which someone who rewrites the repository cannot
-forge. **The method has since taken a different answer** — the key travels in the bundle
-and a qualified signature on the PDF supplies the identity a domain was standing in for —
-so what follows is maintenance of what two sealed cases already promise, not setup for
-anything new.
+**`deposit.colophonmethod.com` — the instance.** It accepted deposits for one day, 23 to
+24 August 2026, was frozen the day after, and no longer resolves; the zone was last
+edited on 25 August 2026. Neither published case prints that address.
 
-```bash
-install -D -m 644 deploy/well-known/colophon/keys \
-        /srv/colophon/.well-known/colophon/keys
-```
+## The reasoning that outlived the servers
 
-Verified before publishing — the file checks the signature of a sealed register:
+Two arguments are worth keeping even though the machines they were made about are gone.
 
-```bash
-curl -sO https://colophonmethod.com/.well-known/colophon/keys
-ssh-keygen -Y verify -f keys -I f.chinaglia@gmail.com -n colophon \
-           -Overify-time=20260822 -s events.jsonl.sig < events.jsonl
-# Good "colophon" signature ... SHA256:0woBfwGMoKA6zsd9c0701YhBa+0aqIAI03JzaRV7raQ
-```
+**The apex is canonical and `www` redirects to it permanently.** The address gets printed
+into notes and frozen into PDFs, and shorter survives being retyped off paper. Two
+addresses for one thing means half of them eventually rot.
 
-A date before `valid-after` is refused, which is the constraint doing its job rather
-than decorating the file.
+**The key and the evidence do not share a server.** The instance lived on its own name so
+that a depositor's key was not vouched for by the same machine holding their case — the
+circularity this project found in its own first case and did not want to reproduce. Going
+local-first retired the arrangement, not the argument: it is why the private key never
+went on the server, and why a server that can sign registers is a server that can forge
+them.
 
-## The order, and why it is this order
+## The files, and what each one is now
 
-`colophonmethod.conf` names certificate files. **nginx refuses to start when a
-certificate is missing**, so it cannot be the first config installed — that is the
-chicken-and-egg every first deployment hits. `bootstrap.conf` exists to break it: HTTP
-only, enough for certbot to prove the domain, then swap.
+`colophonmethod.conf` and `bootstrap.conf` describe the site as this repository served it,
+and **they are not what runs today** — the live configuration sends a content security
+policy, HSTS and a `404` page of its own, none of which are here. Read them as a record of
+the first deployment, not as something to install. Anyone redeploying should take the
+running configuration off the droplet rather than these.
 
-1. **`bootstrap.conf`** into `/etc/nginx/sites-enabled/`, `nginx -t`, reload
-2. **certbot, webroot mode** — not `--nginx`, which rewrites your config out from under
-   you: `certbot certonly --webroot -w /var/www/certbot -d colophonmethod.com -d www.colophonmethod.com`
-3. **`colophonmethod.conf`** replaces the bootstrap, `nginx -t`, reload
-4. **`VERIFY.md`** in every case gains the two-line recipe above, pointing at this URL,
-   and `case.json` gains `key_url`
+`deposit.colophonmethod.com.conf` is the frozen instance, kept as the record of what the
+freeze was.
 
-Step 4 is the one that matters: an anchor nobody is told about anchors nothing.
-
-**The private key never goes on the server.** Only `keys`, which is public by design.
-A server that can sign registers is a server that can forge them.
-
-## The instance — deposit.colophonmethod.com, frozen
-
-It ran from 23 to 24 August 2026 and accepted deposits for one day. It now serves what
-it holds and nothing else: `nginx` answers `410` at `/c` with a plain-text body naming
-`build_bundle.py`, and the ingest container is stopped.
-
-`deposit.colophonmethod.com.conf` in this directory is that frozen configuration, and it
-is the file to keep. The live copy is at `/etc/nginx/sites-enabled/deposit.conf` — a real
-file, not a symlink from `sites-available`.
-
-**Do not take it down and do not delete `/srv/deposit`.** One case deposited there has
-its address printed in a signed technical line inside a published PDF, and a PDF cannot
-be edited. Removing the host would turn that line into a dead link under a disclosure —
-which `disclosures.md` calls evidence from a distance and the opposite of it up close,
-and which is the failure the whole method exists to prevent.
-
-```bash
-# what the freeze was
-nginx -t && systemctl reload nginx
-cd /srv/colophon/server && docker compose -f compose.prod.yml stop ingest
-
-# what it should answer, forever
-curl -sI https://deposit.colophonmethod.com/c/<case>/ | head -1    # 200
-curl -s  -X POST https://deposit.colophonmethod.com/c              # 410, plain text
-```
-
-The `server/` directory that built the ingest container is gone from the repository. The
-container image on the droplet is stopped, not removed; leaving it costs nothing and
-makes the freeze reversible while the data is still there.
-
-## What is left to keep alive
-
-Two files, on one droplet, and neither is a service.
-
-`/.well-known/colophon/keys` at the apex, for the two sealed cases whose `VERIFY.md`
-names it. Their bundles also carry `colophon.pub`, so a reader is not stranded when this
-lapses — but a printed instruction that 404s is its own kind of failure, and it costs
-nothing to keep a static file answering.
-
-The frozen instance, serving one case at the address its PDF prints.
-
-Both want fixed-price hosting with included bandwidth — never anything billed per
-request or per byte, so a flood degrades into a slowdown instead of a bill. The droplet
-appears to be that already; it is worth confirming rather than assuming.
+`well-known/colophon/keys` stays. It is the key the two sealed cases were signed against,
+so a reader who wants to check a signature the long way can still take it from here
+instead of from a URL that no longer answers.
