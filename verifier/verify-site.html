@@ -37,11 +37,15 @@
   }
 }
 
-/* --- chrome: the only part that is ours --- */
+/* --- chrome: the only part that is ours ---------------------------------
+   These rules are colophon.css transcribed, not approximated: the same token
+   values, the same selectors, the same numbers. The site's stylesheet cannot be
+   linked here — an external subresource would break the one property that
+   matters, which is that this page is a single file you can save — so the
+   alternative to copying is drifting, and drifting is what makes a page feel
+   like it belongs to another site.
+   ------------------------------------------------------------------------ */
 * { box-sizing:border-box; }
-/* These four lines are not decoration: without them the same typeface renders
-   visibly heavier here than on every other page of the site, and the tool looks
-   like a different document from the one that links to it. */
 body { margin:0; background:var(--bg); color:var(--fg);
        font-family:var(--font-serif); font-size:1.1875rem; line-height:1.58;
        font-synthesis-weight:none;
@@ -53,40 +57,53 @@ a { color:inherit; }
 
 .page { max-width:58rem; margin:0 auto; padding:0 1.25rem; }
 
-.site-head { border-bottom:1px solid var(--line); padding:1.1rem 0; }
-.site-head .page { display:flex; align-items:baseline; justify-content:space-between;
-                   gap:1.25rem; flex-wrap:wrap; }
-.wordmark { display:flex; align-items:center; gap:.55rem; text-decoration:none;
-            font-size:1.25rem; }
-.wordmark svg { width:1.15em; height:1.15em; display:block; flex:none; }
-.wordmark span.t { font-style:italic; font-size:.62em; color:var(--quieter); }
-.site-nav ul { list-style:none; display:flex; gap:1.1rem; margin:0; padding:0;
-               font-family:var(--font-mono); font-size:.75rem; letter-spacing:.04em; }
-.site-nav a { color:var(--dim); text-decoration:none; padding-bottom:.2rem; }
+.site-head { border-bottom:1px solid var(--line); padding:1rem 0; margin-bottom:2rem; }
+.site-head .page { display:flex; flex-wrap:wrap; align-items:baseline;
+                   gap:.75rem 1.5rem; }
+.wordmark { display:inline-flex; align-items:baseline; gap:.42em;
+            font-size:1.5rem; font-weight:500; letter-spacing:-.015em;
+            text-decoration:none; }
+.wordmark .mark { flex:none; display:block; width:.84em; height:.84em; }
+.wordmark .mark-frame { fill:none; stroke:currentColor; stroke-width:2; }
+.wordmark .mark-axis  { stroke:currentColor; stroke-width:1.4; opacity:.34; }
+.wordmark .mark-point { fill:var(--point); }
+.wordmark span { font-style:italic; color:var(--dim); font-size:.9375rem; }
+.wordmark .wordmark-name { font-style:normal; color:var(--fg);
+                           font-size:inherit; font-weight:inherit;
+                           letter-spacing:inherit; }
+.site-nav { margin-left:auto; }
+.site-nav ul { list-style:none; margin:0; padding:0; display:flex;
+               flex-wrap:wrap; gap:.5rem 1rem;
+               font-family:var(--font-mono); font-size:.75rem;
+               letter-spacing:.04em; }
+.site-nav a { text-decoration:none; color:var(--dim); padding:.5rem 0;
+              display:inline-block; }
 .site-nav a:hover { color:var(--fg); }
 .site-nav a[aria-current="page"] { color:var(--fg);
-  border-bottom:2px solid var(--point); }
+                                   border-bottom:1px solid var(--point); }
 
-main { padding:2.5rem 0 4rem; }
-h1 { font-size:2.375rem; line-height:1.05; margin:0 0 .4rem; font-weight:500;
-     letter-spacing:-.02em; text-wrap:balance; }
-.eyebrow { font-family:var(--font-mono); font-size:.75rem; letter-spacing:.12em;
-           text-transform:uppercase; color:var(--quieter); margin:0 0 .6rem; }
-.sub { color:var(--dim); margin:0 0 1.1rem; font-size:1rem; max-width:34rem; }
-.hat { max-width:34rem; margin:0 0 2rem; font-size:.92rem; color:var(--dim);
-       border-left:2px solid var(--line); padding-left:1rem; }
+main { padding:0 0 4rem; }
+h1 { font-size:2.375rem; line-height:1.05; letter-spacing:-.02em;
+     font-weight:500; margin:0 0 .75rem; text-wrap:balance; }
+.eyebrow { font-family:var(--font-mono); font-size:.75rem; font-weight:400;
+           letter-spacing:.16em; text-transform:uppercase; color:var(--quieter);
+           margin:0 0 1rem; }
+.sub { font-size:1.3125rem; max-width:34rem; margin:1.5rem 0 0; }
+.hat { border-left:2px solid var(--line); padding:0 0 0 1rem;
+       margin:1.5rem 0 2rem; font-size:.9375rem; color:var(--dim);
+       max-width:34rem; }
 .hat strong { color:var(--fg); }
 .hat p { margin:0 0 .5rem; }
 .hat p:last-child { margin:0; }
 
-.site-foot { border-top:1px solid var(--line); margin-top:3rem; padding:1.5rem 0 2rem;
-             font-family:var(--font-mono); font-size:.75rem; line-height:1.9;
-             color:var(--quieter); }
+.site-foot { border-top:1px solid var(--line); margin-top:4rem;
+             padding:1.5rem 0 2rem; font-family:var(--font-mono);
+             font-size:.75rem; line-height:1.9; color:var(--quieter); }
 .site-foot a { color:var(--dim); }
 .site-foot a:hover { color:var(--fg); }
 .site-foot p { margin:0; max-width:40rem; }
-.foot-links { list-style:none; padding:0; margin:.6rem 0 0; display:flex;
-              flex-wrap:wrap; align-items:center; gap:.4rem 1rem; }
+.foot-links { list-style:none; padding:0; margin:.75rem 0 0; display:flex;
+              flex-wrap:wrap; align-items:center; gap:.5rem 1rem; }
 
 /* --- the verifier's own components, shared with the bundled shell --- */
 #drop { border:2px dashed var(--line); border-radius:12px; padding:2.5rem 1.5rem; text-align:center; transition:border-color .15s,background .15s; }
@@ -146,7 +163,7 @@ label.btn, a.ghost { font-family:var(--font-mono); font-size:.8125rem; }
 
 <header class="site-head">
   <div class="page">
-    <a class="wordmark" href="/"><svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect fill="none" stroke="currentColor" stroke-width="2" x="3" y="3" width="26" height="26"/><line stroke="currentColor" stroke-width="1.4" opacity=".34" x1="16" y1="3" x2="16" y2="29"/><line stroke="currentColor" stroke-width="1.4" opacity=".34" x1="3" y1="16" x2="29" y2="16"/><circle fill="var(--point)" cx="21" cy="10.5" r="4.6"/></svg>Colophon <span class="t">written over, never erased</span></a>
+    <a class="wordmark" href="/"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect class="mark-frame" x="3" y="3" width="26" height="26"/><line class="mark-axis" x1="16" y1="3" x2="16" y2="29"/><line class="mark-axis" x1="3" y1="16" x2="29" y2="16"/><circle class="mark-point" cx="21" cy="10.5" r="4.6"/></svg><span class="wordmark-name">Colophon</span> <span>written over, never erased</span></a>
     <nav class="site-nav" aria-label="Main">
       <ul>
         <li><a href="/setup/">setup</a></li>
