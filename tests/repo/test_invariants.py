@@ -73,6 +73,23 @@ def test_the_package_matches_the_folder():
     assert r.returncode == 0, r.stdout + r.stderr
 
 
+def test_the_package_check_refuses_a_tool_cache(tmp_path):
+    """A `.pytest_cache` shipped inside a release zip once. It passed because the check
+    ignored caches on both sides, so the folder and the package agreed about a directory
+    neither should have carried — and its files are named README.md and .gitignore, which
+    no basename-matching junk filter catches."""
+    import zipfile
+    z = tmp_path / "p.zip"
+    with zipfile.ZipFile(z, "w") as f:
+        f.writestr("colophon/SKILL.md", "x")
+        f.writestr("colophon/.pytest_cache/README.md", "x")
+    r = subprocess.run([sys.executable, os.path.join(ROOT, "check_package.py"),
+                        "--zip", str(z), "--dir", os.path.join(ROOT, "skill", "colophon")],
+                       cwd=ROOT, capture_output=True, text=True)
+    assert r.returncode != 0
+    assert ".pytest_cache" in r.stdout, r.stdout
+
+
 def test_pages_serves_dot_directories_and_has_a_front_page():
     """.nojekyll makes /.well-known servable and stops Jekyll rendering README.md as the
     front page — so the front page has to exist as a file."""

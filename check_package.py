@@ -30,11 +30,22 @@ import zipfile
 JUNK = (".DS_Store", "._*", ".Spotlight-V100", ".Trashes", "Thumbs.db",
         "desktop.ini", "*.swp", "*~")
 
+# Tool caches. They are matched on the whole path, not the basename, because what
+# gives them away is the directory: `.pytest_cache/README.md` is a README by its name
+# and junk by where it sits — and it shipped inside a release zip exactly once, having
+# passed the check because the folder carried the same cache and the two agreed.
+CACHE_DIRS = ("__pycache__", ".pytest_cache", ".ruff_cache", ".mypy_cache")
+
 # zip -x matches whole paths, so a bare name needs a leading star; one that has
 # its own does not.
 EXCLUDE = " ".join(
-    f"'{p}'" for p in ("*.pyc", "*__pycache__*")
+    f"'{p}'" for p in ("*.pyc",) + tuple(f"*{d}*" for d in CACHE_DIRS)
     + tuple(j if j.startswith("*") else f"*{j}" for j in JUNK))
+
+
+def in_cache(path):
+    parts = path.replace(os.sep, "/").split("/")
+    return any(d in parts for d in CACHE_DIRS)
 
 
 def is_junk(name):
@@ -52,7 +63,7 @@ def folder_map(root):
         for f in files:
             # Junk in the folder is Finder's doing, not the author's: ignore it here
             # and let the package be the place where it is not allowed.
-            if f.endswith(".pyc") or "__pycache__" in base or is_junk(f):
+            if f.endswith(".pyc") or in_cache(base) or is_junk(f):
                 continue
             path = os.path.join(base, f)
             rel = os.path.relpath(path, os.path.dirname(root)).replace(os.sep, "/")
@@ -65,9 +76,13 @@ def zip_map(path):
     out, junk = {}, []
     with zipfile.ZipFile(path) as z:
         for name in z.namelist():
-            if name.endswith("/") or name.endswith(".pyc") or "__pycache__" in name:
+            if name.endswith("/") or name.endswith(".pyc"):
                 continue
-            if is_junk(name):
+            # A cache is tolerated in the working folder and refused in the package,
+            # like every other kind of junk: ignoring it on both sides is how one
+            # shipped, with the two sides agreeing about a directory neither should
+            # have been carrying.
+            if in_cache(name) or is_junk(name):
                 junk.append(name)
                 continue
             out[name] = digest(z.read(name))
