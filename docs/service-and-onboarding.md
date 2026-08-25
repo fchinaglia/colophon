@@ -4,8 +4,8 @@
 architect assessed it. This is what they concluded, including where each of them changed
 their mind and where they refused to.*
 
-The qualified-signature track is suspended for this document — see
-`qualified-signature.md`.
+The qualified-signature track is suspended for this document. It was taken up again on
+25 August and settled the other way: see the status note below.
 
 ---
 
@@ -17,6 +17,23 @@ The qualified-signature track is suspended for this document — see
 > component; mirroring at deposit is opt-in and inside the signed submission. Still open:
 > whether `measure.py` should gate the missing `version` digests, and who operates the
 > public instance in five years. §8 keeps both.
+
+> **Status, 25 August 2026 — superseded in part.** Three releases have overtaken this
+> document. **3.0.0** removed the address route entirely: a case travels as a bundle and
+> nothing else, `case.json` has no `verification_url`, `register_url` or `key_url`, and
+> the published key is gone — `seal.sh` copies the public half into the case as
+> `colophon.pub` and `build_bundle.py` packs it. Identity comes from one place now: a
+> qualified electronic signature on the PDF the bundle is attached to. **3.1.0** taught
+> the verifier to open that PDF, read the record out of it, show the case's own report
+> beside the checks, and check the signature over the document — including whether the
+> record is inside the bytes it covers. **3.1.2** stopped calling the register's own
+> signature `who`.
+>
+> Everything below about addresses, published keys and the deposit is **the record of a
+> position that was held and then abandoned.** It is kept because the reasoning is why the
+> current shape looks as it does, not because it describes the method. `CHANGELOG.md` has
+> what replaced it.
+
 
 ## 1. The proposal, and the revised verdict
 

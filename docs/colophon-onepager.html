@@ -401,13 +401,15 @@ a:focus-visible { outline: 2px solid var(--cell); outline-offset: 3px; }
 
   <section>
     <p class="eyebrow">The seal</p>
-    <h2>Who, and when — each from a source that does not depend on the others</h2>
+    <h2>What the seal settles, and what it leaves open</h2>
     <div class="seals">
       <div class="seal">
-        <p class="k">who</p>
+        <p class="k">sealed by</p>
         <p class="q">Ed25519 signature</p>
-        <p>Detached, verified against a key published on a domain the author controls —
-        never one that lives inside the folder it authenticates.</p>
+        <p>Detached. The public key travels in the bundle, so the check runs offline with
+        no domain to keep alive — and a key inside the package it signs cannot say whose
+        it is. It says one key closed this register, and that the same key closed the
+        author's other cases.</p>
       </div>
       <div class="seal">
         <p class="k">when</p>
@@ -423,6 +425,13 @@ a:focus-visible { outline: 2px solid var(--cell); outline-offset: 3px; }
         otherwise.</p>
       </div>
     </div>
+    <p style="margin-top:1.6rem"><strong>None of the three says <em>who</em>.</strong> That
+    comes from outside the package, and it is optional: a qualified electronic signature on
+    the document the bundle is attached to. A supervised trust service identified the signer
+    before issuing the certificate, so a reader gets a natural person rather than a key
+    fingerprint, and one signature covers the article and the evidence together. Without
+    one, all of this is a consistent, sealed, timestamped record from an author you are
+    taking on their word.</p>
   </section>
 
   <div class="close">
