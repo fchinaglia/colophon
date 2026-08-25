@@ -1,0 +1,11 @@
+{
+  "name": "colophon",
+  "version": "3.2.0",
+  "description": "Record, measure and disclose the human and AI contribution while writing. Seals each case with an Ed25519 key that stays on your machine — only its public half travels — and timestamps the digest, never the text, at an RFC 3161 authority.",
+  "author": { "name": "Fabio Chinaglia" },
+  "homepage": "https://colophonmethod.com",
+  "repository": "https://github.com/fchinaglia/colophon",
+  "license": "MIT",
+  "keywords": ["writing", "provenance", "disclosure", "authorship", "ai-contribution"],
+  "skills": ["./skill/"]
+}
