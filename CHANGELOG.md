@@ -4,6 +4,42 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+The served build looks like the site now, rather than nearly like it. Nothing that travels
+in a case is touched: `verify.html` is still `2e8a461a…` and the four copies do not move.
+
+### Fixed
+
+- **The page was set in the site's serif and did not look it.** Three properties the
+  site's body has and the site shell did not: `font-synthesis-weight`,
+  `-webkit-font-smoothing` and `text-rendering`. On macOS the first two are not cosmetic —
+  the same typeface renders visibly heavier without them, and `<strong>` gets a synthetic
+  bold instead of the one the face carries. Same stack, different weight, and the tool
+  read as a different document from the pages linking to it.
+- **A scale mismatch nobody had looked for.** `components.css` carries the verifier's own
+  weights, tuned for a system sans where 640 is unremarkable; in a serif it reads as
+  heavy, and every other heading on the site is 500. Card titles, the tab strip, badges
+  and the ghost buttons now match the site's scale, and the labels that are states rather
+  than prose — `INTACT`, `VALID`, the tab names — move to the mono face, which is the
+  site's rule for anything that is a value and not a sentence.
+- **The masthead was an imitation of `colophon.css`**, close enough to look intentional
+  and wrong enough to look like another site: the rule under it fell six pixels high, the
+  wordmark was set smaller than on every other page, and the standfirst was 16px where the
+  site sets 21 — that last one is why the page read as a different document before anyone
+  could say which part was off. The chrome is now that stylesheet transcribed: same token
+  values, same selectors, same numbers, down to the `.42em` gap in the wordmark and the
+  `.16em` tracking on the eyebrow. The mark uses the site's own classes and inherits
+  `currentColor`, so dark mode follows without a second declaration.
+
+Copying a stylesheet is not the obvious choice and it is the right one here: the site's CSS
+cannot be linked, because an external subresource would break the property that justifies
+this file existing at all — that it is one file you can save and keep. The alternative to
+copying is drifting, and drifting is what makes a page feel like it belongs somewhere else.
+
+**All of it lives in the site shell, after the shared block**, and `components.css` is
+untouched: weight and face are chrome, which is the line this pair of shells exists to draw.
+
 ## [3.2.0] — 2026-08-25
 
 The verifier gets a second shell, so the page served at a URL can look like the site
