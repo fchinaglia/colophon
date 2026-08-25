@@ -121,6 +121,40 @@ def test_the_marker_goes_under_the_title(manifested):
     assert doc.index("class=\"marker\"") < doc.index('class="colophon"')
 
 
+def test_attached_without_embed_is_refused(manifested):
+    """A PDF that says `drop colophon-<uid>.tar on verify.html` and carries no attachment
+    is the failure the technical line exists to remove, wearing the costume of the fix.
+    The two flags were independent — --attached wrote the line, --embed put the file in —
+    so forgetting the second produced a document that lied, silently, and two were made
+    that way before anyone noticed.
+
+    Not a hard rule: `enclosed` means *travels with the document*, and a PDF mailed
+    together with its tar is honestly described by it. That case has to be said out loud.
+    """
+    r = run(manifested, "render_pdf.py", "--attached")
+    assert r.returncode != 0, "a PDF promising an enclosure it does not carry"
+    out = r.stdout + r.stderr
+    assert "--embed" in out and "--beside" in out, out
+
+    # The honest side-by-side route must stay open. It still has to satisfy the older
+    # check that the tar it names is real — the example carries neither a case_uid nor a
+    # bundle, so both are put there first.
+    cj = os.path.join(manifested, "case.json")
+    case = json.load(open(cj, encoding="utf-8"))
+    case["case_uid"] = "beside"
+    json.dump(case, open(cj, "w", encoding="utf-8"), ensure_ascii=False)
+    open(os.path.join(manifested, "colophon-beside.tar"), "wb").write(b"x" * 512)
+    r = run(manifested, "render_pdf.py", "--attached", "--beside", "--html-only")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_embed_without_attached_warns(manifested):
+    """The mirror failure under-claims instead of over-claiming, so it is a warning: the
+    document carries the record and its own disclosure says it does not."""
+    r = run(manifested, "render_pdf.py", "--embed", "--html-only")
+    assert "--attached" in r.stdout + r.stderr
+
+
 def test_it_never_claims_pdf_a(manifested):
     """An unbacked compliance claim, in the one artefact whose job is to be checkable."""
     r = run(manifested, "render_pdf.py", "--html-only")

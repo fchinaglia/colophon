@@ -483,6 +483,9 @@ def main(argv=None):
     p.add_argument("--no-marker", action="store_true")
     p.add_argument("--attached", action="store_true",
                    help="the record is enclosed with this document, as a bundle")
+    p.add_argument("--beside", action="store_true",
+                   help="with --attached and no --embed: the bundle travels next to this "
+                        "PDF rather than inside it, and you undertake to send both")
     p.add_argument("--bundle", default=None,
                    help="where that bundle is, if not beside the case")
     p.add_argument("--html-only", action="store_true", help="stop before Chrome")
@@ -491,6 +494,30 @@ def main(argv=None):
                         "argument, the bundle --attached would name plus verify.html")
     p.add_argument("-o", "--out", default=None, help="the PDF path")
     a = p.parse_args(argv)
+
+    # --attached writes the line; --embed puts the file in. They were independent, and a
+    # PDF rendered with the first and not the second says `verify offline: drop
+    # colophon-<uid>.tar on verify.html` while carrying nothing — to a reader who was
+    # forwarded the document alone, a route that leads nowhere. It is the failure the
+    # technical line exists to remove, wearing the costume of the fix, and it was silent.
+    #
+    # Not a hard rule, because `enclosed` means *travels with the document* and a PDF
+    # mailed together with its tar is honestly described by it. That case now has to be
+    # said out loud instead of being what you get by forgetting a flag.
+    if a.attached and a.embed is None and not a.beside and not a.html_only:
+        print("! --attached without --embed.\n"
+              "  The disclosure would tell a reader to drop the bundle on verify.html,\n"
+              "  and this PDF would not contain one. Two ways to be truthful:\n"
+              "    --embed     put the bundle and the verifier inside the PDF\n"
+              "    --beside    you are sending the tar alongside, in the same mail",
+              file=sys.stderr)
+        return 1
+    # The mirror case under-claims rather than over-claims, so it is a warning: the
+    # document carries the record and its own disclosure says it does not.
+    if a.embed is not None and not a.attached:
+        print("  ! --embed without --attached: the bundle goes into the PDF and the\n"
+              "    technical line will say `not enclosed`. Add --attached.",
+              file=sys.stderr)
 
     src, manifest, rows = render_md.gate(a.log, a.source)
 
