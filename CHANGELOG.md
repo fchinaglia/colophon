@@ -40,6 +40,19 @@ copying is drifting, and drifting is what makes a page feel like it belongs some
 **All of it lives in the site shell, after the shared block**, and `components.css` is
 untouched: weight and face are chrome, which is the line this pair of shells exists to draw.
 
+### Changed
+
+- **The README says plainly that this is a skill for Claude.** It claimed conformance to an
+  open standard and left the rest to inference, while carrying no instruction file for any
+  other host and having been run on none. Both things are now stated: the format is not
+  tied to a vendor and the scripts depend on nothing but the standard library — and Claude
+  Code and the Claude apps are the only hosts it has been used on, so anywhere else is
+  untested rather than unsupported. With the criterion that actually decides it, which is
+  not the file format: an assistant has to run code on your machine, because the case folder
+  must persist for as long as you are writing and `seal.sh` must reach a key that must never
+  leave it. One that executes in a cloud sandbox can hold the conversation and produce the
+  annotation, and cannot seal.
+
 ## [3.2.0] — 2026-08-25
 
 The verifier gets a second shell, so the page served at a URL can look like the site

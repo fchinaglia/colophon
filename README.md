@@ -2,7 +2,7 @@
 
 ### *Written over, never erased.*
 
-**A method — and a skill — for recording, measuring and disclosing the human and AI contribution while a text is being written.**
+**A method — and a skill for Claude — for recording, measuring and disclosing the human and AI contribution while a text is being written.**
 
 A *colophon* is the note that has closed books since the fifteenth century, declaring how they were made: printer, typeface, paper, date. This project moves that function from the book to the text written together with a language model. The payoff comes from the palimpsest, the reused manuscript in which the earlier writing stays visible beneath the new — which is also the formal property of the register: append-only, no event overwritten, every revision added rather than substituted.
 
@@ -22,7 +22,19 @@ Colophon takes the third path: capture the process while it happens, measure it 
 
 ## Install
 
-The skill follows the [Agent Skills](https://agentskills.io) open standard.
+**This is a skill for Claude.** It follows the [Agent Skills](https://agentskills.io) open
+standard and nothing in it is deliberately tied to one vendor — the scripts are Python
+standard library only, `seal.sh` calls tools the operating system already has, and the
+verifier is one HTML file that needs no assistant at all. But Claude Code and the Claude
+apps are the only hosts it has been run on, so that is what the instructions below cover
+and what the method has been measured through.
+
+Anywhere else is untested rather than unsupported. **What another assistant would need is
+not the file format but the ability to run code on your machine**: the case folder has to
+persist for as long as you are writing, and `seal.sh` has to reach a private key that must
+never leave it. An assistant that executes in a cloud sandbox can hold the conversation and
+produce the annotation, and cannot seal — putting the key there would void the thing the
+signature is for.
 
 **Claude Code** — copy the skill folder into your personal skills directory, available across all your projects:
 
