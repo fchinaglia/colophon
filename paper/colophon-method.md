@@ -159,7 +159,7 @@ The second check was added **after an incident during the validation**: an updat
 |---|---|---|
 | **L1 — marker** | the reader skimming past | one line, no numbers, with a pointer to L2 |
 | **L2 — note** | the reader who wants to understand | three parts: the icon, the note — the two percentages with their semantic unit, the explanation of the difference, the breakdown, the assumption of responsibility — and the technical line that points to L3 |
-| **L3 — record** | whoever wants to verify | signed register, annotation, verification page |
+| **L3 — record** | whoever wants to verify | signed register, annotation, verification page — travelling as one bundle, and a verifier that reads it offline |
 
 The structure is not arbitrary. Three empirical results determine it.
 
@@ -227,15 +227,27 @@ Three *detached* artefacts, alongside the register, which stays intact and reada
 
 | file | answers | cost |
 |---|---|---|
-| `.sig` — Ed25519 signature | **who** | zero |
+| `.sig` — Ed25519 signature | **sealed by which key**, and in one act | zero |
 | `.tsr` — RFC 3161 timestamp | **when** | zero (free TSA) or ~€0.10–0.27 (qualified eIDAS) |
 | `.ots` — OpenTimestamps anchoring | **when**, independently of any guarantor | zero |
+
+**None of the three answers *who*, and the first one is not allowed to pretend it does.**
+The public key travels inside the bundle, because a reader with no network needs something
+to check the signature against — and a key enclosed in the package it signs cannot say
+whose it is. What it does say is worth having: one key closed this register in one act, and
+the same key closed every other case its author has sealed. The fingerprint recorded in
+`case.json` is covered by the closing manifest, so the sealed chain itself states which key
+to expect, and a substituted key stops matching something a signature already commits to.
 
 Two design choices deserve a justification.
 
 **The signature is performed by the author, not by the AI.** If the private key resides in the model's environment, the signature means nothing. The method produces the payload and hands over the command; the key stays where it has to stay.
 
-**No format that encapsulates the file is used.** The Italian qualified signature typically produces a container that engulfs the document, making it no longer readable or comparable without a specific toolchain. For a register that lives by being inspectable this is the opposite of what is needed. Where full legal value is required, the route is to sign a *manifest* of digests periodically, leaving the logs intact.
+**No format that encapsulates the register is used, and this is what makes the qualified signature usable.** The Italian qualified signature typically produces a container that engulfs the document, leaving it no longer readable or comparable without a specific toolchain; for a register that lives by being inspectable, that is the opposite of what is needed. The route taken keeps the objection and drops the cost: the register is not wrapped at all. It travels as an *attachment* inside the published PDF — `render_pdf.py --embed` writes it in as an incremental update — and the qualified signature is applied to that PDF afterwards. One signature then covers the article and the evidence for it in a single act, while the register stays a plain file anyone can read, hash and compare.
+
+**This is where identity comes from, and there is no other source of it.** A supervised trust service identifies the signer before issuing the certificate, so a reader gets a natural person rather than a key fingerprint. The order is fixed and it is the only part that can go silently wrong: embed, then sign. A document signed first and given its attachment afterwards presents a signature that verifies perfectly over pages containing none of the evidence, which is why the verifier reports whether the record is inside the bytes the signature covers, rather than only whether the signature is valid.
+
+What none of this establishes is whether that certificate is trusted, qualified, or was valid on the day: those need a trusted list and a revocation service, which are policy and network rather than arithmetic. The distinction is stated wherever the result is shown.
 
 ---
 
@@ -252,19 +264,35 @@ Moving from light to full loses nothing, because the register is the same.
 Components:
 
 ```
-SKILL.md                   the cycle, the two modes, the mistakes not to make
-reference/protocol.md      the attribution rules and the edge cases
-reference/disclosures.md   the texts, with the empirical reasons
-reference/VERIFY.md        the verification instructions to publish
-scripts/record.py          append-only register with hash chain
-scripts/measure.py         annotation → span → two axes, with the two checks
-scripts/build_page.py      standalone verification page, light and dark
-scripts/build_icon.py      the quadrant icon, generated from the measurement
-scripts/build_note.py      the technical line of the note, from the register
-scripts/seal.sh            signature, timestamp, anchoring
+SKILL.md                     the cycle, the two modes, the mistakes not to make
+reference/protocol.md        the attribution rules and the edge cases
+reference/disclosures.md     the texts, with the empirical reasons
+reference/VERIFY.md          the verification instructions to publish
+verify.html                  the reader's verifier — one self-contained page
+scripts/record.py            append-only register with hash chain
+scripts/measure.py           annotation → span → two axes, with the two checks
+scripts/review.py            the last read before the seal: what the register
+                             says about people who are not the author
+scripts/build_page.py        standalone verification page, light and dark
+scripts/build_icon.py        the quadrant icon, generated from the measurement
+scripts/build_note.py        the technical line of the note, from the register
+scripts/build_block.py       icon, note and technical line as one object
+scripts/build_attestation.py the checkfile a reader runs, and its limits
+scripts/build_bundle.py      the case as one tar: evidence and verifier together
+scripts/render_md.py         the document, with the disclosure added at render time
+scripts/render_pdf.py        the same through headless Chrome, with --embed
+scripts/seal.sh              signature, timestamp, anchoring
 ```
 
 The annotation resides in a data file separate from the code, so the tool stays identical across cases and only the annotation changes. A case folder contains register, annotation, versions and the scripts that read them: **it verifies itself**, without depending on the current version of the skill.
+
+### 8.1 What the reader receives
+
+A case travels as **one file**. `build_bundle.py` writes `colophon-<case_uid>.tar` — the register, the seal artefacts, everything the closing manifest covers, and the verifier itself — and `render_pdf.py --embed` puts that tar inside the published PDF as an attachment. Nothing has to stay online for the record to be checkable: there is no address to keep answering, no service to keep running, and no domain to keep renewing.
+
+`verify.html` is what a reader opens. It is a single self-contained page, no network and no dependencies, saved locally and still working years later. Dropped a bundle — or the PDF that carries one, which it opens itself — it recomputes the chain from the bytes supplied, verifies the Ed25519 signature against the enclosed key and against the fingerprint the sealed manifest commits to, checks every manifest digest against the file in front of it, reads the RFC 3161 token's imprint, and examines the signature over the document, including whether the record is inside the bytes that signature covers.
+
+**Deliberately, it does not recompute the measurement.** It confirms that `kpi.json`, `spans.json` and `annotation.json` carry the digests the register sealed — which establishes that the published numbers are the sealed numbers — and leaves the arithmetic to `measure.py`. Two implementations of one number is worse than one.
 
 ---
 
@@ -279,7 +307,7 @@ A professional article in Italian, about 3,000 words, intended for publication. 
 | | |
 |---|---|
 | Final text | 3,126 words, 75 spans |
-| Events in the chain | 75, reconstruction and coverage verified |
+| Events in the chain | 83, reconstruction and coverage verified |
 | **Lexical AI share** | **47.1%** |
 | **Ideational AI share** | **30.6%** |
 | First draft | ~86% human |
@@ -296,7 +324,7 @@ A professional article in Italian, about 3,000 words, intended for publication. 
 
 ### 9.4 Limits of the validation
 
-**One case, one annotator, and the annotator is an interested party.** The attribution was compiled by the language model that co-wrote the text. It is the most serious limit and it cannot be mitigated by any means other than an inter-rater protocol.
+**One case, one annotator, and the annotator is an interested party.** A second, much smaller case has since been sealed and published — the article that explains the method, 337 words — but it is a demonstration of the pipeline, not a second validation, and nothing below is weakened or strengthened by it. The attribution was compiled by the language model that co-wrote the text. It is the most serious limit and it cannot be mitigated by any means other than an inter-rater protocol.
 
 **100% acceptance rate in the first cycle.** All fourteen proposed edits were accepted. From a single case it is not possible to distinguish whether the proposals were well calibrated or whether an effect of deference towards the reviewer was at work. The literature on *acceptance rate* in software warns that a high rate measures surface plausibility and the low friction of accepting, not value.
 

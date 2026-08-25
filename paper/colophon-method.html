@@ -108,7 +108,7 @@ h(n) = SHA256( h(n−1) ‖ canonical(evento_n) )</code></pre>
 <hr>
 <h2>5. The disclosure</h2>
 <h3>5.1 The three-level architecture</h3>
-<table><thead><tr><th>Level</th><th>Addressee</th><th>Content</th></tr></thead><tbody><tr><td><strong>L1 — marker</strong></td><td>the reader skimming past</td><td>one line, no numbers, with a pointer to L2</td></tr><tr><td><strong>L2 — note</strong></td><td>the reader who wants to understand</td><td>three parts: the icon, the note — the two percentages with their semantic unit, the explanation of the difference, the breakdown, the assumption of responsibility — and the technical line that points to L3</td></tr><tr><td><strong>L3 — record</strong></td><td>whoever wants to verify</td><td>signed register, annotation, verification page</td></tr></tbody></table>
+<table><thead><tr><th>Level</th><th>Addressee</th><th>Content</th></tr></thead><tbody><tr><td><strong>L1 — marker</strong></td><td>the reader skimming past</td><td>one line, no numbers, with a pointer to L2</td></tr><tr><td><strong>L2 — note</strong></td><td>the reader who wants to understand</td><td>three parts: the icon, the note — the two percentages with their semantic unit, the explanation of the difference, the breakdown, the assumption of responsibility — and the technical line that points to L3</td></tr><tr><td><strong>L3 — record</strong></td><td>whoever wants to verify</td><td>signed register, annotation, verification page — travelling as one bundle, and a verifier that reads it offline</td></tr></tbody></table>
 <p>The structure is not arbitrary. Three empirical results determine it.</p>
 <p>Disclosing the use of AI <strong>reduces trust</strong>, with an effect mediated by perceived legitimacy and measured in professional contexts across thirteen experiments and 4,093 subjects (Schilke &amp; Reimann, <em>The transparency dilemma: How AI disclosure erodes trust</em>, «Organizational Behavior and Human Decision Processes», 2025). But the drop occurs <strong>only with detailed disclosures</strong>: one-line ones keep trust at levels comparable to no disclosure at all (Prajod, Cools, Röggla, Puttur Venkatraj, Kusters, ElKattan, Cesar &amp; El Ali, <em>Full Disclosure, Less Trust?</em>, ACM FAccT 2026, arXiv:2601.09620). And at the same time readers <strong>want</strong> the detail, and the most frequent question is not <em>how much</em> but <em>why</em> (Trusting News, research on AI disclosures, 2024).</p>
 <p>The only architecture that loses nothing is therefore: a short marker where timeliness is needed, detail where context is needed. On placement, the only solid datum concerns visibility: labels at the foot or in a side column exceed 80% visibility, hover labels stop at 26% (Trusting News, <em>TrustKit</em>, 2024).</p>
@@ -137,10 +137,13 @@ h(n) = SHA256( h(n−1) ‖ canonical(evento_n) )</code></pre>
 <hr>
 <h2>7. The seal</h2>
 <p>Three <em>detached</em> artefacts, alongside the register, which stays intact and readable:</p>
-<table><thead><tr><th>file</th><th>answers</th><th>cost</th></tr></thead><tbody><tr><td><code>.sig</code> — Ed25519 signature</td><td><strong>who</strong></td><td>zero</td></tr><tr><td><code>.tsr</code> — RFC 3161 timestamp</td><td><strong>when</strong></td><td>zero (free TSA) or ~€0.10–0.27 (qualified eIDAS)</td></tr><tr><td><code>.ots</code> — OpenTimestamps anchoring</td><td><strong>when</strong>, independently of any guarantor</td><td>zero</td></tr></tbody></table>
+<table><thead><tr><th>file</th><th>answers</th><th>cost</th></tr></thead><tbody><tr><td><code>.sig</code> — Ed25519 signature</td><td><strong>sealed by which key</strong>, and in one act</td><td>zero</td></tr><tr><td><code>.tsr</code> — RFC 3161 timestamp</td><td><strong>when</strong></td><td>zero (free TSA) or ~€0.10–0.27 (qualified eIDAS)</td></tr><tr><td><code>.ots</code> — OpenTimestamps anchoring</td><td><strong>when</strong>, independently of any guarantor</td><td>zero</td></tr></tbody></table>
+<p><strong>None of the three answers <em>who</em>, and the first one is not allowed to pretend it does.</strong> The public key travels inside the bundle, because a reader with no network needs something to check the signature against — and a key enclosed in the package it signs cannot say whose it is. What it does say is worth having: one key closed this register in one act, and the same key closed every other case its author has sealed. The fingerprint recorded in <code>case.json</code> is covered by the closing manifest, so the sealed chain itself states which key to expect, and a substituted key stops matching something a signature already commits to.</p>
 <p>Two design choices deserve a justification.</p>
 <p><strong>The signature is performed by the author, not by the AI.</strong> If the private key resides in the model's environment, the signature means nothing. The method produces the payload and hands over the command; the key stays where it has to stay.</p>
-<p><strong>No format that encapsulates the file is used.</strong> The Italian qualified signature typically produces a container that engulfs the document, making it no longer readable or comparable without a specific toolchain. For a register that lives by being inspectable this is the opposite of what is needed. Where full legal value is required, the route is to sign a <em>manifest</em> of digests periodically, leaving the logs intact.</p>
+<p><strong>No format that encapsulates the register is used, and this is what makes the qualified signature usable.</strong> The Italian qualified signature typically produces a container that engulfs the document, leaving it no longer readable or comparable without a specific toolchain; for a register that lives by being inspectable, that is the opposite of what is needed. The route taken keeps the objection and drops the cost: the register is not wrapped at all. It travels as an <em>attachment</em> inside the published PDF — <code>render_pdf.py --embed</code> writes it in as an incremental update — and the qualified signature is applied to that PDF afterwards. One signature then covers the article and the evidence for it in a single act, while the register stays a plain file anyone can read, hash and compare.</p>
+<p><strong>This is where identity comes from, and there is no other source of it.</strong> A supervised trust service identifies the signer before issuing the certificate, so a reader gets a natural person rather than a key fingerprint. The order is fixed and it is the only part that can go silently wrong: embed, then sign. A document signed first and given its attachment afterwards presents a signature that verifies perfectly over pages containing none of the evidence, which is why the verifier reports whether the record is inside the bytes the signature covers, rather than only whether the signature is valid.</p>
+<p>What none of this establishes is whether that certificate is trusted, qualified, or was valid on the day: those need a trusted list and a revocation service, which are policy and network rather than arithmetic. The distinction is stated wherever the result is shown.</p>
 <hr>
 <h2>8. Implementation</h2>
 <p>The method is distributed as a reusable skill, in two modes.</p>
@@ -148,28 +151,40 @@ h(n) = SHA256( h(n−1) ‖ canonical(evento_n) )</code></pre>
 <p><strong>Full</strong> — the whole cycle: register, annotation, measurement on the two axes, verification page, three-level disclosure, seal.</p>
 <p>Moving from light to full loses nothing, because the register is the same.</p>
 <p>Components:</p>
-<pre><code>SKILL.md                   the cycle, the two modes, the mistakes not to make
-reference/protocol.md      the attribution rules and the edge cases
-reference/disclosures.md   the texts, with the empirical reasons
-reference/VERIFY.md        the verification instructions to publish
-scripts/record.py          append-only register with hash chain
-scripts/measure.py         annotation → span → two axes, with the two checks
-scripts/build_page.py      standalone verification page, light and dark
-scripts/build_icon.py      the quadrant icon, generated from the measurement
-scripts/build_note.py      the technical line of the note, from the register
-scripts/seal.sh            signature, timestamp, anchoring</code></pre>
+<pre><code>SKILL.md                     the cycle, the two modes, the mistakes not to make
+reference/protocol.md        the attribution rules and the edge cases
+reference/disclosures.md     the texts, with the empirical reasons
+reference/VERIFY.md          the verification instructions to publish
+verify.html                  the reader's verifier — one self-contained page
+scripts/record.py            append-only register with hash chain
+scripts/measure.py           annotation → span → two axes, with the two checks
+scripts/review.py            the last read before the seal: what the register
+                             says about people who are not the author
+scripts/build_page.py        standalone verification page, light and dark
+scripts/build_icon.py        the quadrant icon, generated from the measurement
+scripts/build_note.py        the technical line of the note, from the register
+scripts/build_block.py       icon, note and technical line as one object
+scripts/build_attestation.py the checkfile a reader runs, and its limits
+scripts/build_bundle.py      the case as one tar: evidence and verifier together
+scripts/render_md.py         the document, with the disclosure added at render time
+scripts/render_pdf.py        the same through headless Chrome, with --embed
+scripts/seal.sh              signature, timestamp, anchoring</code></pre>
 <p>The annotation resides in a data file separate from the code, so the tool stays identical across cases and only the annotation changes. A case folder contains register, annotation, versions and the scripts that read them: <strong>it verifies itself</strong>, without depending on the current version of the skill.</p>
+<h3>8.1 What the reader receives</h3>
+<p>A case travels as <strong>one file</strong>. <code>build_bundle.py</code> writes <code>colophon-&lt;case_uid&gt;.tar</code> — the register, the seal artefacts, everything the closing manifest covers, and the verifier itself — and <code>render_pdf.py --embed</code> puts that tar inside the published PDF as an attachment. Nothing has to stay online for the record to be checkable: there is no address to keep answering, no service to keep running, and no domain to keep renewing.</p>
+<p><code>verify.html</code> is what a reader opens. It is a single self-contained page, no network and no dependencies, saved locally and still working years later. Dropped a bundle — or the PDF that carries one, which it opens itself — it recomputes the chain from the bytes supplied, verifies the Ed25519 signature against the enclosed key and against the fingerprint the sealed manifest commits to, checks every manifest digest against the file in front of it, reads the RFC 3161 token's imprint, and examines the signature over the document, including whether the record is inside the bytes that signature covers.</p>
+<p><strong>Deliberately, it does not recompute the measurement.</strong> It confirms that <code>kpi.json</code>, <code>spans.json</code> and <code>annotation.json</code> carry the digests the register sealed — which establishes that the published numbers are the sealed numbers — and leaves the arithmetic to <code>measure.py</code>. Two implementations of one number is worse than one.</p>
 <hr>
 <h2>9. Validation</h2>
 <h3>9.1 The case</h3>
 <p>A professional article in Italian, about 3,000 words, intended for publication. Process declared by the author at the outset: brainstorming with the AI, entirely human drafting, joint revision. Two revision cycles, the first with fourteen tracked edits proposed by the AI and decided one by one, the second with more than thirty interventions by the author.</p>
 <h3>9.2 Results</h3>
-<table><tbody><tr><td>Final text</td><td>3,126 words, 75 spans</td></tr><tr><td>Events in the chain</td><td>75, reconstruction and coverage verified</td></tr><tr><td><strong>Lexical AI share</strong></td><td><strong>47.1%</strong></td></tr><tr><td><strong>Ideational AI share</strong></td><td><strong>30.6%</strong></td></tr><tr><td>First draft</td><td>~86% human</td></tr><tr><td>Revision, research, titling</td><td>predominantly AI</td></tr></tbody></table>
+<table><tbody><tr><td>Final text</td><td>3,126 words, 75 spans</td></tr><tr><td>Events in the chain</td><td>83, reconstruction and coverage verified</td></tr><tr><td><strong>Lexical AI share</strong></td><td><strong>47.1%</strong></td></tr><tr><td><strong>Ideational AI share</strong></td><td><strong>30.6%</strong></td></tr><tr><td>First draft</td><td>~86% human</td></tr><tr><td>Revision, research, titling</td><td>predominantly AI</td></tr></tbody></table>
 <p><strong>The gap of about 16 points between the two axes is the most informative result</strong>: the AI wrote more words than it brought ideas, because it intervened above all in revision and in documentary input. A single number would have said 47% and hidden that the first draft is almost entirely the author's.</p>
 <h3>9.3 What the validation changed in the method</h3>
 <ul><li>The six-level scale was <strong>replaced</strong> by the two ternary axes (§4.1).</li><li>The coverage check was <strong>added</strong>, after an incident of silent drift (§4.4).</li><li>The three categories in §4.3 that no existing scheme represents were <strong>discovered</strong>.</li><li>The conversation was <strong>identified</strong> as a provenance channel, with the architectural consequence that follows.</li></ul>
 <h3>9.4 Limits of the validation</h3>
-<p><strong>One case, one annotator, and the annotator is an interested party.</strong> The attribution was compiled by the language model that co-wrote the text. It is the most serious limit and it cannot be mitigated by any means other than an inter-rater protocol.</p>
+<p><strong>One case, one annotator, and the annotator is an interested party.</strong> A second, much smaller case has since been sealed and published — the article that explains the method, 337 words — but it is a demonstration of the pipeline, not a second validation, and nothing below is weakened or strengthened by it. The attribution was compiled by the language model that co-wrote the text. It is the most serious limit and it cannot be mitigated by any means other than an inter-rater protocol.</p>
 <p><strong>100% acceptance rate in the first cycle.</strong> All fourteen proposed edits were accepted. From a single case it is not possible to distinguish whether the proposals were well calibrated or whether an effect of deference towards the reviewer was at work. The literature on <em>acceptance rate</em> in software warns that a high rate measures surface plausibility and the low friction of accepting, not value.</p>
 <p><strong>Observation effect.</strong> The author knew he was being observed. It is the "defensive writing" effect that constitutes the main criticism of all <em>process tracking</em> tools, and in a first case it cannot be got around.</p>
 <p><strong>Single language, single genre.</strong> Italian, professional article. Nothing has been verified on other languages or genres.</p>
