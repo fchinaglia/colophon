@@ -104,6 +104,30 @@ def test_the_repository_does_not_publish_a_front_page():
         "the homepage is colophonmethod.com, served elsewhere — see deploy/README.md"
 
 
+def test_a_missing_key_is_never_answered_by_making_one():
+    """Issue #26. `seal.sh` said "generate one" unconditionally, and where the author is
+    not sitting at the machine — a sandbox whose files are handed back at the end — that
+    is the instruction that leaks the key. It does not fail loudly either: it produces a
+    signature, and a verification page that reads VALID over it.
+
+    The rule cannot depend on detecting the environment, because nothing can detect it
+    reliably. It depends on where a key may be created: in the setup conversation, on a
+    machine the author keeps, and nowhere else. Three files carry that caveat and none of
+    them can be rewritten without this noticing — `SKILL.md` because Claude is what
+    executes, and the two scripts so the warning survives outside the skill."""
+    for rel in [("skill", "colophon", "SKILL.md"),
+                ("skill", "colophon", "scripts", "seal.sh"),
+                ("cli", "colophon.py")]:
+        text = open(os.path.join(ROOT, *rel), encoding="utf-8").read()
+        assert "a machine you keep" in text, f"{'/'.join(rel)} lost the ephemeral-key caveat"
+
+    seal = open(os.path.join(ROOT, "skill", "colophon", "scripts", "seal.sh"),
+                encoding="utf-8").read()
+    branch = seal.split("if [ ! -f \"$KEY\" ]; then")[1].split("exit 1")[0]
+    assert "ssh-keygen -t ed25519" in branch, "the no-key branch no longer says what fixes it"
+    assert "sandbox" in branch, "the no-key branch no longer says where it must not be fixed"
+
+
 @pytest.mark.parametrize("copy", [("skill", "colophon", "verify.html"),
                                   ("cases", "001", "verify.html"),
                                   ("cases", "002", "verify.html")])

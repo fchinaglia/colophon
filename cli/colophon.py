@@ -132,6 +132,9 @@ def cmd_setup(a):
         print(f"\n  key: reusing {key_path}")
     else:
         print(f"\n  key: generating {key_path}")
+        print("  Do this only on a machine you keep. In a sandbox, or a session whose")
+        print("  files are handed back at the end, the key has already travelled by the")
+        print("  time you hold it — stop here and set up where you actually work.")
         print("  A passphrase is safer. It also makes seal.sh stop and ask, and a script")
         print("  with no terminal to ask on simply hangs — so if you set one, add the key")
         print("  to your agent before sealing.")

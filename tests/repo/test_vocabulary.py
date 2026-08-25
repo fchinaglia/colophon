@@ -62,7 +62,11 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
     ("### 1. Opening", "### 2. While writing", 1200),
     ("### 4. Closing", "## The annotation", 2300),
     ("## What the author hears", "## Before the first case", 400),
-    ("## Before the first case", "## The cycle", 500),
+    # 500 until #26. The rule that a key is made on a machine the author keeps, and
+    # nowhere else, is what bought the extra 120 — a deliberate raise and not a drift,
+    # which is the distinction this test exists to force. #27 relocates the paragraph on
+    # where the key goes, and this comes back down to 500 when it lands.
+    ("## Before the first case", "## The cycle", 620),
 ])
 def test_a_section_of_the_skill_stays_within_its_budget(section, end, budget):
     """Blunt, and the only thing here that would have fired on 24 August, when the

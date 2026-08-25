@@ -77,7 +77,18 @@ case.
 1. **Their name and how to reach them.** Both go into `VERIFY.md` and `allowed_signers`,
    which readers use, so ask for what they want a stranger to see.
 
-2. **The key**, and the two facts said *now* rather than at the seal:
+2. **The key, and the question that comes before it.** A key is made here or nowhere, and
+   only on a machine the author keeps — **never as a step**, not here and not at the seal.
+   Ask, and not *"shall I make one?"*, which collects a yes from somebody who has not been
+   told what they are agreeing to:
+
+   > *"Is this machine yours, one you keep — or a session that ends when we're done and
+   > hands you the files back?"*
+
+   **If it is the second, make no key**: one made where the files are handed back has
+   already travelled by the time the author holds it. Stop before the seal and finish
+   everything else — *When something stops* has the words and the reason. Otherwise, the
+   two facts, said *now* rather than at the seal:
 
    > *"I'll make a signing key. A passphrase on it is safer — but then signing will stop
    > and ask for it, and if that happens in a script with nowhere to ask, it hangs. If you
@@ -524,6 +535,27 @@ sentence for the person who wrote the text. The four you will actually meet:
 > **Packing before sealing.** *"I can pack this now, but nothing has signed it: a reader
 > would be able to see that the record is consistent with itself and nothing about who
 > made it. Shall I sign it first?"*
+>
+> **The seal, with no key.** *"I can't sign this: there's no signing key on this machine.
+> That one isn't a step I should take here — a key made in a session that ends has already
+> travelled by the time you hold it, and a signature from it would say nothing while
+> looking like it said everything. Nothing is lost: the record, the measurement and the
+> verification page are done and they check out. The seal is the one piece missing, and it
+> is yours to add on a machine you keep."*
+
+**And that last one is the exception in this list: it is never fixed by making a key.**
+Every other refusal here is a step arriving late, and you perform it. `seal.sh` printing
+`no key at …` is not — it means the case is being closed somewhere the author is not, and
+the `ssh-keygen` line the script prints is addressed to the author on their own machine,
+never to you. Do not run it, do not offer to, and do not treat a missing key at the seal as
+the setup conversation arriving late: at the closing it is too late for that conversation,
+because the answer it exists to collect is one only the author can give.
+
+**Stop before the seal and finish everything else.** Skip `seal.sh`, run `build_note.py`
+anyway — its `unsealed` state is built for exactly this and prints `register not sealed
+yet — no signature or timestamp` — and say in the closing note that the case is unsealed
+and why. A case that stops here is honest and incomplete, which is a state the method
+supports. A case sealed with a key that leaked is neither.
 
 Then fix it, in this order:
 

@@ -6,9 +6,57 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
-The repository becomes installable in one command, stops being a website, and the served
-build looks like the site now rather than nearly like it. Nothing that travels in a case is
-touched: `verify.html` is still `2e8a461a…` and the four copies do not move.
+## [3.3.0] — 2026-08-25
+
+A signing key is made in one place and only on a machine the author keeps — the rule that
+closes #26, where an environment the author was not sitting at turned `seal.sh`'s advice
+into the instruction that leaked the key. Alongside it the repository becomes installable
+in one command, stops being a website, and the served build looks like the site rather than
+nearly like it. Nothing that travels in a case is touched: `verify.html` is still
+`2e8a461a…` and the four copies do not move.
+
+### Security
+
+- **A signing key is made in one place, and only on a machine the author keeps.** Closes
+  #26. `seal.sh` printed `no key at … — generate one with: ssh-keygen …` unconditionally.
+  Run inside a folder-scoped VM whose files are handed back at the end of the session, that
+  line is not advice but an instruction: the key was generated in the sandbox and returned
+  to the author among the downloads, having already travelled by the time they held it. The
+  bundle was never at fault — `build_bundle.py` has an allowlist and takes only
+  `colophon.pub`. The key did not leave the package, it left the sandbox.
+
+  **And it did not fail loudly**, which is the worse half. It produced `.sig`, `.tsr` and a
+  verification page reading `VALID` over a signature that means nothing. The key is the only
+  thing binding an author's cases together over time, so whoever holds a copy can sign a
+  colophon that appears to come from the same hand as every genuine one — the forgery the
+  method exists to prevent. And the plugin manifests promise, in the description a reader
+  sees before installing, an Ed25519 key that stays on your machine. Nothing enforced it.
+
+  **The rule does not try to detect the environment.** Nothing detects it reliably, and a
+  guard that fails silently exactly where it is needed is worse than none. It constrains
+  where a key may be created instead — in the setup conversation, on a machine the author
+  keeps, and nowhere else. `SKILL.md` gains the question that separates the two cases at
+  setup, put as *is this machine yours, or a session that ends*, rather than as *shall I
+  make one*, which collects a yes from somebody who has not been told what they are
+  agreeing to. In *When something stops* it gains a fifth refusal, and that one is the
+  exception in the list: every other stop there is a step arriving late and you perform it,
+  while `seal.sh` reporting no key means the case is being closed somewhere the author is
+  not. Stop before the seal and finish everything else — `build_note.py`'s `unsealed` state
+  was already built for this and prints `register not sealed yet — no signature or
+  timestamp`. A case that stops there is honest and incomplete, which the method supports.
+  One sealed with a key that leaked is neither.
+
+  `seal.sh` and `cli/colophon.py` carry the caveat as well, so the warning survives outside
+  the skill for anyone driving the scripts from a shell — and `cli/colophon.py` generates a
+  key too, which the issue did not name. Its non-interactive path is the narrower hole: the
+  prompts raise `EOFError` before the key when there is no terminal, so it fails closed
+  unless the flags are supplied. An invariant in `tests/repo/` holds the caveat in all three
+  files and reads the no-key branch of `seal.sh` to check it still says both what fixes a
+  missing key and where it must not be fixed.
+
+  The word budget on `## Before the first case` goes from 500 to 620 to pay for the rule —
+  deliberate rather than drift, which is the distinction that test exists to force. #27
+  relocates the paragraph on where the key goes and brings it back down.
 
 ### Added
 

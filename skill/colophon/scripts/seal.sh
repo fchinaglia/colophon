@@ -26,7 +26,7 @@
 # Usage:  bash seal.sh events.jsonl
 #
 # One-time setup:
-#   ssh-keygen -t ed25519 -f ~/.ssh/colophon      # a dedicated key
+#   ssh-keygen -t ed25519 -f ~/.ssh/colophon      # a dedicated key, on a machine you keep
 #   pip install opentimestamps-client             # optional but recommended
 # The public key needs publishing nowhere. It goes in the bundle, from here.
 
@@ -53,8 +53,13 @@ echo "== Ed25519 signature =="
 # against a shorter register. That is the one failure this script must not leave behind.
 rm -f "$FILE.sig"
 if [ ! -f "$KEY" ]; then
-  echo "   ! no key at $KEY — generate one with:" >&2
+  echo "   ! no key at $KEY — on a machine you keep, generate one with:" >&2
   echo "     ssh-keygen -t ed25519 -f $KEY -C colophon" >&2
+  echo "   ! only there. In a sandbox or a session whose files are handed back at the" >&2
+  echo "     end, a key made now has already travelled by the time you hold it, and the" >&2
+  echo "     signature would say nothing while looking like it said everything. Stop" >&2
+  echo "     here instead: the register and the measurement are unaffected, and the" >&2
+  echo "     technical line has a state for a case that is not sealed yet." >&2
   echo "   ! any earlier signature has been removed: it did not cover this register" >&2
   exit 1
 fi
