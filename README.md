@@ -36,14 +36,23 @@ never leave it. An assistant that executes in a cloud sandbox can hold the conve
 produce the annotation, and cannot seal — putting the key there would void the thing the
 signature is for.
 
-**Claude Code** — copy the skill folder into your personal skills directory, available across all your projects:
+**Claude Code** — this repository is also a plugin marketplace, so one command installs the skill and a second keeps it current:
+
+```
+/plugin marketplace add fchinaglia/colophon
+/plugin install colophon@colophon
+```
+
+That brings down the whole repository rather than the skill folder alone — the verifier, the worked example and the cases come with it, which for this project is the point and not the cost. `claude plugin update colophon` picks up later releases.
+
+To take the skill folder by itself, without the plugin machinery, copy it into your personal skills directory, available across all your projects:
 
 ```bash
 git clone https://github.com/fchinaglia/colophon.git
 cp -r colophon/skill/colophon ~/.claude/skills/colophon
 ```
 
-For a single project, use `.claude/skills/colophon/` instead. Claude loads it when relevant, or you can invoke it directly with `/colophon`.
+For a single project, use `.claude/skills/colophon/` instead. Either way Claude loads it when relevant, or you can invoke it directly with `/colophon`.
 
 **Claude apps (web and desktop)** — go to **Customize → Skills → Add** and upload `colophon.zip` from the [latest release](../../releases). The zip has the skill folder at its root, as required.
 
