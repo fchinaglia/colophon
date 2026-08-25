@@ -4,7 +4,7 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
-## [Unreleased]
+## [3.2.0] — 2026-08-25
 
 The verifier gets a second shell, so the page served at a URL can look like the site
 that serves it without the copy sealed into a case acquiring a single line of it.
