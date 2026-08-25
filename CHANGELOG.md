@@ -4,6 +4,45 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [3.1.3] — 2026-08-25
+
+The documents in `docs/` had not moved since 23 August. One of them did not just lag: it
+asserted the opposite of how the method now works.
+
+### Measured first
+
+`docs/colophon-onepager.html` is what someone arriving from outside reads. Its seal table
+said the Ed25519 signature is *"verified against a key published on a domain the author
+controls — never one that lives inside the folder it authenticates."* Since 3.0.0 the key
+lives exactly inside the folder it authenticates, and is published nowhere. The section
+heading made the same claim — *"Who, and when — each from a source that does not depend on
+the others"* — and the *who* has not come from an independent source since that release.
+
+Four releases in two days, and the reader-facing page was the last place anyone looked.
+
+### Fixed
+
+- **The one-pager's seal table.** The row is `sealed by`, and says what an enclosed key can
+  and cannot establish. A paragraph after the three seals says where *who* actually comes
+  from — a qualified signature on the document, outside the package, optional — and what
+  is left without one. The heading no longer promises an independence it does not have.
+- **`colophon-anatomy.html` and `colophon-a4.html`** labelled the signature check *"who is
+  answerable for it?"*, the word removed from `seal.sh` in 3.1.2. Now *"which key closed
+  it, and in one act?"*, and the anatomy's `aria-label` says none of the four checks names
+  a person.
+- **`colophon-a4.pdf`** regenerated from the corrected HTML — and it was Letter, in a file
+  called `a4`, against an `@page { size: A4 }` the HTML has always declared.
+- **`service-and-onboarding.md` pointed at `qualified-signature.md`**, which exists only on
+  an unpushed local branch. A public document sending readers to a file nobody can open,
+  about the very thing that became the anchor of identity in 3.0.0.
+
+### Added
+
+- **A dated status note on the three analysis documents**, naming the releases that
+  overtook them and saying plainly that everything in them about addresses, published keys
+  and the deposit is the record of a position held and then abandoned — kept because the
+  reasoning is why the current shape looks as it does, not because it describes the method.
+
 ## [3.1.2] — 2026-08-25
 
 Documentation, and it started as a question nothing in the repository could answer: if
