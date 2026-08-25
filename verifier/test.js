@@ -95,6 +95,23 @@ if (fs.existsSync(bundle)) {
   const bad = new Uint8Array(reg); bad[bad.length - 20] ^= 1;
   ok(C.verifySignature(bad, sig, pub).ok === false, 'bundle: tampered register fails');
 
+  // The enclosed key is circular on its own. case.json is covered by the sealed
+  // manifest, so the fingerprint it declares is committed to by the signature — and
+  // comparing the two is the only thing that makes a substituted key visible offline.
+  const whole = C.verifyCase(files);
+  ok(whole.signature && whole.signature.declared &&
+     whole.signature.declared.matches === true,
+     'bundle: the enclosed key is the one case.json declares',
+     JSON.stringify(whole.signature && whole.signature.declared));
+
+  const swapped = new Map(files);
+  const cj = JSON.parse(new TextDecoder().decode(files.get('case.json')));
+  cj.key_fingerprint = 'SHA256:notTheKeyThatSignedThisRegisterAtAll';
+  swapped.set('case.json', new TextEncoder().encode(JSON.stringify(cj)));
+  const caught = C.verifyCase(swapped);
+  ok(caught.signature.declared.matches === false,
+     'bundle: a fingerprint that is not the signing key is reported, not ignored');
+
   const t = C.checkTimestamp(files.get('events.jsonl.tsr'), reg);
   ok(t.parsed && t.commits !== null, 'bundle: .tsr imprint commits to this register',
      JSON.stringify(t));

@@ -140,15 +140,27 @@ footer p { margin:.4rem 0; }
       } else {
         html += card('Signature', s.ok ? 'valid' : 'does not verify', s.ok ? 'b-ok' : 'b-bad',
           dl([['namespace', s.namespace], ['hash', s.hashAlg],
-              ['key fingerprint', s.keyFingerprint], ['checked against', s.source]]) +
-          (s.keyEmbedded
+              ['key fingerprint', s.keyFingerprint], ['checked against', s.source],
+              s.declared ? ['declared in case.json',
+                            `${s.declared.expected} — ${s.declared.matches ? 'matches' : 'DOES NOT MATCH'}`]
+                         : null]) +
+          (s.declared && !s.declared.matches
+            ? `<p class="note"><strong>This is not the key the case declared.</strong>
+               <code>case.json</code> is covered by the sealed manifest, so that fingerprint
+               is committed to by the signature. A different key signed this register than
+               the one the case says signed it. Stop here.</p>`
+            : s.keyEmbedded
             ? `<p class="note"><strong>The key came from the signature itself.</strong> That
                proves the register was signed by whoever holds that key — it does not say
-               whose key it is. Fetch the author's published key and compare the
-               fingerprint above.</p>`
-            : `<p class="note">A valid signature proves who takes responsibility for this
-               register. It does not prove the register is complete: no voluntary record
-               can.</p>`));
+               whose key it is, and there is no <code>colophon.pub</code> here to compare
+               with what <code>case.json</code> declared.</p>`
+            : `<p class="note">Checked against the key enclosed with the evidence. This
+               proves the register is intact and was signed by the holder of that key — it
+               does not prove whose key it is, because a key inside the package it signs
+               cannot say that about itself. <strong>Who</strong> comes from a qualified
+               electronic signature on the document this record is attached to: open the
+               signature panel of the PDF. It also does not prove the register is complete:
+               no voluntary record can.</p>`));
       }
     } else {
       html += card('Signature', 'absent', 'b-dim',

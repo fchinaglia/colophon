@@ -537,6 +537,18 @@ function verifyCase(files) {
       out.signature = verifySignature(registerBytes, new TextDecoder().decode(files.get('events.jsonl.sig')),
                                       pub ? new TextDecoder().decode(pub) : null);
     } catch (e) { out.signature = { ok: false, error: e.message }; }
+    // The key travels with the evidence, so on its own it is circular. case.json is not:
+    // the closing manifest covers it, so the fingerprint it declares is committed to by
+    // the signature itself. Comparing the two is what makes a substituted key visible.
+    if (out.signature && out.signature.keyFingerprint && files.has('case.json')) {
+      try {
+        const raw = JSON.parse(new TextDecoder().decode(files.get('case.json'))).key_fingerprint;
+        if (raw) {
+          const expected = String(raw).trim().split(/\s+/)[0];
+          out.signature.declared = { expected, matches: expected === out.signature.keyFingerprint };
+        }
+      } catch (e) { /* a case.json that will not parse is the manifest's problem, not this one */ }
+    }
   }
 
   const man = findManifest(text);
