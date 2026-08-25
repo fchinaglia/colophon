@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check a document — Colophon</title>
+<meta name="description" content="Drop a case, a bundle or the signed PDF that carries one. Everything runs in this page, on your machine, with no network at all.">
+<style>
+/* The site's shell for the verifier.
+
+   It differs from verifier/shell.html in two things and no others: the palette
+   it supplies, and the chrome around the tool — a masthead, a line of context,
+   a footer. The components are inlined from components.css, identically in both,
+   because what the page SHOWS must not depend on where it is served.
+
+   It is generated. Do not edit verifier/verify-site.html; edit this and run
+   verifier/build.py. */
+
+/* --- the site's palette, mapped onto the nine names the components need --- */
+:root {
+  --font-serif: "EB Garamond", "Iowan Old Style", "Palatino Linotype", Palatino,
+                Georgia, "Times New Roman", serif;
+  --font-mono:  "IBM Plex Mono", ui-monospace, SFMono-Regular, "SF Mono",
+                Menlo, Consolas, monospace;
+
+  --bg:#fcfcfb; --fg:#16171a; --dim:#5f6166; --line:#d8d8d6;
+  --card:#fcfcfb; --mono:#f4f4f3;
+  --ok:#1f6f43; --bad:#c62f2e; --warn:#8a5a00;
+  --quieter:#6b6d72; --point:#e34948;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#131417; --fg:#e9e8e4; --dim:#9a9ba0; --line:#2e3036;
+    --card:#1b1c20; --mono:#1b1c20;
+    --ok:#5fbf8a; --bad:#ff8078; --warn:#d9a441;
+    --quieter:#8a8c92; --point:#ff6b62;
+  }
+}
+
+/* --- chrome: the only part that is ours --- */
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+       font:19px/1.58 var(--font-serif); }
+code, pre, .mono { font-family:var(--font-mono); }
+a { color:inherit; }
+
+.page { max-width:58rem; margin:0 auto; padding:0 1.25rem; }
+
+.site-head { border-bottom:1px solid var(--line); padding:1.1rem 0; }
+.site-head .page { display:flex; align-items:baseline; justify-content:space-between;
+                   gap:1.25rem; flex-wrap:wrap; }
+.wordmark { display:flex; align-items:center; gap:.55rem; text-decoration:none;
+            font-size:1.25rem; }
+.wordmark svg { width:1.15em; height:1.15em; display:block; flex:none; }
+.wordmark span.t { font-style:italic; font-size:.62em; color:var(--quieter); }
+.site-nav ul { list-style:none; display:flex; gap:1.1rem; margin:0; padding:0;
+               font-family:var(--font-mono); font-size:.75rem; letter-spacing:.04em; }
+.site-nav a { color:var(--dim); text-decoration:none; padding-bottom:.2rem; }
+.site-nav a:hover { color:var(--fg); }
+.site-nav a[aria-current="page"] { color:var(--fg);
+  border-bottom:2px solid var(--point); }
+
+main { padding:2.5rem 0 4rem; }
+h1 { font-size:1.9rem; line-height:1.14; margin:0 0 .4rem; font-weight:400;
+     letter-spacing:-.008em; }
+.eyebrow { font-family:var(--font-mono); font-size:.75rem; letter-spacing:.12em;
+           text-transform:uppercase; color:var(--quieter); margin:0 0 .6rem; }
+.sub { color:var(--dim); margin:0 0 1.1rem; font-size:1rem; max-width:34rem; }
+.hat { max-width:34rem; margin:0 0 2rem; font-size:.92rem; color:var(--dim);
+       border-left:2px solid var(--line); padding-left:1rem; }
+.hat strong { color:var(--fg); }
+.hat p { margin:0 0 .5rem; }
+.hat p:last-child { margin:0; }
+
+.site-foot { border-top:1px solid var(--line); margin-top:3rem; padding:1.5rem 0 2rem;
+             font-family:var(--font-mono); font-size:.75rem; line-height:1.9;
+             color:var(--quieter); }
+.site-foot a { color:var(--dim); }
+.site-foot a:hover { color:var(--fg); }
+.site-foot p { margin:0; max-width:40rem; }
+.foot-links { list-style:none; padding:0; margin:.6rem 0 0; display:flex;
+              flex-wrap:wrap; align-items:center; gap:.4rem 1rem; }
+
+/* --- the verifier's own components, shared with the bundled shell --- */
+/*__COMPONENTS__*/
+/* main is the site's container here, so the tool sits in the page column. */
+main .page > #out, main .page > #drop { margin-left:0; margin-right:0; }
+</style>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="page">
+    <a class="wordmark" href="/"><svg viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect fill="none" stroke="currentColor" stroke-width="2" x="3" y="3" width="26" height="26"/><line stroke="currentColor" stroke-width="1.4" opacity=".34" x1="16" y1="3" x2="16" y2="29"/><line stroke="currentColor" stroke-width="1.4" opacity=".34" x1="3" y1="16" x2="29" y2="16"/><circle fill="var(--point)" cx="21" cy="10.5" r="4.6"/></svg>Colophon <span class="t">written over, never erased</span></a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="/setup/">setup</a></li>
+        <li><a href="/write/">write</a></li>
+        <li><a href="/verify/" aria-current="page">verify</a></li>
+        <li><a href="/technology/">technology</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="page">
+    <p class="eyebrow">Check a document</p>
+    <h1>Verify a Colophon case</h1>
+    <p class="sub">Everything runs in this page, on your machine. Nothing is uploaded, and it
+    works with no network at all.</p>
+
+    <div class="hat">
+      <p><strong>This is a convenience copy, and it is not the one that travels.</strong>
+      A case carries its own verifier inside it — that copy is what a reader who was handed a
+      document already has, and it is the one to use if you would rather not trust a page
+      served by us.</p>
+      <p>The two differ in chrome and palette only. What they check is the same code, built
+      from the same source, and <a href="https://github.com/fchinaglia/colophon/tree/main/verifier">both
+      digests are published</a>.</p>
+    </div>
+
+    <div id="drop">
+      <p><strong>Drop a case folder here</strong></p>
+      <p>or a <code>bundle.tar</code>, or the signed <code>.pdf</code> that carries one,
+      or the files themselves</p>
+      <div class="pickers">
+        <label class="btn">Choose a folder<input type="file" id="dir" webkitdirectory multiple></label>
+        <label class="btn">Choose files<input type="file" id="fil" multiple></label>
+      </div>
+    </div>
+
+    <div id="out"></div>
+
+    <footer>
+      <p><strong>What this page does not do.</strong> It does not recompute the measurement.
+      It checks that <code>kpi.json</code>, <code>spans.json</code> and
+      <code>annotation.json</code> carry the digests the register sealed — which proves the
+      published numbers are the sealed numbers — and leaves the arithmetic to
+      <code>measure.py</code>, so there is exactly one implementation of it.</p>
+      <p>It also cannot validate a timestamp authority's certificate, or confirm a Bitcoin
+      anchor: both need the network, and this page never touches it. The commands are shown
+      where they apply.</p>
+      <p>MIT. The chain rule it implements is <code>spec/canonical.md</code>.</p>
+    </footer>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="page">
+    <p>MIT — use it, change it, redistribute it. No cookies, no analytics, no logs.
+    This site explains the method; the method itself lives on GitHub.</p>
+    <ul class="foot-links">
+      <li>Fabio Chinaglia</li>
+      <li><a href="https://github.com/fchinaglia/colophon">github.com/fchinaglia/colophon</a></li>
+    </ul>
+  </div>
+</footer>
+
+<script>
+/* ==== core ==== */
+//__CORE__
+//__UI__
+</script>
+</body>
+</html>
