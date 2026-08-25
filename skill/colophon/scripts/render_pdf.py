@@ -481,7 +481,6 @@ def main(argv=None):
     p.add_argument("--byline", default=None)
     p.add_argument("--no-byline", action="store_true")
     p.add_argument("--no-marker", action="store_true")
-    p.add_argument("--url", default=None)
     p.add_argument("--attached", action="store_true",
                    help="the record is enclosed with this document, as a bundle")
     p.add_argument("--bundle", default=None,
@@ -511,7 +510,7 @@ def main(argv=None):
 
     lines, name, xl, yi = build_block.note_lines(kpi, a.lang, a.gap)
     alt = build_block.T[a.lang]["alt"].format(name=name, x=f"{xl:.0f}", y=f"{yi:.0f}")
-    tech = build_block.technical(a.log, a.lang, a.url, "html", False, a.attached,
+    tech = build_block.technical(a.log, a.lang, "html", False, a.attached,
                                  a.bundle)
     if not os.path.exists(a.icon):
         raise SystemExit(f"missing {a.icon} — run build_icon.py first")

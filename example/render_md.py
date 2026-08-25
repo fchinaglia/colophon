@@ -192,7 +192,6 @@ def main(argv=None):
     p.add_argument("--no-marker", action="store_true")
     p.add_argument("--linked-icon", action="store_true",
                    help="reference icon.svg instead of inlining it")
-    p.add_argument("--url", default=None)
     p.add_argument("--attached", action="store_true",
                    help="the record is enclosed with this document, as a bundle")
     p.add_argument("--bundle", default=None,
@@ -212,7 +211,7 @@ def main(argv=None):
 
     lines, name, xl, yi = build_block.note_lines(kpi, a.lang, a.gap)
     alt = build_block.T[a.lang]["alt"].format(name=name, x=f"{xl:.0f}", y=f"{yi:.0f}")
-    tech = build_block.technical(a.log, a.lang, a.url,
+    tech = build_block.technical(a.log, a.lang,
                                  "html" if a.block == "html" else "text", False,
                                  a.attached, a.bundle)
 

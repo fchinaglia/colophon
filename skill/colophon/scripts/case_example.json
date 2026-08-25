@@ -4,9 +4,6 @@
  "date": "2026-08",
  "reconstructed": false,
  "case_uid": "a-short-stable-name-you-fix-now-and-never-change",
- "key_url": "https://example.com/.well-known/colophon/keys",
  "key_fingerprint": "SHA256:...",
- "register_url": "https://example.com/where/this/case/is/published",
- "verification_url": "https://example.com/where/this/case/is/published/",
  "extra_notes": "Anything a reader needs to know that the register does not say."
 }

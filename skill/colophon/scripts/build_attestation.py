@@ -75,8 +75,11 @@ T = {
               "it closes over."),
   "case": "case", "uid": "uid", "author": "author", "date": "date",
   "reconstructed": "reconstructed", "yes": "yes", "no": "no",
-  "page": "page", "register_at": "register",
-  "key": "key", "fingerprint": "fingerprint",
+  "record": "record", "key": "key", "fingerprint": "fingerprint",
+  "key_here": ("colophon.pub, enclosed — checked offline against the fingerprint\n"
+               "                above, which the sealed manifest covers. It says which key\n"
+               "                signed, not whose it is: for that, a qualified signature\n"
+               "                on the document this record is attached to."),
   "reg": "REGISTER  events.jsonl", "events": "events",
   "opened": "opened", "closed": "closed", "root": "root", "sha256": "sha256",
   "manifest": "MANIFEST  event {n} of the register, sha256",
@@ -96,8 +99,8 @@ T = {
              "is worth is stated in {verify}, alongside."),
   "check": ("TO CHECK EVERY DIGEST ABOVE, from the folder that holds these files:\n"
             "  grep -E '^[0-9a-f]{64}  ' " ),
-  "unpublished": ("not published at an address: this record travels with the document,\n"
-                  "                as colophon-{uid}.tar"),
+  "travels": ("travels with the document, as colophon-{uid}.tar: drop it on\n"
+              "                verify.html and every digest below is checked offline"),
  },
  "it": {
   "title": "COLOPHON — ATTESTAZIONE DEL REGISTRO",
@@ -106,8 +109,11 @@ T = {
               "file su cui si chiude."),
   "case": "caso", "uid": "uid", "author": "autore", "date": "data",
   "reconstructed": "ricostruito", "yes": "sì", "no": "no",
-  "page": "pagina", "register_at": "registro",
-  "key": "chiave", "fingerprint": "impronta",
+  "record": "record", "key": "chiave", "fingerprint": "impronta",
+  "key_here": ("colophon.pub, accluso — verificato offline contro l'impronta qui\n"
+               "                sopra, che il manifest sigillato copre. Dice quale chiave ha\n"
+               "                firmato, non di chi è: per quello serve una firma qualificata\n"
+               "                sul documento a cui questo record è allegato."),
   "reg": "REGISTRO  events.jsonl", "events": "eventi",
   "opened": "aperto", "closed": "chiuso", "root": "radice", "sha256": "sha256",
   "manifest": "MANIFEST  evento {n} del registro, sha256",
@@ -128,8 +134,8 @@ T = {
              "vale tutto questo è scritto in {verify}, accanto."),
   "check": ("PER VERIFICARE OGNI DIGEST QUI SOPRA, dalla cartella che contiene i file:\n"
             "  grep -E '^[0-9a-f]{64}  ' "),
-  "unpublished": ("non pubblicato a un indirizzo: questo record viaggia con il documento,\n"
-                  "                come colophon-{uid}.tar"),
+  "travels": ("viaggia con il documento, come colophon-{uid}.tar: trascinalo su\n"
+              "                verify.html e ogni digest qui sotto è verificato offline"),
  },
 }
 
@@ -189,18 +195,10 @@ def main(argv=None):
     row(t["author"], case.get("author", "—"))
     row(t["date"], case.get("date", "—"))
     row(t["reconstructed"], t["yes"] if case.get("reconstructed") else t["no"])
-    page = case.get("verification_url") or case.get("url_verifica")
-    reg = case.get("register_url") or case.get("url_registro")
-    if page:
-        row(t["page"], page)
-    if reg and reg != page:
-        row(t["register_at"], reg)
-    if not (page or reg):
-        row(t["page"], t["unpublished"].format(uid=uid))
-    if case.get("key_url"):
-        row(t["key"], case["key_url"])
+    row(t["record"], t["travels"].format(uid=uid))
     if case.get("key_fingerprint"):
         row(t["fingerprint"], case["key_fingerprint"])
+        row(t["key"], t["key_here"])
 
     L += ["", t["reg"]]
     row(t["events"], str(len(rows)))

@@ -17,7 +17,7 @@ than no root.
     python3 build_note.py --lang it       Italian wording
     python3 build_note.py --short-root    the root abbreviated, for a cramped layout
     python3 build_note.py --form full     one sentence naming every seal
-    python3 build_note.py --url URL       where the register is published
+    python3 build_note.py --attached      the register is enclosed, as a bundle
 
 THE ROOT IS PRINTED IN FULL. All sixty-four characters, because the reader's job is
 to compare it with what they compute themselves, and an abbreviation cannot be
@@ -25,22 +25,22 @@ compared — it can only be recognised. At 7pt it takes about ninety millimetres
 it fits the column the note sits in. --short-root exists for a social card or a slide
 and nowhere else.
 
-AND WITH AN ADDRESS. A line that names VERIFY.md tells a reader standing in the case
+AND WITH A ROUTE. A line that names VERIFY.md tells a reader standing in the case
 folder where to look, and tells a reader on a social post nothing at all: "alongside
-the register" presupposes that they have the register. Put the addresses in case.json
-and the line carries one of them:
+the register" presupposes that they have the register. There is one route, and it is
+the bundle: the record travels with the document, and --attached says so.
 
-    "verification_url"  the published verification page — preferred, it is the artefact
-                        written for a reader, and the register is reachable from it
-    "register_url"      the case folder, used when there is no page
+    --attached          the register is enclosed, as colophon-<case_uid>.tar
 
---url overrides both. Without any of them the line still prints, and the script says on
-stderr what the reader will be missing.
+Without it the line still prints, and the script says on stderr what the reader will
+be missing.
 
-THE ADDRESS IS A PROMISE. This line is generated at render time, so a PDF or a printed
-page freezes whatever it said that day and will never update it. Choose an address you
-are prepared to keep: do not move a case folder, do not rename it. A dead link under a
-disclosure is worse than no link, because it looks like evidence from a distance.
+THE ENCLOSURE IS A PROMISE ABOUT A FILE, so --attached refuses when the bundle it would
+name is not on disk. A line telling a reader the record is enclosed while nothing is
+enclosed is worse than a line admitting there is no route: it looks like evidence from
+a distance. Build the bundle first, and the promise is one the folder can keep — which
+is the whole reason the route is a file and not an address. Nothing has to stay online,
+no domain has to be renewed, and nobody has to be alive in ten years.
 
 ONE RULE ABOUT ORDER. This line prints the root of the register as it stands.
 Generate it AFTER the last event and after sealing, and generate it at render time,
@@ -54,7 +54,7 @@ anchor are detected separately, and each is named only if its file is on disk. A
 disclosure that announces a signature nobody can find is worse than one that admits
 there is none: the first is caught by the reader, the second by the author.
 
-Usage: python3 build_note.py [--html] [--lang it|en] [--url URL] [--short-root] [events.jsonl]
+Usage: python3 build_note.py [--html] [--lang it|en] [--attached] [--short-root] [events.jsonl]
 """
 import argparse
 import json
@@ -68,14 +68,9 @@ HEAD = {
     "it": "Registro: {n} eventi, radice {root}.",
 }
 
-# Where the register is published. Read from the case metadata, so that the line stays
-# generated and the address is written once, in the file that already describes the case.
+# Read from the case metadata, so that the line stays generated and the name of the
+# bundle is written once, in the file that already describes the case.
 CASE_FILES = ("case.json", "caso.json")
-# Two addresses, and the line prints one. The verification page comes first: it is the
-# artefact written for a reader, and the register is reachable from it. A reader sent
-# straight to the raw files has been handed the evidence and not the door.
-PAGE_KEYS = ("verification_url", "url_verifica")
-URL_KEYS = ("register_url", "url_registro")
 
 # Named only when the corresponding file is present.
 SEALS = {
@@ -89,28 +84,27 @@ TAIL = {
     "en": {
         "seals": " {seals} alongside the register.",
         "unsealed": " The register is not sealed: no signature or timestamp yet.",
-        "at_page": " Verification page, with the register alongside it: {where}.",
-        "at_url": " Register and verification instructions: {where}.",
         "at_doc": " Verification instructions in {where}.",
         "attached": " The register is enclosed with this document, as {tar}: drop it on"
                     " verify.html and everything above is checked offline.",
         "and": " and ",
-        "no_address": "no {keys} in {files}, and --url not given: the line names no place"
-                      " to go. A reader who is not already inside the case folder cannot"
-                      " reach the register.",
+        "no_route": "--attached not given: the line names no route to the record. A"
+                    " reader who is not already inside the case folder cannot reach the"
+                    " register.",
+        "have_tar": " {tar} is on disk — pass --attached if it travels with the"
+                    " document.",
     },
     "it": {
         "seals": " {seals} accanto al registro.",
         "unsealed": " Il registro non è sigillato: nessuna firma né marca temporale.",
-        "at_page": " Pagina di verifica, con il registro accanto: {where}.",
-        "at_url": " Registro e istruzioni di verifica: {where}.",
         "at_doc": " Istruzioni di verifica in {where}.",
         "attached": " Il registro è accluso a questo documento, come {tar}: trascinalo"
                     " su verify.html e tutto quanto sopra è verificato offline.",
         "and": " e ",
-        "no_address": "nessun {keys} in {files}, e --url non passato: la riga non indica"
-                      " nessun posto dove andare. Un lettore che non sia già dentro la"
-                      " cartella del caso non può raggiungere il registro.",
+        "no_route": "--attached non passato: la riga non indica nessuna via al record."
+                    " Un lettore che non sia già dentro la cartella del caso non può"
+                    " raggiungere il registro.",
+        "have_tar": " {tar} è sul disco — passa --attached se viaggia con il documento.",
     },
 }
 
@@ -120,17 +114,15 @@ TAIL = {
 # "signed and inspectable register" said two things at once and only checked one. A
 # register with no route is not inspectable by the reader holding the document, and the
 # line printed the claim anyway. The first line now states the seal; the second states
-# the route, and there are three of them.
+# the route, and there is one — the enclosure, or the admission that there is none.
 COMPACT = {
-    "en": {"sealed": "signed register",
-           "attached": "signed register, enclosed",
-           "held": "signed register, not published",
+    "en": {"attached": "signed register, enclosed",
+           "held": "signed register, not enclosed",
            "unsealed": "register not sealed yet — no signature or timestamp",
            "retrieval": "verify offline: drop {tar} on verify.html",
            "root": "root {root}"},
-    "it": {"sealed": "registro firmato",
-           "attached": "registro firmato, accluso",
-           "held": "registro firmato, non pubblicato",
+    "it": {"attached": "registro firmato, accluso",
+           "held": "registro firmato, non accluso",
            "unsealed": "registro non ancora sigillato — nessuna firma né marca temporale",
            "retrieval": "verifica offline: trascina {tar} su verify.html",
            "root": "radice {root}"},
@@ -202,38 +194,21 @@ def find_doc(base_dir, lang):
     return None
 
 
-def find_url(base_dir, keys):
-    """An address of the case, from its metadata file."""
-    for name in CASE_FILES:
-        path = os.path.join(base_dir, name)
-        if not os.path.exists(path):
-            continue
-        try:
-            case = json.load(open(path, encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            continue
-        for key in keys:
-            if case.get(key):
-                return str(case[key]).strip()
-    return None
-
-
-def warn_no_address(lang):
-    print("build_note.py: " + TAIL[lang]["no_address"].format(
-        keys=" / ".join(PAGE_KEYS + URL_KEYS), files=" or ".join(CASE_FILES)),
-          file=sys.stderr)
+def warn_no_route(lang, found_tar):
+    """Say what the reader will be missing — and, when the bundle is right there, say
+    that too. Under-claiming is the safe failure of the two, but an author who built the
+    tar and forgot the flag gets a line that denies the route they have."""
+    msg = TAIL[lang]["no_route"]
+    if found_tar:
+        msg += TAIL[lang]["have_tar"].format(tar=os.path.basename(found_tar))
+    print("build_note.py: " + msg, file=sys.stderr)
 
 
 def html_escape(s):
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def shown(url):
-    """What the reader sees: the address without the scheme, which they do not type."""
-    return url.split("://", 1)[-1].rstrip("/")
-
-
-def line(log="events.jsonl", lang="en", html=False, url=None,
+def line(log="events.jsonl", lang="en", html=False,
          short_root=False, form="compact", attached=False, bundle=None):
     if lang not in LANGS:
         raise SystemExit(f"unknown language {lang!r}: choose one of {', '.join(LANGS)}")
@@ -264,7 +239,8 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
     present = [SEALS[lang][k] for k in ("sig", "tsr", "ots")
                if os.path.exists(f"{log}.{k}")]
     tar = bundle_name(base_dir)
-    if attached and not find_bundle(base_dir, bundle, tar):
+    found = find_bundle(base_dir, bundle, tar)
+    if attached and not found:
         raise SystemExit(
             f"! --attached names {tar or 'a bundle'} and there is none.\n"
             f"  The line would tell a reader the record is enclosed with the document,\n"
@@ -272,11 +248,9 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
             f"  or drop --attached and let the line say what is true."
             + ("" if tar else "\n  (case.json carries no case_uid, so the bundle has no"
                               " name to look for either.)"))
-    page = None if url else find_url(base_dir, PAGE_KEYS)
-    url = url or page or find_url(base_dir, URL_KEYS)
     doc = find_doc(base_dir, lang)
 
-    where = shown(url) if url else doc
+    where = doc
 
     if form == "compact":
         c = COMPACT[lang]
@@ -284,24 +258,18 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
             rows = [c["unsealed"]]
         elif attached:
             rows = [c["attached"]]
-        elif url:
-            rows = [c["sealed"]]
         else:
             rows = [c["held"]]
         if attached:
             rows.append(c["retrieval"].format(tar=tar))
-        elif url:
-            rows.append(where)
-        # The event count is not here: the page at the address above prints it, and
-        # the word that qualifies the hash matters more than the number that precedes
-        # it. Without "root", the last line is an unidentified string.
+        # The event count is not here: the verification page inside the bundle prints
+        # it, and the word that qualifies the hash matters more than the number that
+        # precedes it. Without "root", the last line is an unidentified string.
         rows.append(c["root"].format(root=printed_root))
-        if not attached and not url and not doc:
-            warn_no_address(lang)
+        if not attached and not doc:
+            warn_no_route(lang, found)
         if html:
-            body = "<br>".join(
-                f'<a href="{url}">{r}</a>' if url and r == where else html_escape(r)
-                for r in rows)
+            body = "<br>".join(html_escape(r) for r in rows)
             return f'<p class="technical">{body}</p>'
         return "\n".join(rows)
 
@@ -309,22 +277,18 @@ def line(log="events.jsonl", lang="en", html=False, url=None,
     text += (t["seals"].format(seals=upper_first(join(present, lang))) if present
              else t["unsealed"])
 
-    # An address beats a filename: the filename only helps a reader who already has
+    # The enclosure beats a filename: the filename only helps a reader who already has
     # the folder, which is the one reader who did not need telling.
     if attached:
         text += t["attached"].format(tar=tar)
-    elif url:
-        text += t["at_page" if page else "at_url"].format(where=where)
     elif doc:
         text += t["at_doc"].format(where=where)
     else:
-        warn_no_address(lang)
+        warn_no_route(lang, found)
 
     if html:
         out = text.replace(printed_root, f"<code>{printed_root}</code>")
-        if url:
-            out = out.replace(where, f'<a href="{url}">{where}</a>')
-        elif doc:
+        if not attached and doc:
             out = out.replace(doc, f"<code>{doc}</code>")
         return f'<p class="technical">{out}</p>'
     return text
@@ -340,8 +304,6 @@ def main():
                    help="emit an HTML fragment instead of plain text")
     p.add_argument("--lang", choices=LANGS, default="en",
                    help="wording language (default: en)")
-    p.add_argument("--url", default=None,
-                   help="where the register is published; overrides the case metadata")
     p.add_argument("--attached", action="store_true",
                    help="the record is enclosed with the document, as a bundle")
     p.add_argument("--bundle", default=None,
@@ -352,8 +314,7 @@ def main():
                    help="compact: three short lines, the default. full: one sentence "
                         "naming every seal, with the root in full")
     a = p.parse_args()
-    print(line(a.log, a.lang, a.html, a.url, a.short_root, a.form, a.attached,
-               a.bundle))
+    print(line(a.log, a.lang, a.html, a.short_root, a.form, a.attached, a.bundle))
 
 
 if __name__ == "__main__":

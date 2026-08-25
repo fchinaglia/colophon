@@ -130,10 +130,10 @@ def render_line(text, bolds, bold_open, bold_close):
     return out
 
 
-def technical(log, lang, url, form, short_root, attached=False, bundle=None):
+def technical(log, lang, form, short_root, attached=False, bundle=None):
     """build_note.py owns this line in every form: asking it, rather than reassembling
     it here, is what keeps the block from claiming a seal the line does not name."""
-    return build_note.line(log=log, lang=lang, html=(form == "html"), url=url,
+    return build_note.line(log=log, lang=lang, html=(form == "html"),
                            form="compact", short_root=short_root, attached=attached,
                            bundle=bundle)
 
@@ -297,7 +297,6 @@ def main(argv=None):
                    help="the card form: the first two lines and the boundary warning")
     p.add_argument("--gap", default=None,
                    help="replace the sentence about the gap; empty string drops it")
-    p.add_argument("--url", default=None, help="passed to build_note.py")
     p.add_argument("--short-root", action="store_true")
     p.add_argument("--attached", action="store_true",
                    help="the record is enclosed with the document, as a bundle")
@@ -316,8 +315,7 @@ def main(argv=None):
 
     lines, name, xl, yi = note_lines(kpi, a.lang, a.gap, a.essential)
     alt = T[a.lang]["alt"].format(name=name, x=f"{xl:.0f}", y=f"{yi:.0f}")
-    tech = technical(a.log, a.lang, a.url, a.form, a.short_root, a.attached,
-                     a.bundle)
+    tech = technical(a.log, a.lang, a.form, a.short_root, a.attached, a.bundle)
 
     if a.form in ("svg", "card"):
         svg, _ = build_icon.icon(xl / 100, yi / 100)

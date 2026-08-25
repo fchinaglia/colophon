@@ -54,11 +54,13 @@ def test_page_survives_extra_notes_as_string_and_as_list(workspace):
 def test_note_forms_and_the_flag_that_exists(workspace):
     wd = workspace("example")
     assert run(wd, "measure.py").returncode == 0
-    full = run(wd, "build_note.py", "--form", "full", "--url", "https://example.com/c/")
-    compact = run(wd, "build_note.py", "--url", "https://example.com/c/")
-    short = run(wd, "build_note.py", "--short-root", "--url", "https://example.com/c/")
+    full = run(wd, "build_note.py", "--form", "full")
+    compact = run(wd, "build_note.py")
+    short = run(wd, "build_note.py", "--short-root")
     assert full.returncode == compact.returncode == short.returncode == 0
-    assert len(compact.stdout.strip().splitlines()) == 3, "the compact form is three lines"
+    # Two lines with no route to name, three when the enclosure is one of them. The
+    # example carries no bundle, so this is the held form.
+    assert len(compact.stdout.strip().splitlines()) == 2, "the held form is two lines"
     assert "…" in short.stdout, "--short-root must abbreviate the root"
     assert "…" not in compact.stdout, "the compact form prints the root whole by default"
     assert run(wd, "build_note.py", "--full-root").returncode != 0, \

@@ -147,21 +147,24 @@ def test_the_thousands_separator_follows_the_language(case):
     assert "1,096 words" in block(case, "--form", "text", "--lang", "en")
 
 
-def test_the_line_states_the_route_and_there_are_three(case):
+def test_the_line_states_the_route_and_there_are_two(case):
     """"signed and inspectable register" said two things and checked one: a register with
-    no route is not inspectable by the reader holding the document."""
+    no route is not inspectable by the reader holding the document.
+
+    There is one route and it is the bundle, so there are two forms: enclosed, or the
+    admission that nothing is. An address is not one of them — the case metadata carries
+    none and the scripts read none, which is what this test pins."""
     import json as _json
     cj = os.path.join(case, "case.json")
     d = _json.load(open(cj, encoding="utf-8"))
     d["case_uid"] = "a-case"
-    d.pop("register_url", None), d.pop("verification_url", None)
     _json.dump(d, open(cj, "w", encoding="utf-8"), ensure_ascii=False)
     # build_note.py names a seal only if its file is on disk; the wording under test is
     # the sealed one, and an unsealed register says so instead and says nothing else.
     open(os.path.join(case, "events.jsonl.sig"), "w").write("x")
 
     held = block(case, "--form", "text")
-    assert "not published" in held
+    assert "not enclosed" in held
     assert "verify.html" not in held
 
     tar = os.path.join(os.path.dirname(case), "colophon-a-case.tar")
@@ -171,16 +174,21 @@ def test_the_line_states_the_route_and_there_are_three(case):
 
     open(tar, "wb").write(b"not really a tar, but it is on disk")
     attached = block(case, "--form", "text", "--attached")
-    assert "enclosed" in attached
+    assert "enclosed" in attached and "not enclosed" not in attached
     assert "colophon-a-case.tar" in attached
 
+    # An address in the metadata is not a route: the key is dead and the line ignores it.
     d["verification_url"] = "https://example.com/c/x/"
+    d["register_url"] = "https://example.com/c/x/"
     _json.dump(d, open(cj, "w", encoding="utf-8"), ensure_ascii=False)
-    published = block(case, "--form", "text")
-    assert "example.com/c/x" in published
-    assert "not published" not in published and "attached" not in published
+    ignored = block(case, "--form", "text")
+    assert "example.com" not in ignored, "an address must never reach the reader"
+    assert "not enclosed" in ignored
+    assert run(case, "build_block.py", "--form", "text",
+               "--url", "https://example.com/c/x/").returncode != 0, \
+        "--url is gone; a flag that silently does nothing is worse than one that errors"
 
-    for form in (held, attached, published):
+    for form in (held, attached, ignored):
         assert "root " in form, "the root is what makes two copies comparable"
 
 
