@@ -6,8 +6,45 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
-The served build looks like the site now, rather than nearly like it. Nothing that travels
-in a case is touched: `verify.html` is still `2e8a461a…` and the four copies do not move.
+The repository becomes installable in one command, and the served build looks like the site
+now, rather than nearly like it. Nothing that travels in a case is touched: `verify.html`
+is still `2e8a461a…` and the four copies do not move.
+
+### Added
+
+- **The repository is a plugin marketplace as well as a repository.**
+  `.claude-plugin/marketplace.json` and `.claude-plugin/plugin.json`, so that
+  `/plugin marketplace add fchinaglia/colophon` followed by `/plugin install colophon@colophon`
+  stands in for the clone-and-copy that was the only way in for Claude Code. The skill
+  folder does not move to meet the convention: `skills` is the one manifest field that adds
+  to the default location rather than replacing it, so `./skill/` is declared and
+  `skill/colophon/` stays where `check_package.py` and the README already expect it. What
+  comes down is the whole repository rather than the folder alone, which for this project
+  means the verifier and the cases arrive with the skill. The description in both manifests
+  says what the skill does *to your machine* and not only what it does for you — that it
+  signs with a key which stays there and sends a digest, never the text, to a timestamp
+  authority. The directory review's bar is that the install description discloses what the
+  plugin actually does, and a sentence about the method alone does not clear it. It is also
+  the honest line to read before installing something that touches a private key.
+
+  The skill's own `description` is untouched: that one is how Claude decides when to open a
+  register, and a disclosure about keys in it would only make it fire on the wrong prompts. The marketplace entry declares `category: productivity`, which is the
+  closest of the categories the directory offers — there is no `writing` among them.
+- **`check_manifests.py`, and a `manifests` job that runs it** after `claude plugin validate`
+  has read both manifests — two invocations, because with a marketplace present the plain
+  one reads that and leaves `plugin.json` unexamined. The two manifests state the same two
+  facts twice, and both matter to somebody who is not the author. The version now lives in
+  four places instead of two, and the two new ones are load-bearing for anybody who
+  installed through `/plugin install`: `claude plugin update` compares what is installed
+  against what the manifest declares, so a `version` left behind at the previous number
+  does not fail — it quietly stops offering the update. The description is what a reader
+  sees before installing, which is where the key and the timestamp authority are named, so
+  a copy that drifts is a disclosure that stops being one. Both are checked; the CHANGELOG
+  is the source of truth for the version and the newest released heading is what the
+  manifests have to match, while the description has no third source and the two only have
+  to say the same thing. `[Unreleased]` is skipped, so a working tree with unreleased
+  changes sits at the last released number and passes. It is the job `check_package.py`
+  does for the zip, in the place the zip does not reach.
 
 ### Fixed
 
@@ -42,6 +79,10 @@ untouched: weight and face are chrome, which is the line this pair of shells exi
 
 ### Changed
 
+- **The README lists three ways in, not two.** The plugin route goes first because it is
+  one command and it updates; the clone-and-copy stays underneath, for taking the skill
+  folder by itself. Both now say that the skill can be invoked with `/colophon` however it
+  arrived, which the page previously attached to the copied folder alone.
 - **The README says plainly that this is a skill for Claude.** It claimed conformance to an
   open standard and left the rest to inference, while carrying no instruction file for any
   other host and having been run on none. Both things are now stated: the format is not
