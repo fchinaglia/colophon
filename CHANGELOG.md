@@ -4,6 +4,54 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [3.1.4] — 2026-08-25
+
+The paper, brought back to the implementation. **Methodological document version 0.2.**
+
+### Measured first
+
+`paper/colophon-method.md` still described the seal as it stood at the validation case,
+three releases earlier. It survived the 3.0.0 turn better than `docs/` did — it never
+described distribution routes, so removing the address left it untouched — but §7 and §8
+had drifted, and §9.2 carried a number that was simply wrong.
+
+### Fixed
+
+- **§9.2 reported 75 events in the chain.** The sealed register of the validation case
+  holds **83**; 75 is the span count, duplicated one row down. Checked by extracting
+  `events.jsonl` from `cases/002/colophon-002.tar`. Every other figure in that table
+  holds — 3,126 words, 75 spans, 47.1%, 30.6%, first draft ~86% human.
+- **§7 labelled the Ed25519 signature `who`**, the word removed from `seal.sh` in 3.1.2 and
+  from the reader-facing documents in 3.1.3. It now says what the signature does answer:
+  which key sealed the register, in one act, the same key across the author's cases, with
+  the fingerprint the closing manifest commits to.
+- **§7 held that the qualified signature was unusable** — the Italian one engulfs the
+  document, and a register lives by being inspectable — and proposed signing a periodic
+  manifest of digests instead. That route was never built. The one that was keeps the
+  objection and drops its cost: the register is never wrapped, it rides as an attachment
+  inside the PDF, and the signature goes on the PDF. The paper asked the right question
+  and printed the answer that got superseded.
+- **§8 listed six of the twelve scripts and never mentioned `verify.html`**, which is the
+  artefact a reader actually opens. Complete now, with a new **§8.1** on what the reader
+  receives: one file, no address, and a verifier that reads the bundle or the PDF offline
+  and deliberately does not recompute the measurement.
+- **§11 gave precedence to an Italian original the repository does not carry.** The claim
+  was true when written — the register records the translation at event 77 — but it handed
+  precedence to something no reader can obtain, the same shape as the dangling reference
+  fixed in 3.1.3. Nothing material goes with it: §9.1 already states the validation article
+  is Italian.
+
+### Added
+
+- **A revision note in §11**, because a version number with no account of what moved is the
+  kind of unverifiable claim §1.2 objects to. It says what 0.2 changed and, as plainly,
+  that nothing in §1–§6 or in the results did.
+- Smaller: §5.1's L3 row names the bundle, and §9.4 notes the second sealed case while
+  saying it is a demonstration of the pipeline and not a second validation.
+
+`colophon.zip` and `verify.html` are unchanged from 3.1.3 — nothing outside `paper/` moved.
+The paper's PDF is attached to this release for the first time.
+
 ## [3.1.3] — 2026-08-25
 
 The documents in `docs/` had not moved since 23 August. One of them did not just lag: it
