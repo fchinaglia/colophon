@@ -112,3 +112,56 @@ def test_every_maintained_verifier_matches_the_built_one(copy):
     a = open(os.path.join(ROOT, "verifier", "verify.html"), "rb").read()
     b = open(os.path.join(ROOT, *copy), "rb").read()
     assert a == b, f"{'/'.join(copy)} is stale — run python3 verifier/build.py"
+
+
+def _shared_parts():
+    import re
+    d = os.path.join(ROOT, "verifier")
+    read = lambda n: open(os.path.join(d, n), encoding="utf-8").read()
+    css = re.sub(r"\A/\*[\s\S]*?\*/\n+", "", read("components.css")).rstrip("\n")
+    ui = re.sub(r"\A(//[^\n]*\n)+\n*", "", read("ui.js")).rstrip("\n")
+    return css, ui
+
+
+@pytest.mark.parametrize("shell", ["shell.html", "shell-site.html"])
+def test_both_shells_provide_what_the_verifier_reaches_for(shell):
+    """core.js and ui.js find their way around by four ids. A shell that drops one
+    produces a page that loads, looks right and quietly does nothing — the failure
+    that is hardest to notice, because there is nothing to notice.
+
+    build.py refuses to build such a shell; this says so a second time, where
+    somebody editing a shell will see it."""
+    text = open(os.path.join(ROOT, "verifier", shell), encoding="utf-8").read()
+    for element in ("drop", "dir", "fil", "out"):
+        assert f'id="{element}"' in text, f"{shell} has no #{element}"
+    for marker in ("/*__COMPONENTS__*/", "//__CORE__", "//__UI__"):
+        assert marker in text, f"{shell} has no {marker}"
+
+
+@pytest.mark.parametrize("built,shell", [("verify.html", "shell.html"),
+                                         ("verify-site.html", "shell-site.html")])
+def test_both_verifiers_carry_the_same_components_and_the_same_behaviour(built, shell):
+    """The served page and the one that travels in a bundle differ in chrome and in
+    palette. They must not differ in what they check or in what they show, and the
+    way to keep that true is not to remember it: components.css and ui.js are single
+    files inlined into both, and this asserts they arrived intact in each."""
+    css, ui = _shared_parts()
+    text = open(os.path.join(ROOT, "verifier", built), encoding="utf-8").read()
+    assert css in text, f"{built} is stale or edited — run python3 verifier/build.py"
+    assert ui in text, f"{built} is stale or edited — run python3 verifier/build.py"
+
+
+def test_the_two_verifiers_are_not_the_same_file():
+    """If they ever match byte for byte, one of the shells has stopped doing its job:
+    either the served page lost its chrome, or the travelling copy grew some."""
+    a = open(os.path.join(ROOT, "verifier", "verify.html"), "rb").read()
+    b = open(os.path.join(ROOT, "verifier", "verify-site.html"), "rb").read()
+    assert a != b
+
+
+def test_the_travelling_verifier_names_no_website():
+    """The copy sealed into a case has to still work in ten years with nothing
+    answering. A link to a site is a dependency it must not acquire, and the site
+    shell is where such links belong."""
+    text = open(os.path.join(ROOT, "verifier", "verify.html"), encoding="utf-8").read()
+    assert "colophonmethod.com" not in text

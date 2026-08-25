@@ -4,6 +4,44 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [Unreleased]
+
+The verifier gets a second shell, so the page served at a URL can look like the site
+that serves it without the copy sealed into a case acquiring a single line of it.
+
+### Measured first
+
+`/verify/` was the one address on the domain that threw the reader out: no masthead, no
+way back except the browser's own button, and nothing on it saying where they were. The
+answer that kept being refused was *byte-identity* — the served file had to match the
+four copies in the repository, so it could carry nothing.
+
+That constraint was real when the verifier only existed at a URL. Since 3.1.0 it travels
+inside the document, and a reader handed a PDF already has the copy that matters. **The
+served file had stopped being load-bearing and nobody had noticed**, so it was still
+being defended as though it were.
+
+### Added
+
+- **`shell-site.html`**, the served build: the site's masthead and nav, its palette and
+  its serif, and two lines saying plainly that this is a convenience copy and that the
+  one to trust is the one inside your own case.
+- **`components.css` and `ui.js`**, extracted from `shell.html` and inlined into **both**
+  shells by `build.py`. The two builds differ in chrome and palette and cannot differ in
+  behaviour, because there is one copy of the behaviour. `verify.html` is byte-identical
+  to what it was before the extraction — the same `2e8a461a…`.
+- **Four tests.** That both shells provide `#drop` `#dir` `#fil` `#out`, which core.js and
+  ui.js reach for by id — a shell that drops one produces a page that loads, looks right
+  and quietly does nothing. That the shared parts arrived intact in each build. That the
+  two builds are *not* identical, which would mean a shell had stopped doing its job. And
+  that the travelling copy names no website.
+- **`build.py` prints both digests** and refuses a shell missing one of the four elements.
+
+### Not done
+
+The served build is not deployed by anything in this repository: `verify-site.html` is
+the artefact, and the site that serves it copies it. A fifth write target pointing into a
+`site/` directory would presume a layout this repository does not have.
 ## [3.1.4] — 2026-08-25
 
 The paper, brought back to the implementation. **Methodological document version 0.2.**

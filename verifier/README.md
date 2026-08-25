@@ -5,17 +5,49 @@ case folder — or a `bundle.tar`, or **the PDF that carries one**, or the loose
 onto it, and everything runs on their own machine. Saved locally it keeps working, forever.
 
 ```
-core.js       the whole implementation, DOM-free so it can be tested
-shell.html    the page, with a //__CORE__ marker
-build.py      inlines core.js into shell.html -> verify.html, prints its digest
-test.js       node harness: spec vectors + the real registers
-verify.html   THE DELIVERABLE (generated — do not edit)
+core.js           the whole implementation, DOM-free so it can be tested
+ui.js             wires #drop #dir #fil #out to core.js and renders what it returns
+components.css    everything core.js emits: cards, badges, notes, tabs, report pane
+shell.html        the page that travels in a case — palette and chrome, no site
+shell-site.html   the page served at a URL — masthead, nav, a line saying which
+                  copy this is
+build.py          inlines the shared parts into both shells, prints both digests
+test.js           node harness: spec vectors + the real registers
+verify.html       THE DELIVERABLE (generated — do not edit)
+verify-site.html  the served build (generated — do not edit)
 ```
 
 ```bash
 node verifier/test.js          # 78 assertions
-python3 verifier/build.py      # rebuild verify.html and print its sha256
+python3 verifier/build.py      # rebuild both and print both digests
 ```
+
+## Two shells, one behaviour
+
+The copy sealed into a case must carry nothing of any website: it has to still work
+in ten years, with no network and no address answering. The copy served at a URL has
+the opposite job — a reader who lands on it should be able to tell where they are and
+get back. One file cannot do both, and byte-identity was quietly serving the first
+need while failing the second.
+
+So there are two shells and one of everything else:
+
+```
+components.css ─┐
+core.js ────────┼──► shell.html      ──► verify.html      (4 copies, identical)
+ui.js ──────────┴──► shell-site.html ──► verify-site.html (served by the site)
+```
+
+A shell supplies a palette and the chrome, and must provide four elements:
+`#drop` `#dir` `#fil` `#out`. **Everything else is inlined into both**, so the two
+differ in chrome and palette and never in what they check or show — a property of the
+build rather than a promise somebody has to keep. `build.py` refuses to build a shell
+that has lost one of the four, and `tests/repo/test_invariants.py` asserts the shared
+parts arrived intact in each.
+
+**Publish both digests.** A verifier nobody can check is not one, and a served page
+that cannot be compared with anything is exactly the thing this project tells readers
+not to trust. `build.py` prints them.
 
 ## What it checks
 
