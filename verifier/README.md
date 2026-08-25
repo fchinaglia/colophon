@@ -13,7 +13,7 @@ verify.html   THE DELIVERABLE (generated — do not edit)
 ```
 
 ```bash
-node verifier/test.js          # 51 assertions
+node verifier/test.js          # 54 assertions
 python3 verifier/build.py      # rebuild verify.html and print its sha256
 ```
 
@@ -24,6 +24,22 @@ python3 verifier/build.py      # rebuild verify.html and print its sha256
 - **the manifest**, every digest against the file in front of it
 - **the RFC 3161 token**, that its imprint commits to *these exact bytes*, plus whether it
   carries the eIDAS qualified marker
+
+## What it also shows
+
+When the supplied files carry the case's own page — `index.html`, which the manifest
+covers — a second tab holds it, and the checks stay on the first. The reader gets the
+verdict and the report the verdict is about without extracting a tar to disk, and the dot
+on the Verification tab keeps the worst finding visible while the report is in front.
+
+The page is fed to an iframe through `srcdoc`, with **`sandbox="allow-scripts"` and
+deliberately not `allow-same-origin`**. The report needs its own scripts — the
+words/ideas toggle, the tooltips — and it is content out of the very package this page
+exists to distrust; granting both flags together would undo the sandbox and let a crafted
+bundle rewrite the verdict rendered around it. With `allow-scripts` alone it runs in an
+opaque origin, fully usable and unable to reach anything. The cost is that its height
+cannot be measured from the parent, which is why the pane is sized and scrolls inside
+rather than growing to fit.
 
 ## What it deliberately does not
 

@@ -42,6 +42,24 @@ pre.cmd { background:var(--mono); border-radius:7px; padding:.65rem .8rem; overf
 ul.tight { margin:.4rem 0 0; padding-left:1.1rem; font-size:.9rem; }
 footer { margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--line); color:var(--dim); font-size:.85rem; }
 footer p { margin:.4rem 0; }
+
+#tabs { display:flex; gap:.15rem; border-bottom:1px solid var(--line); margin:1.6rem 0 0; }
+#tabs button { appearance:none; background:none; border:0; border-bottom:2px solid transparent;
+  margin-bottom:-1px; padding:.6rem .95rem; font:inherit; font-size:.92rem; color:var(--dim);
+  cursor:pointer; display:flex; align-items:center; gap:.45rem; }
+#tabs button:hover { color:var(--fg); }
+#tabs button[aria-selected="true"] { color:var(--fg); border-bottom-color:var(--fg); font-weight:620; }
+#tabs button:focus-visible { outline:2px solid var(--fg); outline-offset:-2px; border-radius:4px; }
+#tabs .dot { width:.45rem; height:.45rem; border-radius:50%; background:currentColor; }
+.pane[hidden] { display:none; }
+.rephead { display:flex; align-items:baseline; justify-content:space-between; gap:1rem;
+  margin:1.1rem 0 .7rem; flex-wrap:wrap; }
+.rephead p { margin:0; color:var(--dim); font-size:.88rem; max-width:33rem; }
+a.ghost { border:1px solid var(--line); background:var(--card); padding:.35rem .75rem;
+  border-radius:7px; font-size:.85rem; text-decoration:none; color:var(--fg); white-space:nowrap; }
+a.ghost:hover { border-color:var(--dim); }
+iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
+  border:1px solid var(--line); border-radius:10px; background:var(--card); display:block; }
 </style>
 </head>
 <body>
@@ -101,7 +119,39 @@ footer p { margin:.4rem 0; }
     return normalise(map);
   }
 
-  function render(r) {
+  // The page the case publishes, read out of what was supplied. build_page.py inlines
+  // everything into it — there is not even a reference to the icon — so srcdoc renders it
+  // exactly as a reader would see it, offline, with nothing extracted to disk.
+  function reportHtml(files) {
+    const b = files && (files.get('index.html') || files.get('verification.html'));
+    return b ? new TextDecoder().decode(b) : null;
+  }
+
+  // allow-scripts and NOT allow-same-origin, and the pair is the whole point. The report
+  // needs its own scripts — the words/ideas toggle, the tooltips — and it is content out
+  // of the package this page exists to distrust. Granting both flags together undoes the
+  // sandbox: a crafted bundle could then rewrite the verdict rendered around it. With
+  // allow-scripts alone the report runs in an opaque origin, fully usable and unable to
+  // reach anything. The cost is that its height cannot be measured from here, which is
+  // why the pane is sized and scrolls inside rather than growing to fit.
+  const SANDBOX = 'allow-scripts';
+
+  function openInTab(html) {
+    window.open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+  }
+
+  // What the dot on the Verification tab says while the report is in front. A tab strip
+  // that always showed green would be a claim, and this page does not make those.
+  function worst(r) {
+    const s = r.signature, m = r.manifest;
+    if ((r.chain && r.chain.ok === false) || (s && (s.error || s.ok === false)) ||
+        (s && s.declared && !s.declared.matches) ||
+        (m && (m.mismatched.length || m.missing.length))) return 'b-bad';
+    if ((r.chain && r.chain.preSpec) || !s) return 'b-warn';
+    return 'b-ok';
+  }
+
+  function render(r, files) {
     let html = '';
 
     if (r.fatal) {
@@ -207,14 +257,55 @@ footer p { margin:.4rem 0; }
          themselves:</p><pre class="cmd">python3 measure.py</pre>`);
     }
 
-    out.innerHTML = html;
+    const report = reportHtml(files);
+    if (!report) { out.innerHTML = html; return; }
+
+    out.innerHTML =
+      `<div id="tabs" role="tablist">
+         <button role="tab" aria-selected="true" aria-controls="pane-v" data-p="v"
+           >Verification <span class="dot ${worst(r)}"></span></button>
+         <button role="tab" aria-selected="false" aria-controls="pane-r" data-p="r"
+           >Detail report</button>
+       </div>
+       <div class="pane" id="pane-v" role="tabpanel">${html}</div>
+       <div class="pane" id="pane-r" role="tabpanel" hidden>
+         <div class="rephead">
+           <p>The page this case publishes, read from inside what you supplied — the same
+              file the manifest above covers.</p>
+           <a class="ghost" href="#" id="newtab">Open in a new tab &#8599;</a>
+         </div>
+         <iframe class="report" title="The case's verification page"
+                 sandbox="${SANDBOX}"></iframe>
+       </div>`;
+
+    out.querySelector('iframe.report').srcdoc = report;
+    out.querySelector('#newtab').addEventListener('click', e => {
+      e.preventDefault(); openInTab(report);
+    });
+
+    const tabs = [...out.querySelectorAll('#tabs button')];
+    const show = b => {
+      tabs.forEach(x => x.setAttribute('aria-selected', String(x === b)));
+      out.querySelector('#pane-v').hidden = b.dataset.p !== 'v';
+      out.querySelector('#pane-r').hidden = b.dataset.p !== 'r';
+    };
+    tabs.forEach((b, i) => {
+      b.addEventListener('click', () => show(b));
+      b.addEventListener('keydown', e => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        const n = tabs[(i + d + tabs.length) % tabs.length];
+        show(n); n.focus();
+      });
+    });
   }
 
   async function handle(fileList) {
     out.innerHTML = card('Working', '', '', '<p class="note">Verifying locally…</p>');
     try {
       const files = await collect(fileList);
-      render(verifyCase(files));
+      render(verifyCase(files), files);
     } catch (e) {
       out.innerHTML = card('Something went wrong', 'error', 'b-bad',
         `<p class="note">${esc(e.message)}</p>`);

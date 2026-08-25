@@ -37,7 +37,9 @@ both of which read the same files without complaint.
 **If this arrived as a bundle** — `colophon-[uid].tar` — everything below is already in
 it, and so is `verify.html`. Open that file in a browser with the network off and drop
 the tar on it: it checks the chain, the signature, every digest the manifest covers and
-the timestamp's imprint, in one action. The commands below are the same checks by hand,
+the timestamp's imprint, in one action. A second tab there holds this case's own page —
+the two percentages, the phase breakdown, the text span by span — so the report and the
+checks on it sit side by side, with nothing extracted to disk. The commands below are the same checks by hand,
 and they are what you use if you would rather not run my copy of the verifier — which is
 the sensible instinct, since it arrived in the package it is meant to check. Its digest
 is published with each release; compare it, or fetch your own copy.
