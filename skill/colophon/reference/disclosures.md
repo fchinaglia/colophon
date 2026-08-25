@@ -38,7 +38,7 @@ One line, in italics, right under the title. It says what the reader is reading 
 
 ## Level 2 — the block at the bottom
 
-Three parts: the icon, the note, the technical line. **`build_block.py` produces all three as one object** — it takes the category and the boundary margin from `build_icon.py` and the technical line from `build_note.py`, so the block cannot disagree with the icon beside it or with the page it links to. What follows is what that script implements and why; it is not a form to fill in by hand. That was tried, and case 001 shipped a full-width, body-size, stacked version of the block specified below.
+Three parts: the icon, the note, the technical line. **`build_block.py` produces all three as one object** — it takes the category and the boundary margin from `build_icon.py` and the technical line from `build_note.py`, so the block cannot disagree with the icon beside it or with the register it reports. What follows is what that script implements and why; it is not a form to fill in by hand. That was tried, and case 001 shipped a full-width, body-size, stacked version of the block specified below.
 
 **The note is short by default.** Five lines, not a paragraph — this is the form to use everywhere, including in a PDF:
 
@@ -54,7 +54,7 @@ Two lines are conditional. The third drops when the two percentages are close �
 
 **One treatment for all five.** Same face, same size, same colour, only the percentages in bold. No line is coloured to stand out: a block that raises its voice at the foot of an article puts the reader on the defensive at precisely the moment the method is trying to do the opposite. What separates the lines is what they say.
 
-This is the detail-on-demand shape the research asks for: the numbers where the reader is, everything else one click away, at an address that leads to a page written for them.
+This is the detail-on-demand shape the research asks for: the numbers where the reader is, everything else one action away, in the file the technical line names.
 
 ### The full note, when there is room
 
@@ -116,7 +116,7 @@ Retroactive application:
 
 > *Questo testo è stato scritto con l'assistenza di un modello linguistico. Le percentuali indicate sono una ricostruzione fatta a posteriori, non la registrazione del processo: leggetele come ordini di grandezza dichiarati in buona fede.*
 
-Two things that are not translation choices. **The phase names stay as the protocol writes them** — `first_draft`, `content_revision` — inside the files, and become plain Italian words only in the sentence a reader sees. And the note published with case 002 also carried the address of the register in prose; that sentence is gone here, because the technical line now does that work, and saying it twice weakens both.
+Two things that are not translation choices. **The phase names stay as the protocol writes them** — `first_draft`, `content_revision` — inside the files, and become plain Italian words only in the sentence a reader sees. And the note published with case 002 also carried the address of the register in prose; that sentence is gone here, because the technical line does that work, and saying it twice weakens both.
 
 ---
 
@@ -158,8 +158,8 @@ today, the list is empty.
 - **The effort.** "It still took me three hours" is not an argument the public weighs. What it weighs is whether the AI contribution was substitutable, who was steering, and whether AI text went straight into the finished product — substitutability, intentionality and directness (Fang, Wen & Lee, 2026, arXiv:2604.27129).
 - **Numbers with decimals** in material addressed to the public. They convey a precision the construct does not have.
 - **"PDF/A-3", or any archival-format claim**, on a rendering produced by headless Chrome. It has no output intent, no conformant XMP and no guaranteed embedded fonts. An unverified compliance claim is the previous entry again, in the one artefact whose whole job is to be checkable.
-- **Anything that lets a signature over the document stand in for the measurement.** A qualified signature says this file has not changed since it was signed, and a reader who sees a legal name in a signature panel will hear *and these numbers are right about this text*. They are two claims. The attestation says so itself, `VERIFY.md` says so, and the disclosure must not undo them by implying otherwise.
-- **An address you are not sure will answer.** A dead link under a disclosure looks like evidence from a distance and is the opposite of it up close. If you are not certain, use the attached form or the held form below — both are true, and a true weaker claim beats a false stronger one.
+- **Anything that lets a signature over the document stand in for the measurement.** A qualified signature is worth having — it is the only thing in the whole method that names a person, and it covers the bundle attached to the PDF — but what it says is *this file came from this person and has not changed since*. A reader who sees a legal name in a signature panel will hear *and these numbers are right about this text*. They are two claims. The attestation says so itself, `VERIFY.md` says so, and the disclosure must not undo them by implying otherwise. Recommend the signature; never let it carry the measurement.
+- **An address, of any kind.** A hosted copy, a deposit service, a link to somewhere the case supposedly lives: the method has none of these, `case.json` has no field for one, and a dead link under a disclosure looks like evidence from a distance and is the opposite of it up close. The two forms below are the whole vocabulary, and a true weaker claim beats a false stronger one.
 
 ---
 
@@ -186,15 +186,15 @@ The empirical claims in this document come from the research survey carried out 
 
 Every disclosure note above is followed by one more line, set smaller and quieter, generated by `build_note.py` from the register. Three short lines by default, in a monospace face:
 
-> signed and inspectable register
-> fchinaglia.github.io/colophon/cases/002
+> signed register, enclosed
+> verify offline: drop colophon-002.tar on verify.html
 > root ae68ae8dc078c46c6ac85b349ae08d2d104fea77767dce18a7b38a5388312793
 
 `--form full` gives the sentence it replaced, naming each seal and printing the root whole:
 
-> Register: 81 events, root ae68ae8dc078c46c6ac85b349ae08d2d104fea77767dce18a7b38a5388312793. Ed25519 signature, RFC 3161 timestamp and Bitcoin anchoring alongside the register. Verification page, with the register alongside it: fchinaglia.github.io/colophon/cases/002.
+> Register: 81 events, root ae68ae8dc078c46c6ac85b349ae08d2d104fea77767dce18a7b38a5388312793. Ed25519 signature, RFC 3161 timestamp and Bitcoin anchoring alongside the register. The register is enclosed with this document, as colophon-002.tar: drop it on verify.html and everything above is checked offline.
 
-Use it where nobody will follow a link and the line has to stand alone — a printed sheet, an archive copy. Under an article, the address does that work, and enumerating three seals in prose is words a reader skips.
+Use it where the line has to stand alone and explain itself — a printed sheet, an archive copy. Under an article, three short lines say the same thing, and enumerating three seals in prose is words a reader skips.
 
 Without it the note asserts two numbers and gives the reader no way to check them, which is precisely the failure mode the method exists to avoid. With it, the disclosure stops being a claim and becomes a pointer.
 
@@ -204,20 +204,17 @@ Four rules govern it. It is generated, never typed — a hand-copied root goes s
 
 **The root goes in whole.** An abbreviation can be recognised but not compared, and comparing is the reader's job: they recompute the chain and hold their value against yours. Both forms print it whole by default. `--short-root` abbreviates it to `ae68ae8d…88312793` for a layout that genuinely cannot hold sixty-four characters — a social card, a slide — and it is a concession to the column, never the default.
 
-**And it carries an address.** A line ending in *verification instructions in VERIFY.md* helps a reader standing in the case folder — the one reader who did not need help. Everyone else is on a post, a PDF, a printed page, and for them a filename is not a place. `case.json` holds two addresses and the line prints one of them:
+**And it carries a route.** A line ending in *verification instructions in VERIFY.md* helps a reader standing in the case folder — the one reader who did not need help. Everyone else is on a post, a PDF, a printed page, and for them a filename is not a place. There is one route and it is a file: `build_bundle.py` writes `colophon-<case_uid>.tar`, and `build_note.py --attached` is what puts it in the line.
 
-- `verification_url` — the published verification page. Preferred, because it is the artefact written for a reader, and the raw files are one click further on: the page links them.
-- `register_url` — the case folder. Used when there is no page, and used by the page itself for that link.
+**It is not an address, and the difference is the point.** An address is a promise about a server: somebody renews the domain, somebody keeps the path, and the line was frozen into a PDF on the day it was generated and will never update. A file makes no promise anyone has to keep. It travels in the same mail, folder or archive as the document, and it verifies with the network off, which is why it is the only route the method offers and why `case.json` has no field for one.
 
-`build_note.py` warns on stderr when it finds neither, because a line with no address is the failure this line exists to remove, wearing the costume of the fix.
+`build_note.py` warns on stderr when there is no route at all — and names the tar if it finds one on disk, because an author who built the bundle and forgot `--attached` gets a line denying the route they have. A line with no route is the failure this line exists to remove, wearing the costume of the fix.
 
-Three things follow, and none is a detail.
+Two things follow, and neither is a detail.
 
-**Serve the page as a page.** A raw `.html` on a code host arrives as plain text and the reader is shown the markup, which is worse than sending them nowhere.
+**`--attached` is a promise about a file, and the script checks it.** It refuses when the tar it would name is not on disk. Build the bundle first, and generate the line after it: a rendering made before the bundle names an enclosure that did not exist when the line was written.
 
-**Give it an address with no underscore in it.** URL detectors cut a link at the first underscore: an address ending `pagina_di_verifica.html` is delivered to the reader as `…/pagina`, and clicking it gives a 404 while the printed line reads correctly. It is the worst shape a failure can take here — the text says one thing, the click does another. Publish the page as `index.html`, or put a redirect there, so the address ends at the folder.
-
-**The address is a promise.** The line is generated at render time, so a PDF or a sheet of paper freezes what it said that day and will never update. Do not move a published case, do not rename it. A dead link under a disclosure looks like evidence from a distance and is the opposite of it.
+**Say the enclosure is there.** Most PDF viewers do not announce an attachment, and a route nobody is told about is not a route. The middle line does that work, which is why it names the file and the action rather than describing a mechanism.
 
 ---
 
@@ -227,32 +224,31 @@ Icon, note and technical line are the three parts of level 2 — parts of one ob
 arranged the same way: **the icon on the left, the note and the technical line
 stacked in a column to its right**, in that order down the page.
 
-### The three routes, and the line that says which one
+### The two forms, and the line that says which one
 
-The middle line of the technical block is the route to the record, and there are three.
-The first line states the seal and qualifies it; only the root is in all three.
-
-```
-signed register                              signed register, enclosed
-example.com/cases/002                        verify offline: drop colophon-<uid>.tar on verify.html
-root ae68ae8d…8312793                        root ae68ae8d…8312793
-
-registro firmato                             registro firmato, accluso
-example.com/cases/002                        verifica offline: trascina colophon-<uid>.tar su verify.html
-radice ae68ae8d…8312793                      radice ae68ae8d…8312793
-```
-
-And when there is neither — legitimate, and said plainly rather than implied away:
+The middle line of the technical block is the route to the record, and there is one: the
+bundle. The first line states the seal and qualifies it; only the root is in both forms.
 
 ```
-signed register, not published               registro firmato, non pubblicato
+signed register, enclosed                    registro firmato, accluso
+verify offline: drop colophon-<uid>.tar      verifica offline: trascina colophon-<uid>.tar
+  on verify.html                               su verify.html
 root ae68ae8d…8312793                        radice ae68ae8d…8312793
 ```
 
-`build_note.py --attached` picks the middle one; without it the line uses the address in
-`case.json`, and with no address it uses the third. The earlier wording, *signed and
-inspectable register*, said two things and checked one: a register with no route is not
-inspectable by the reader holding the document, and the line printed the claim anyway.
+And when the record does not travel with the document — legitimate, and said plainly
+rather than implied away:
+
+```
+signed register, not enclosed                registro firmato, non accluso
+root ae68ae8d…8312793                        radice ae68ae8d…8312793
+```
+
+`build_note.py --attached` picks the first; without it the line uses the second. There is
+no third form, because there is no address to print: what a case declares is a file, and a
+file is either there or it is not. The earlier wording, *signed and inspectable register*,
+said two things and checked one: a register with no route is not inspectable by the reader
+holding the document, and the line printed the claim anyway.
 
 **Enclosed, not *attached to this file*.** Only a PDF with the tar embedded in it can say
 the second, and a markdown file can never say it: what is enclosed travels beside the
@@ -261,17 +257,17 @@ with it, so the first line does not have to describe a mechanism it cannot guara
 `--attached` refuses if the bundle it would name is not on disk: a line promising an
 enclosure that was never built is #16 in a new costume, and a silent one.
 
-**Two things the enclosed form must carry, or it is worse than an address.** Say the
+**Two things the enclosed form must carry, or it is worse than nothing.** Say the
 enclosure is there — most PDF viewers do not announce an attachment, and Chrome's and
 Preview's do not at all, so a route nobody is told about is not a route. And treat what travels as a
 snapshot: a bundle in a reader's hands verifies perfectly and cannot announce that the
 case was reopened afterwards. The root printed in the document is what makes that visible,
-which is why it is in all three forms.
+which is why it is in both forms.
 
-**The tier is the container, not the author.** A PDF can carry the attachment; a web page
-can carry an address, and beats an attachment on citability and on saying *this was
-superseded*; a post carries neither and must point at something that does. The marker, the
-note and the root travel in every container. Only the route changes.
+**The tier is the container, not the author.** A PDF can carry the attachment and is the
+container that shows the method at full strength; a web page can link the tar for download;
+a post can carry neither and prints the second form, honestly. The marker, the note and the
+root travel in every container. Only whether the file travels with them changes.
 
 `python3 build_block.py` emits exactly this, styled. `--form svg` emits the same block as
 one image, for a post or a slide that takes neither an HTML fragment nor an image and a
@@ -287,8 +283,8 @@ travels without the folder that holds `icon.svg`. The markup below is what it wr
       <p class="line">human words <b>53%</b> · human ideas <b>69%</b></p>
       <p class="line">The model wrote more words than it brought ideas.</p>
       <p class="line">I stand behind every statement in it.</p>
-      <p class="technical">signed and inspectable register<br>
-        <a href="…">example.com/cases/002</a><br>root ae68ae8d…8312793</p>
+      <p class="technical">signed register, enclosed<br>
+        verify offline: drop colophon-002.tar on verify.html<br>root ae68ae8d…8312793</p>
     </td>
   </tr>
 </table>
@@ -323,7 +319,7 @@ percentage, a narrow column makes the four labels illegible, which is the one
 failure the icon cannot survive: an unreadable quadrant is worse than no icon,
 because it looks like a claim while being none.
 
-**Let the root break.** `overflow-wrap: anywhere` on the technical line: the root is a sixty-four-character word with nowhere to hyphenate, and without it a narrow column pushes it straight out of the block. It fits on one line in a column of about sixty millimetres, which is why the event count is not printed beside it — the page at the address above carries that, and the room is better spent on the hash a reader compares.
+**Let the root break.** `overflow-wrap: anywhere` on the technical line: the root is a sixty-four-character word with nowhere to hyphenate, and without it a narrow column pushes it straight out of the block. It fits on one line in a column of about sixty millimetres, which is why the event count is not printed beside it — the verification page inside the bundle carries that, and the room is better spent on the hash a reader compares.
 
 **One treatment for the note, a quieter one for the technical line.** Every line of the note shares a face, a size and a colour, with only the percentages in bold: nothing is coloured to stand out, including the warning about the boundary. The technical line is smaller and grey, in a monospace face, because it is read character by character and not as prose. That is the only distinction the block makes, and it is enough.
 

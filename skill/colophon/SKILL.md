@@ -87,18 +87,21 @@ case.
    > yours, and there is no recovering it — that is the point of it, and it is also the
    > risk."*
 
-3. **Where the key is published**, and this is the one check nobody performed for the first
-   published case, whose key sits inside the repository it authenticates:
+3. **Where the key goes, which is nowhere.** Say it once, because an author who has read
+   anything about signing keys expects to be asked for a domain:
 
-   > *"Where should I say your key is published? A key published inside the folder it
-   > signs proves only that the folder agrees with itself — anyone arranges that in ten
-   > seconds. A page on a domain you control is strongest. With no domain,
-   > `https://api.github.com/users/<you>/ssh_signing_keys` is free and does the job."*
+   > *"The key doesn't get published anywhere. The public half travels inside the case,
+   > so a reader checks the signature against the copy that arrived with the evidence —
+   > offline, with no site of yours that has to still be answering in ten years."*
 
-   The script fetches it and compares the published key with the local one byte for byte.
-   If it does not match, say what the reader would conclude, not what the exit code was:
-   *"what's published there isn't this key, so a reader checking a signature would get a
-   mismatch and stop. Publish this one first and we'll go on."*
+   **Never ask where the key is published, never offer to publish it, and never name an
+   address for it** — no `.well-known`, no GitHub endpoint, no page of theirs. Nothing
+   fetches a key, so an address would be a step the author performs for nobody, and the
+   first thing to break when their domain lapses.
+
+   If they ask what the enclosed key is worth, say what it is not: *"On its own it says
+   the register was signed by whoever holds that key, not whose key it is. What says that
+   is a qualified signature on the PDF at the end — I'll offer it when we get there."*
 
 4. **Two files whose absence fails silently.** `cases/** -text` in `.gitattributes`, or a
    checkout on Windows rewrites every line ending and every signature stops verifying; and
@@ -119,7 +122,7 @@ drive it from a shell — or in ten years, when no conversation survives.
 
 Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_block.py`, `build_attestation.py`, `build_bundle.py`, `render_md.py`, `render_pdf.py`, `review.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
 
-Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed, and — **if the case will live at an address** — `verification_url`, where the verification page will be readable, and `register_url`, the folder with the register and the files. `build_note.py` puts the first in the technical line and falls back to the second; `build_page.py` uses the second to link the files from the page. Leave both out and the line says the record travels with the document, which is true when it does. See *Publication* for the three routes.
+Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed. It carries no address for the case, and there is nowhere to put one: the record travels with the document, as one file, and the technical line says so. See *Publication*.
 
 `case.json` also carries **`case_uid`**: a short, stable name for this case, fixed now and
 never changed. The bundle is named after it, so it is the only thing that says which case
@@ -183,17 +186,17 @@ the seal. **Never in the case folder** — the case's short name is public, the 
 reader receives is called after it, and a list of the names an author is protecting must
 not be committed.
 
-`case.json` also carries `key_url` and `key_fingerprint`: where the author's public key
-is published, and which key to expect. **Publish it on a domain you control, not inside
-the case** — `/.well-known/colophon/keys`. A key published inside the folder it
-authenticates proves only that the folder is internally consistent, which anyone can
-arrange in ten seconds by generating a fresh key and re-signing. The copy in the folder
-stays, for offline reproduction; the published one is what binds the key to a person.
+`case.json` also carries `key_fingerprint`: which key to expect, and it is the only
+key field there is. **There is no `key_url` and no address anywhere** — `seal.sh` copies
+the public half in as `colophon.pub` and `build_bundle.py` packs it, so the check runs
+offline against the copy that travelled with the evidence.
 
-**An address is a promise**: the line is generated at render time, so a PDF freezes it
-forever. Do not move a case folder once it is published. It must be served as a page, at
-an address with no underscore in it — `reference/disclosures.md` says why both of those
-matter, and `build_page.py` already writes `index.html` for the second.
+The fingerprint is what stops that copy from being merely circular. `case.json` is
+covered by the closing manifest, so the sealed chain itself records which key this case
+expected: swap the key in the bundle and the fingerprint no longer matches something a
+signature already commits to. That is a real check, and it is still not identity. **Identity
+comes from one place: a qualified electronic signature on the PDF the bundle is attached
+to.** See *The qualified signature* at the closing.
 
 Among the known limits, always declare at least these: that capture happens through the conversation and not through an instrumented editor; that work done outside the conversation is not observed; that the user knows they are being observed and that this may change how they write.
 
@@ -226,8 +229,9 @@ Do not rewrite the user's voice. Anglicisms, a colloquial register, personal lex
 
 ### 4. Closing
 
-**What you say at the closing.** Four decisions belong to the author, in this order.
-Everything between them is yours and is not narrated.
+**What you say at the closing.** Four decisions belong to the author, in this order:
+three before the seal, one after it. Everything between them is yours and is not
+narrated.
 
 **The numbers, once the measurement passes.** Two percentages, what each is a percentage
 of, the phase that changes the reading, and the two things it does not prove:
@@ -252,22 +256,32 @@ back clean reads as a clearance and is not one:
 > *"It finds words, not inferences. Four harmless details that together point at one
 > company will go straight past it."*
 
-**Where the record travels.**
+**Where the record travels.** Not a decision: there is one route. Say what you did, not
+how, and say it once:
 
-> *"Do you want the record to travel with the document, or to sit at a web address people
-> can link to? Both work, and the document will say which. Travelling with it needs nobody
-> alive in ten years; an address is the only one that can later say the case was
-> reopened."*
+> *"I'll pack the record into one file you can attach to the article — a reader can check
+> everything in it with the network off, and it needs nobody alive in ten years."*
 
-Then say what you did, not how: *"I'll pack the record into one file you can attach to the
-article — a reader can check everything in it with the network off."* Not the file names,
-not the digests, not what the manifest covers.
+Not the file names, not the digests, not what the manifest covers. Never offer an address,
+a hosted copy or a link: the method has none, and a route invented at the closing is a
+promise nothing in the case can keep.
 
 **The point of no return.**
 
 > *"From here on the record can only be added to. If anything in it should change, say so
 > now: after I seal it, changing it means opening the case again and saying publicly
 > why."*
+
+**The qualified signature, once the PDF exists** — the fourth decision and the only one
+after the seal. Offer it once, and do not press it:
+
+> *"Last thing, and it's optional. The PDF carries the whole record as an attachment. If
+> you sign it with a qualified signature — the one that names you legally — that covers
+> the attachment too, and it's the only step that says who you are: everything inside the
+> file proves the record is intact, and none of it can say the person behind it is you."*
+
+If they ask what it does not do, say it plainly: *"It doesn't say the numbers are right.
+It says this package came from you and hasn't changed since."*
 
 ---
 
@@ -331,8 +345,8 @@ python3 record.py '{"type":"status","actor":"system","phase":"—","meta":true,"
 at runs it themselves, over the register they were handed.
 
 **What it covers**: the source version, `annotation.json`, `kpi.json`, `spans.json`,
-`case.json`, `icon.svg`, `index.html` — the verification page, under the name the
-address needs — `verify.html`, and every script in the folder. Hashing
+`case.json`, `icon.svg`, `index.html` — the verification page — `verify.html`, and
+every script in the folder. Hashing
 those and finding them inside the signed register is what closes the chain from the
 signature to the published text.
 
@@ -386,62 +400,66 @@ reference/VERIFY.md has the rest.
 ### Publication
 
 A case is not finished when it is sealed. It is finished when the record it declares can
-be reached.
-
-There are three ways to reach it, and the document says which one it is. The technical
-line, generated by `build_note.py` and never typed, is where it says so.
+be reached, and there is one way to reach it. The technical line, generated by
+`build_note.py` and never typed, is where the document says so.
 
 **Attached.** `build_bundle.py` writes `colophon-<case_uid>.tar` — the register, the seal,
 the measurement, everything the manifest covers, and `verify.html`. The reader drops it on
 the verifier with the network off and gets the chain, the signature, every manifest digest
-and the timestamp. Nothing has to stay online, no domain has to be renewed, and no
-instance has to exist. This is the route that needs nobody alive in ten years, and it is
-the default.
+and the timestamp. It is the only route, and it is the one that needs nobody alive in ten
+years.
 
-**At an address.** A site, a page, a folder you control. It is the only route a reader can
-cite, link to, or come back to — and the only one that can say *this case was reopened,
-here is the current root*. Put it in `case.json` as `verification_url` or `register_url`
-and the line prints it.
+**There is no address, and none is offered** — not a hosted copy, not a deposit service,
+not a link to somewhere the case supposedly lives. `case.json` has no field for one and
+the scripts read none: an address is a promise about a server somebody keeps renewing, and
+a dead link under a disclosure looks like evidence from a distance.
 
-**Neither.** Legitimate, and the line says so rather than implying an address that is not
-there.
-
-The three are not a ranking: **the marker, the note and the root travel in every
-container, and only the route changes.** reference/disclosures.md has the three forms and
-which container takes which.
+**When there is no bundle either**, the line says so — `signed register, not enclosed`,
+and the root. Legitimate, and said plainly rather than implied away.
 
 **What the attachment cannot do, and you say so once.** A bundle in a reader's hands is
 frozen: it verifies perfectly and cannot announce that it has been superseded. That is why
-the root is printed in the document, and why an address, when you have one, is worth having
-alongside.
+the root is printed in the document — two copies with two roots are two states of the same
+case, and that comparison stands in for a live address.
 
-**Your key is published once, and it is not part of the case.** A public key inside the
-folder it authenticates proves only that the folder is consistent with itself, which
-anyone arranges in ten seconds. Publish it at a domain you control, at
-`/.well-known/colophon/keys` — or, with no domain at all, at
-`https://api.github.com/users/<you>/ssh_signing_keys`, which is free and which
-`case.json` records as `key_url`. That is the whole setup, and it is done once, not per
-case.
+**The key travels too, and is circular on its own.** `colophon.pub` is in the bundle
+because a reader with no network needs something to check the signature against, and a key
+inside the folder it authenticates proves only that the folder agrees with itself. What
+ties it to the chain is the fingerprint in `case.json`, covered by the sealed manifest.
+What ties any of it to a person is below.
 
-**Publication records no event.** Like the technical line, it happens after the last one:
-a new event would change the root the line prints and the manifest already covers. So do
-not pack, publish or render before the manifest, and do not record having done so after.
+**Packing records no event**, like the technical line: a new event would change the root
+the line prints. So do not pack or render before the manifest, and do not record having
+done so after.
 
-**If you did publish at an address, check that it answers before you call the case done** —
-fetch the register from where it was published and compare its digest with the one
-`seal.sh` wrote. reference/VERIFY.md §0 has the two commands. A different digest, or a
-fetch that fails, means the case is not published, whatever anything printed on its way
-out.
+**A bundle that was not built is not done.** `build_note.py --attached` refuses when the
+tar is not on disk, and that refusal is the check. Do not report the closing as successful
+until the tar exists, the rendering that names it came after it, and the copy you are
+about to send carries it.
 
-**An address that has not been published is not done.** Do not report the closing sequence
-as successful while the declared address 404s. That the numbers are right is not what the
-note claims: it tells a reader where to go and check them, and a note whose address is
-dead is the failure the note exists to remove, wearing the costume of the fix.
+### The qualified signature
 
-**Say what is not yet true.** A deferred publication is recorded, and *when* decides the
-cost: before the manifest it is one event like any other; after the seal it is a reopening.
-So find out before you compute the manifest. What is never allowed is the third option —
-leaving a declared address that reads as live and saying nothing.
+Every check the case ships is a check of internal consistency, which a forgery achieves
+too: a case fabricated this morning, signed with a key made this morning, passes all of
+them. Nothing inside a folder can say who made the folder.
+
+**One step closes that, and it is the last one.** `render_pdf.py --embed` puts the bundle
+and the verifier inside the PDF, so a qualified electronic signature over that PDF covers
+the article *and* the evidence in one act — and a supervised trust service identified the
+signer first, so the reader gets a natural person, not a key fingerprint.
+
+```bash
+python3 render_pdf.py --attached --embed    # tar and verify.html, inside the PDF
+                                            # then sign it: any qualified provider
+```
+
+Sign the PDF, never `attestation.txt`: that travels unsigned on purpose, because signing
+a text file rewrites its line endings and breaks the checkfile a reader runs.
+
+**And it does not make the measurement true.** It says *this file came from this person
+and has not changed since*, nothing about whether 47% is right. A reader seeing a legal
+name in a signature panel hears the stronger claim unless somebody says otherwise, so say
+otherwise. reference/VERIFY.md §2b is the reader's side of it.
 
 ## The annotation
 

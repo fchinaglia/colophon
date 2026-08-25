@@ -61,7 +61,7 @@ cases/001-my-article/
 ├── versions/           every version of the text as it was saved
 ├── spans.json          the spans, expanded
 ├── kpi.json            the measurement
-├── index.html          the verification page, at an address that ends at the folder
+├── index.html          the verification page, read from inside the bundle
 ├── icon.svg            the quadrant, generated from kpi.json
 └── record.py measure.py build_page.py build_icon.py build_note.py seal.sh
 ```
@@ -136,22 +136,27 @@ on the verifier **with the network off** and gets the chain, the signature, ever
 and the timestamp's imprint. Nothing has to stay online, and nobody has to be alive in ten
 years for it to still check.
 
-The one thing to do once, not per case, is **publish your key**. A public key sitting
-inside the folder it authenticates proves only that the folder agrees with itself, which
-anyone arranges in ten seconds. Two ways:
+**Your key is not published anywhere.** `seal.sh` copies the public half into the case
+as `colophon.pub` and it travels in the tar, so the signature is checked against the copy
+that arrived with the evidence — offline, with no address of yours that has to still be
+answering in ten years. `colophon setup` opens no network connection at all.
+
+A key inside the package it signs is circular, and the method says so rather than
+pretending otherwise. Two things answer it, in order of what they are worth:
 
 | | |
 |---|---|
-| a domain you control | `https://your-domain/.well-known/colophon/keys` — strongest: the claim becomes *whoever controls that domain* |
-| **no domain at all** | `https://api.github.com/users/<you>/ssh_signing_keys` — free, and `colophon setup` verifies it against your local key byte for byte |
+| `key_fingerprint` in `case.json` | the sealed manifest covers `case.json`, so the chain itself records which key this case expected — swap the key and the fingerprint stops matching something a signature already commits to |
+| **a qualified electronic signature on the PDF** | the only step that names a *person*. `render_pdf.py --embed` puts the bundle inside the document, so one signature covers the article and the evidence together, and a supervised trust service identified the signer before issuing the certificate |
 
-The second is weaker, because GitHub can change what it serves. It still breaks the
-circle, which is the part that matters.
+The first is internal consistency, which is real and is not identity. The second is
+identity, and it is the last thing to do — after sealing, after the PDF exists.
 
-If you *do* have somewhere to publish — a site, a page, a folder — put the address in
-`case.json` and the disclosure line prints it. An address is the only route a reader can
-cite, and the only one that can say *this case was reopened, here is the current root*.
-Both routes are legitimate; the document says which one it is.
+The case itself is published nowhere. There is no address to declare, no instance to
+deposit it with and no field in `case.json` to hold one: an address is a promise about a
+server that somebody has to keep renewing, and a dead link under a disclosure looks like
+evidence from a distance while being the opposite. What the document prints instead is the
+root, so two copies with two different roots are visibly two states of the same case.
 
 ---
 

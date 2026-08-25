@@ -47,18 +47,18 @@ the case was reopened afterwards, because a copy in your hands has no way back t
 root printed in the document is what makes that visible: two copies with two different
 roots are two different states of the same case.
 
-**And if it was published at an address, that the address serves those bytes.** `seal.sh`
-writes `events.jsonl.sha256`, so fetching the register from where it was published and
-comparing the two digests is the whole check:
+**And that the copy you were handed is the one the signature attests.** `seal.sh` writes
+`events.jsonl.sha256`, so comparing it against the register beside it is the whole check,
+and it needs no network:
 
 ```bash
-curl -fsS "<register_url>events.jsonl" | shasum -a 256
+shasum -a 256 events.jsonl
 cat events.jsonl.sha256
 ```
 
-The same digest — the second column differs, the hash is the whole comparison — means the
-address serves the bytes the signature attests. A different one, or a `curl` that fails,
-means the case is not published, whatever anything printed on its way out.
+The same digest — the second column differs, the hash is the whole comparison — means
+these are the bytes that were signed. A different one means the copy has been altered
+since, whatever anything printed on its way out.
 
 ## 1. The chain has not been altered
 
@@ -69,36 +69,46 @@ python3 record.py --verify
 It recomputes the whole chain and reports the first broken link. It must answer
 `chain intact`, with the current root.
 
-## 2. The register is mine
+## 2. The register was signed, and by which key
 
-The signature is Ed25519, detached, in the `.sig` file. My public key is published at
-**[https://your-domain/.well-known/colophon/keys]** — on a domain I control, and
-deliberately not inside this folder. Fetch it and check the signature against it:
+The signature is Ed25519, detached, in the `.sig` file. The public key is here, as
+`colophon.pub`, and it needs to be: this record travels as a file, with no address to
+fetch anything from. Check the signature against it:
 
 ```bash
-curl -sO [https://your-domain/.well-known/colophon/keys]
-ssh-keygen -Y verify -f keys -I [your-email] -n colophon \
+awk '{print "[your-email] " $1 " " $2}' colophon.pub > allowed_signers
+ssh-keygen -Y verify -f allowed_signers -I [your-email] -n colophon \
            -Overify-time=[YYYYMMDD] -s events.jsonl.sig < events.jsonl
 ```
 
 It must answer `Good "colophon" signature`. Use the date the register was sealed — the
-`.tsr` states it — rather than today's: that file is a key *history*, and asking whether
-the key was valid when the timestamp says the signature existed is a stronger question
-than whether it is valid now. It is also what makes rotation harmless.
+`.tsr` states it — rather than today's: asking whether the key was valid when the
+timestamp says the signature existed is a stronger question than whether it is valid now.
 
-There is a copy of the key in this folder too. **It is there for reproduction, not for
-trust**: it lets the check run offline in ten years, and it proves nothing about whose
-key it is, because whoever could rewrite this folder could rewrite that copy with it.
+**Then check it is the key this case declared.** `case.json` records `key_fingerprint`,
+and `case.json` is covered by the closing manifest, so the sealed chain itself says which
+key to expect:
 
-That is why the published one lives somewhere else, and it is an anchor rather than a
-proof: it moves the question from "is this folder internally consistent", which anyone
-can arrange, to "who controls that domain", which they cannot.
+```bash
+ssh-keygen -lf colophon.pub          # compare with key_fingerprint in case.json
+```
 
-## 2b. Signed by a named person — only if a `.p7m` is here
+A substituted key changes that fingerprint and stops matching something a signature
+already commits to. That is a real check and it is worth running.
 
-The Ed25519 signature above proves that a key signed, and the published key moves that to
-"whoever controls that domain". A qualified electronic signature moves it to a natural
-person, because a supervised trust service identified them first.
+**What it still does not tell you.** A key inside the folder it signs cannot say whose
+key it is: whoever could fabricate this folder could fabricate a key to sign it with, in
+about ten seconds. Everything above proves the record is intact, internally consistent
+and unchanged since it was sealed. None of it proves who made it. For that, read on.
+
+## 2b. Signed by a named person — the only step that says who
+
+The Ed25519 signature above proves that a key signed. A qualified electronic signature
+moves that to a natural person, because a supervised trust service identified them before
+issuing the certificate. **This is where identity comes from in this method, and there is
+no other source of it** — no published key, no domain, no profile page. If the author
+signed the PDF that carries this record as an attachment, the signature covers the
+document and the evidence together, in one act.
 
 **What is signed is whatever the author handed you** — the PDF, or the bundle
 `colophon-[uid].tar` — not `attestation.txt`, which travels unsigned on purpose. Its
@@ -117,6 +127,15 @@ openssl cms -verify -in [file].p7m -inform DER -noverify -signer signer.pem \
 The `-binary` matters on the reading side too: without it OpenSSL canonicalises the
 content, and a tar comes back out mangled even though the signature verifies. The second command prints who signed and until when the certificate was
 valid. For a signed PDF, open it in a reader that shows the signature panel.
+
+**And read what it claims carefully.** A qualified signature says *this file came from
+this person, on this date, and has not changed since*. It does not say the measurement is
+correct: that is what the register is for, and checking it is §0 to §4 here. Two claims,
+one file — do not let the signature panel answer a question it was not asked.
+
+**If there is no `.p7m` and no signed PDF**, nobody has been named, and the honest
+reading of everything above is: a consistent, sealed, timestamped record, from an author
+you are taking on their word.
 
 For a full check against the European Trusted Lists, upload the file to the EU DSS
 validator (`ec.europa.eu/digital-building-blocks/DSS/webapp-demo/validation`), which
@@ -154,8 +173,8 @@ bundle, and the command above finds it for you — `seal.sh` times against an au
 that chains to it precisely so there is nothing to download.
 
 No CA certificate travels in the bundle, and that is deliberate: a root certificate
-arriving inside the evidence it authenticates proves nothing, for the same reason a
-public key published inside the folder it signs proves nothing. If a case was stamped by
+arriving inside the evidence it authenticates proves nothing, for the same reason the
+enclosed `colophon.pub` proves nothing about whose key it is. If a case was stamped by
 an authority your system does not carry, the check fails here and the case has to name
 where you can fetch that CA — from the authority, not from me.
 
@@ -192,10 +211,13 @@ that does not exist, and no piece of text has been left without an attribution.
 ## What all this proves, and what it does not
 
 **It proves** that the register existed in that form on that date, that it has not been
-altered since, and that it was signed by the holder of a key which a domain I control
-published — an anchor to an identity, not a proof of one. With a valid qualified signature
-over the document or the bundle, the anchor becomes a legal name instead of a domain, for
-as long as you hold the file that carries it.
+altered since, and that it was signed by the holder of the key enclosed as
+`colophon.pub`, whose fingerprint the sealed manifest commits to. That is internal
+consistency, and internal consistency is not identity: it says the record hangs together,
+not who assembled it. **Identity comes from exactly one place** — a valid qualified
+signature over the document that carries this record. With one, the holder of that key is
+a named natural person, for as long as you hold the file. Without one, everything above
+is a consistent record from an author you are taking on their word.
 
 **It does not prove that this document is the text that was measured.** A signature over
 a file says the file has not changed since it was signed; §4 is the only check that ties

@@ -3,8 +3,15 @@
 > **The instance is frozen, 24 August 2026.** `deposit.colophonmethod.com` serves what it
 > already holds and accepts nothing new; `deposit.colophonmethod.com.conf` in this
 > directory is that frozen configuration, and it is the one file here that outlives the
-> rest. The apex keeps serving `/.well-known/colophon/keys`, which is not a service but a
-> file, and without it every signature in the project is circular again.
+> rest.
+>
+> **And the published key is legacy, 25 August 2026.** The method no longer has a key
+> address: `seal.sh` copies the public half into the case as `colophon.pub`,
+> `build_bundle.py` packs it, and identity comes from a qualified electronic signature on
+> the PDF rather than from a domain. `/.well-known/colophon/keys` stays up only because
+> cases 001 and 002 were sealed naming it and their `VERIFY.md` sends readers there —
+> both bundles carry `colophon.pub` too, so a reader who never reaches the domain can
+> still check them. **Nothing new should point at it, and nothing in the skill does.**
 
 Two names, one canonical.
 
@@ -22,12 +29,13 @@ project found in its own first case and does not want to reproduce.
 
 ## What goes up first, and why it is not the server
 
-`/.well-known/colophon/keys` is a static file and it can go up today. It is worth more
-than the instance: until it exists, the project's key is published *inside the
-repository it authenticates*, and a reader who checks a signature has proved only that
-the folder is internally consistent. Once the key is served from a domain under TLS, the
-claim becomes "whoever controlled colophonmethod.com published this key" — which someone
-who rewrites the repository cannot forge.
+`/.well-known/colophon/keys` is a static file, and it is the reason this argument was
+made: served from a domain under TLS, the claim becomes "whoever controlled
+colophonmethod.com published this key", which someone who rewrites the repository cannot
+forge. **The method has since taken a different answer** — the key travels in the bundle
+and a qualified signature on the PDF supplies the identity a domain was standing in for —
+so what follows is maintenance of what two sealed cases already promise, not setup for
+anything new.
 
 ```bash
 install -D -m 644 deploy/well-known/colophon/keys \
@@ -99,9 +107,10 @@ makes the freeze reversible while the data is still there.
 
 Two files, on one droplet, and neither is a service.
 
-`/.well-known/colophon/keys` at the apex. Without it every signature this project has
-made is circular again: a key published inside the repository it authenticates proves
-that the repository agrees with itself.
+`/.well-known/colophon/keys` at the apex, for the two sealed cases whose `VERIFY.md`
+names it. Their bundles also carry `colophon.pub`, so a reader is not stranded when this
+lapses — but a printed instruction that 404s is its own kind of failure, and it costs
+nothing to keep a static file answering.
 
 The frozen instance, serving one case at the address its PDF prints.
 
