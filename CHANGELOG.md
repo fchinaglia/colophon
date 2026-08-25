@@ -4,6 +4,46 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [3.1.2] — 2026-08-25
+
+Documentation, and it started as a question nothing in the repository could answer: if
+identity now comes from the qualified signature on the PDF, what is the register's own
+signature still for?
+
+### Measured first
+
+`seal.sh` labelled the three seal artefacts `who` / `when` / `when`, and contradicted
+itself four lines below, in a paragraph added the same morning: *"it cannot say whose key
+it is, and it does not pretend to."* The label had been false since 3.0.0 removed the
+published key, and nobody had gone back for it. The TSA failure message carried the same
+split — *"a claim about when, not about who"*.
+
+Underneath the wrong word, a gap. The repository said at length what the internal
+signature does **not** prove and nowhere why it is still made. Read on its own that is a
+defence, not a reason, and it left the honest question unanswered.
+
+### Fixed
+
+- **`sealed by`, not `who`**, in `seal.sh`, with four lines saying why: the key is
+  published nowhere, so on its own the signature names nobody — it says one key closed
+  this register in one act, and that the same key closed the author's other cases.
+- **The TSA failure message** no longer opposes *when* to *who*. It says the timestamp
+  fixes the date, which the signature does not — true of both.
+
+### Added
+
+- **`VERIFY.md` §2 answers the question**, and the first reason is the one that applies
+  most often: a qualified signature covers the *document* the record arrived in, and the
+  bundle also travels alone — published beside the case, forwarded, archived — at which
+  point there is no document and this key is the only one left in the package. Then: one
+  key seals every case an author closes and `key_fingerprint` sits inside each sealed
+  manifest, which makes a body of work one body; publishing that key later anchors every
+  case sealed with it, retroactively, which an unsigned register can never do; and a
+  reopening keeps the old seal beside the new one. The section still says, before and
+  after, that none of this is identity.
+- A pointer in `SKILL.md`, which cost three sentences trimmed elsewhere: the closing
+  section's word budget had seven words of headroom.
+
 ## [3.1.1] — 2026-08-25
 
 A patch, and it is the one 3.1.0 made findable. Two documents were generated with the
