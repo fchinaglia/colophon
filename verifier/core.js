@@ -506,7 +506,7 @@ async function inflate(bytes) {
 // attachment from this — and it would gain nothing, because everything the page then says
 // is said about the bytes it did find, each checked against the manifest inside them.
 async function pdfAttachments(bytes) {
-  const s = latin1(bytes), names = new Map(), found = new Map();
+  const s = latin1(bytes), names = new Map(), found = new Map(), offsets = new Map();
 
   // Both scans anchor on the /Type they want and then look outwards for the object that
   // holds it. Matching `N 0 obj << ... >>` forwards instead walks straight past any
@@ -537,6 +537,7 @@ async function pdfAttachments(bytes) {
     if (len) end = start + +len[1];
     else { end = s.indexOf('endstream', start); if (end < 0) continue; }
     found.set(num, { dict, raw: bytes.subarray(start, end) });     // later revision wins
+    offsets.set(num, m.index);
   }
 
   const out = [];
@@ -550,7 +551,256 @@ async function pdfAttachments(bytes) {
       { out.push({ name: names.get(num) || null,
                    error: `the attachment is ${data.length} bytes and the PDF says ${size[1]}` });
         continue; }
-    out.push({ name: names.get(num) || null, bytes: data, tar: looksLikeTar(data) });
+    // Where it sits matters as much as what it is: a signature that covers the document
+    // but not this offset has not signed the evidence.
+    out.push({ name: names.get(num) || null, bytes: data, tar: looksLikeTar(data), at: offsets.get(num) });
+  }
+  return out;
+}
+
+// ---------------------------------------------------------------- the PDF's own signature
+//
+// What can honestly be said about a PAdES signature with no network and no trust store,
+// and it is less than a green tick and more than nothing:
+//
+//   * which bytes it covers, and whether the record read out of the document is among
+//     them — the question the method actually asks, since a signature that does not cover
+//     the attachment says nothing about the evidence
+//   * that the digest in the signed attributes is the digest of those bytes
+//   * that the signature verifies against the public key in the signer's certificate
+//   * who the certificate says the signer is
+//
+// What cannot: whether that certificate is trusted, qualified, or was valid on the day.
+// Those need the EU trusted list and a revocation check, which are network and policy, not
+// arithmetic. The page says so rather than letting a valid digest read as a valid identity.
+
+function tlv(b, i) {
+  const tag = b[i];
+  let j = i + 1, len = b[j++];
+  if (len & 0x80) {
+    const n = len & 0x7f;
+    len = 0;
+    for (let k = 0; k < n; k++) len = len * 256 + b[j++];
+  }
+  return { tag, hdr: i, start: j, end: j + len, next: j + len };
+}
+
+function kids(b, node) {
+  const out = [];
+  for (let i = node.start; i < node.end; ) { const t = tlv(b, i); out.push(t); i = t.next; }
+  return out;
+}
+
+function oid(b, n) {
+  const p = [Math.floor(b[n.start] / 40), b[n.start] % 40];
+  let v = 0;
+  for (let i = n.start + 1; i < n.end; i++) {
+    v = v * 128 + (b[i] & 0x7f);
+    if (!(b[i] & 0x80)) { p.push(v); v = 0; }
+  }
+  return p.join('.');
+}
+
+const DN_OID = {
+  '2.5.4.3': 'CN', '2.5.4.4': 'surname', '2.5.4.5': 'serialNumber', '2.5.4.6': 'C',
+  '2.5.4.10': 'O', '2.5.4.11': 'OU', '2.5.4.42': 'givenName', '2.5.4.46': 'dnQualifier',
+  '1.2.840.113549.1.9.1': 'email',
+};
+const DIGEST_OID = { '2.16.840.1.101.3.4.2.1': 'SHA-256', '2.16.840.1.101.3.4.2.2': 'SHA-384',
+                     '2.16.840.1.101.3.4.2.3': 'SHA-512' };
+const SIG_OID = {
+  '1.2.840.113549.1.1.1':  ['RSASSA-PKCS1-v1_5', null],
+  '1.2.840.113549.1.1.11': ['RSASSA-PKCS1-v1_5', 'SHA-256'],
+  '1.2.840.113549.1.1.12': ['RSASSA-PKCS1-v1_5', 'SHA-384'],
+  '1.2.840.113549.1.1.13': ['RSASSA-PKCS1-v1_5', 'SHA-512'],
+  '1.2.840.113549.1.1.10': ['RSA-PSS', null],
+  '1.2.840.10045.2.1':     ['ECDSA', null],
+  '1.2.840.10045.4.3.2':   ['ECDSA', 'SHA-256'],
+  '1.2.840.10045.4.3.3':   ['ECDSA', 'SHA-384'],
+  '1.2.840.10045.4.3.4':   ['ECDSA', 'SHA-512'],
+};
+const ATTR_MESSAGE_DIGEST = '1.2.840.113549.1.9.4';
+const ATTR_SIGNING_TIME   = '1.2.840.113549.1.9.5';
+
+function readName(b, node) {
+  const parts = [];
+  for (const rdn of kids(b, node))
+    for (const av of kids(b, rdn)) {
+      const [t, v] = kids(b, av);
+      const name = DN_OID[oid(b, t)];
+      if (name) parts.push([name, new TextDecoder().decode(b.subarray(v.start, v.end))]);
+    }
+  return parts;
+}
+
+// Certificate ::= SEQUENCE { tbs, sigAlg, sig };  tbs ::= SEQUENCE { [0] ver, serial,
+// sigAlg, issuer, validity, subject, spki, ... }
+function readCert(b, node) {
+  const tbs = kids(b, node)[0], f = kids(b, tbs);
+  const o = f[0].tag === 0xa0 ? 1 : 0;
+  const serial = f[o], validity = kids(b, f[o + 3]);
+  const txt = n => new TextDecoder().decode(b.subarray(n.start, n.end));
+  return {
+    serial: hex(b.subarray(serial.start, serial.end)).replace(/^0+/, ''),
+    subject: readName(b, f[o + 4]),
+    issuer: readName(b, f[o + 2]),
+    notBefore: txt(validity[0]), notAfter: txt(validity[1]),
+    spki: b.slice(f[o + 5].hdr, f[o + 5].end),
+    keyOid: oid(b, kids(b, kids(b, f[o + 5])[0])[0]),
+  };
+}
+
+// ECDSA in CMS is a DER SEQUENCE { r, s }; WebCrypto wants the two fixed-width halves.
+function derEcdsaToRaw(sig, size) {
+  const [r, s] = kids(sig, tlv(sig, 0));
+  const out = new Uint8Array(size * 2);
+  const put = (n, at) => {
+    let from = n.start, len = n.end - n.start;
+    while (len > size && sig[from] === 0) { from++; len--; }
+    out.set(sig.subarray(from, from + len), at + size - len);
+  };
+  put(r, 0); put(s, size);
+  return out;
+}
+
+// SignedData ::= SEQUENCE { ver, digestAlgs SET, encap, [0] certs?, [1] crls?, signerInfos }
+function parseCms(der) {
+  const b = der;
+  const ci = kids(b, tlv(b, 0));                       // ContentInfo
+  const sd = kids(b, kids(b, ci[1])[0]);               // [0] EXPLICIT -> SignedData
+  const certs = [];
+  for (const f of sd)
+    if (f.tag === 0xa0)
+      for (const c of kids(b, f)) { try { certs.push(readCert(b, c)); } catch (e) {} }
+  // signerInfos is the last field of SignedData, always. Picking "a SET that is not the
+  // digestAlgorithms one" works until a CMS carries crls, which is a SET too.
+  const signers = kids(b, sd[sd.length - 1]);
+  if (!signers.length) throw new Error('no signerInfo in the CMS');
+
+  const si = kids(b, signers[0]);
+  const sid = si[1];
+  let serial = null;
+  if (sid.tag === 0x30) {                              // IssuerAndSerialNumber
+    const isn = kids(b, sid);
+    const n = isn[1];
+    serial = hex(b.subarray(n.start, n.end)).replace(/^0+/, '');
+  }
+  const digestAlg = DIGEST_OID[oid(b, kids(b, si[2])[0])] || null;
+
+  let signedAttrs = null, messageDigest = null, signingTime = null, at = 3;
+  if (si[at].tag === 0xa0) {
+    signedAttrs = si[at];
+    for (const a of kids(b, signedAttrs)) {
+      const f = kids(b, a), id = oid(b, f[0]), v = kids(b, f[1])[0];
+      if (id === ATTR_MESSAGE_DIGEST) messageDigest = b.subarray(v.start, v.end);
+      if (id === ATTR_SIGNING_TIME) signingTime = new TextDecoder().decode(b.subarray(v.start, v.end));
+    }
+    at++;
+  }
+  const sigAlg = SIG_OID[oid(b, kids(b, si[at])[0])] || null;
+  const sig = si[at + 1];
+
+  // For the signature, [0] IMPLICIT is re-tagged as the SET OF it stands for.
+  let toBeSigned = null;
+  if (signedAttrs) {
+    toBeSigned = b.slice(signedAttrs.hdr, signedAttrs.end);
+    toBeSigned[0] = 0x31;
+  }
+
+  return { certs, signer: certs.find(c => c.serial === serial) || certs[0] || null,
+           digestAlg, messageDigest, signingTime, sigAlg,
+           signature: b.slice(sig.start, sig.end), toBeSigned };
+}
+
+// /Type /Sig objects, with the byte range they cover and the CMS in /Contents.
+function pdfSignatures(bytes) {
+  const s = latin1(bytes), out = [];
+  for (let m, re = /\/ByteRange\s*\[\s*(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s*\]/g; (m = re.exec(s)); ) {
+    const range = [+m[1], +m[2], +m[3], +m[4]];
+    // The gap between the two covered runs IS the /Contents string: the signature cannot
+    // sign itself. Deriving the hole from the ByteRange rather than hunting for the next
+    // '<' is the difference between reading the CMS and reading a dictionary delimiter —
+    // the first attempt found `<<` and parsed twenty-four bytes of nothing.
+    const holeAt = range[0] + range[1], holeEnd = range[2];
+    const wellFormed = s[holeAt] === '<' && s[holeEnd - 1] === '>';
+    const hexed = wellFormed
+      ? s.slice(holeAt + 1, holeEnd - 1).replace(/[^0-9a-fA-F]/g, '').replace(/(00)+$/, '')
+      : '';
+    const der = new Uint8Array(hexed.length >> 1);
+    for (let i = 0; i < der.length; i++) der[i] = parseInt(hexed.substr(i * 2, 2), 16);
+    // The dictionary wraps the hole, and /ByteRange may sit on either side of /Contents —
+    // in the file this was tested against it comes after, so anchoring the window on the
+    // ByteRange match found nothing at all. Anchor on the hole and read both sides.
+    const win = s.slice(Math.max(0, holeAt - 1200), holeAt) + '\n' + s.slice(holeEnd, holeEnd + 600);
+    const g = re2 => { const x = re2.exec(win); return x ? x[1] : null; };
+    out.push({ range, der, wellFormed,
+               subFilter: g(/\/SubFilter\s*\/([A-Za-z0-9.#_-]+)/),
+               name: g(/\/Name\s*\(((?:\\.|[^\\()])*)\)/),
+               reason: g(/\/Reason\s*\(((?:\\.|[^\\()])*)\)/),
+               // /M is the claimed signing time. It is in the document, not in the
+               // signature, so it is what the signer's software wrote — not a timestamp.
+               claimedTime: g(/\/M\s*\(D:(\d{14})/),
+               holeAt, holeEnd });
+  }
+  return out;
+}
+
+async function verifyPdfSignature(bytes, sig, attachmentAt) {
+  const [a, b_, c, d] = sig.range;
+  const out = { subFilter: sig.subFilter, name: sig.name, reason: sig.reason,
+                claimedTime: sig.claimedTime };
+
+  // Coverage first, because it decides what the rest is about. The hole in the middle is
+  // the /Contents string itself, which cannot sign itself; anything after the second run
+  // is a later revision the signature never saw.
+  out.covers = [[a, a + b_], [c, c + d]];
+  out.holeMatches = sig.wellFormed;
+  out.bytesAfter = bytes.length - (c + d);
+  if (attachmentAt !== undefined && attachmentAt !== null)
+    out.attachmentSigned = attachmentAt >= a && attachmentAt < a + b_;
+
+  const signed = concat(bytes.subarray(a, a + b_), bytes.subarray(c, c + d));
+
+  let cms;
+  try { cms = parseCms(sig.der); }
+  catch (e) { out.error = `the CMS could not be read (${e.message})`; return out; }
+
+  out.digestAlg = cms.digestAlg;
+  out.signingTime = cms.signingTime;
+  out.signer = cms.signer;
+  out.sigAlg = cms.sigAlg ? cms.sigAlg[0] : null;
+
+  // The digest of what was signed, against the digest the signer attested to.
+  if (cms.messageDigest && cms.digestAlg) {
+    const h = cms.digestAlg === 'SHA-256' ? sha256(signed)
+            : cms.digestAlg === 'SHA-512' ? sha512(signed) : null;
+    out.digestMatches = h ? hex(h) === hex(cms.messageDigest) : null;
+    if (!h) out.digestNote = `${cms.digestAlg} is not implemented here`;
+  }
+
+  // And the signature itself, over the signed attributes, with the key in the certificate.
+  out.cryptoChecked = false;
+  const subtle = typeof crypto !== 'undefined' && crypto.subtle;
+  if (subtle && cms.toBeSigned && cms.signer && cms.digestAlg) {
+    const kind = SIG_OID[cms.signer.keyOid];
+    try {
+      if (kind && kind[0] === 'RSASSA-PKCS1-v1_5') {
+        const k = await subtle.importKey('spki', cms.signer.spki,
+          { name: 'RSASSA-PKCS1-v1_5', hash: cms.digestAlg }, false, ['verify']);
+        out.signatureValid = await subtle.verify('RSASSA-PKCS1-v1_5', k, cms.signature, cms.toBeSigned);
+        out.cryptoChecked = true;
+      } else if (kind && kind[0] === 'ECDSA') {
+        const named = { 'SHA-256': 'P-256', 'SHA-384': 'P-384', 'SHA-512': 'P-521' }[cms.digestAlg];
+        const size = { 'P-256': 32, 'P-384': 48, 'P-521': 66 }[named];
+        const k = await subtle.importKey('spki', cms.signer.spki,
+          { name: 'ECDSA', namedCurve: named }, false, ['verify']);
+        out.signatureValid = await subtle.verify({ name: 'ECDSA', hash: cms.digestAlg }, k,
+          derEcdsaToRaw(cms.signature, size), cms.toBeSigned);
+        out.cryptoChecked = true;
+      } else {
+        out.cryptoNote = `${(kind && kind[0]) || cms.signer.keyOid} is not verified here`;
+      }
+    } catch (e) { out.cryptoNote = `the key or the signature could not be read (${e.message})`; }
   }
   return out;
 }
@@ -679,5 +929,6 @@ if (typeof module !== 'undefined') {
                      parseSshsig, sshsigPreimage, parsePubLine, verifySignature,
                      ed25519Verify, findManifest, checkManifest, checkTimestamp,
                      untar, normalise, isPdf, looksLikeTar, pdfAttachments, inflate,
+                     pdfSignatures, verifyPdfSignature, parseCms,
                      isQualifiedTimestamp, verifyCase, utf8, concat, b64decode };
 }

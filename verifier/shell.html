@@ -112,7 +112,7 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
   const own = b => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
 
   async function collect(fileList) {
-    const map = new Map(), from = [];
+    const map = new Map(), from = [], sigs = [];
     for (const f of fileList) {
       const rel = f.webkitRelativePath || f.name;
       const buf = new Uint8Array(await f.arrayBuffer());
@@ -128,19 +128,91 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
           if (a.error) { from.push({ pdf: f.name, name: a.name, error: a.error }); continue; }
           if (!a.tar) continue;
           for (const [k, v] of untar(own(a.bytes))) map.set(k, v);
-          from.push({ pdf: f.name, name: a.name, bytes: a.bytes.length });
+          from.push({ pdf: f.name, name: a.name, bytes: a.bytes.length, at: a.at });
         }
+        // The last tar merged is the one whose files won, so it is the one whose
+        // coverage matters. Earlier revisions were superseded before anyone read them.
+        const mine = from.filter(x => x.pdf === f.name && x.bytes);
+        const at = mine.length ? mine[mine.length - 1].at : undefined;
+        for (const sg of pdfSignatures(buf))
+          sigs.push(await verifyPdfSignature(buf, sg, at));
         if (!from.some(x => x.bytes)) throw new Error(`${f.name} has attachments `
           + `(${atts.map(a => a.name || 'unnamed').join(', ')}) but none of them is a case bundle.`);
       }
       else map.set(rel, buf);
     }
-    return { files: normalise(map), from };
+    return { files: normalise(map), from, sigs };
   }
 
   // The page the case publishes, read out of what was supplied. build_page.py inlines
   // everything into it — there is not even a reference to the icon — so srcdoc renders it
   // exactly as a reader would see it, offline, with nothing extracted to disk.
+  const dn = (parts, k) => { const p = (parts || []).find(x => x[0] === k); return p && p[1]; };
+  // UTCTime is YYMMDDHHMMSSZ, and the century rule is the specification's, not a guess.
+  const utcTime = t => !t ? null
+    : `${(+t.slice(0, 2) < 50 ? '20' : '19') + t.slice(0, 2)}-${t.slice(2, 4)}-${t.slice(4, 6)}`;
+  const pdfTime = t => !t ? null
+    : `${t.slice(0, 4)}-${t.slice(4, 6)}-${t.slice(6, 8)} ${t.slice(8, 10)}:${t.slice(10, 12)}`;
+
+  function signatureCard(g) {
+    const broke = g.signatureValid === false || g.digestMatches === false || !g.holeMatches;
+    // A signature can be arithmetically perfect and cover none of the evidence. Reporting
+    // that as a green tick with a caveat underneath is how the caveat goes unread.
+    const uncovered = g.attachmentSigned === false;
+    const good = !uncovered && g.signatureValid === true && g.digestMatches === true
+                 && g.holeMatches;
+    const rows = [
+      ['signed by', dn(g.signer && g.signer.subject, 'CN') || g.name || 'not stated'],
+      (g.signer && dn(g.signer.subject, 'serialNumber'))
+        ? ['identifier', dn(g.signer.subject, 'serialNumber')] : null,
+      ['certificate from', dn(g.signer && g.signer.issuer, 'CN') || 'unknown'],
+      g.signer ? ['certificate valid',
+                  `${utcTime(g.signer.notBefore)} to ${utcTime(g.signer.notAfter)}`] : null,
+      ['profile', g.subFilter || 'not stated'],
+      ['algorithm', [g.sigAlg, g.digestAlg].filter(Boolean).join(' with ') || 'unknown'],
+      g.claimedTime ? ['time claimed', pdfTime(g.claimedTime)] : null,
+      ['digest over the signed bytes',
+       g.digestMatches === true ? 'matches what was signed'
+       : g.digestMatches === false ? 'DOES NOT MATCH'
+       : g.digestNote || 'not checked'],
+      ['signature',
+       g.signatureValid === true ? 'verifies against the key in the certificate'
+       : g.signatureValid === false ? 'DOES NOT VERIFY'
+       : g.cryptoNote || 'not checked here'],
+      ['covers', g.covers.map(([x, y]) => `${x.toLocaleString()}–${y.toLocaleString()}`).join(' and ')
+                 + (g.bytesAfter > 0 ? `, and ${g.bytesAfter.toLocaleString()} bytes follow it` : '')],
+      g.attachmentSigned === undefined ? null
+        : ['the record read above',
+           g.attachmentSigned ? 'is inside the signed bytes'
+                              : 'IS NOT COVERED BY THIS SIGNATURE'],
+    ];
+
+    // The one sentence this card exists to prevent being misread.
+    let note = `<p class="note"><strong>This is not a trust check.</strong> It says the
+      signature is arithmetically sound and whose certificate made it. Whether that
+      certificate is qualified, was valid on the day, or has been revoked needs the EU
+      trusted list and a revocation service — network and policy, neither of which this
+      page has. Your PDF reader answers that; this page will not pretend to.</p>`;
+    if (g.attachmentSigned === false)
+      note = `<p class="note"><strong>The signature does not cover the attachment.</strong>
+        The record was added to this document after it was signed, so the signature says
+        nothing about the evidence — only about the pages that came before it. Embed, then
+        sign, in that order.</p>` + note;
+    else if (g.bytesAfter > 0)
+      note = `<p class="note">${g.bytesAfter.toLocaleString()} bytes were appended after
+        the signed range. That is the ordinary shape of a long-term signature — validation
+        material added later — and those bytes are not covered by the signature above.</p>`
+        + note;
+    if (g.error) note = `<p class="note">${esc(g.error)}</p>` + note;
+
+    return card('Document signature',
+      broke ? 'does not verify'
+        : uncovered ? 'does not cover the record'
+        : good ? 'sound, but unproven' : 'read, not checked',
+      broke ? 'b-bad' : uncovered ? 'b-warn' : good ? 'b-ok' : 'b-warn',
+      dl(rows) + note);
+  }
+
   function reportHtml(files) {
     const b = files && (files.get('index.html') || files.get('verification.html'));
     return b ? new TextDecoder().decode(b) : null;
@@ -170,7 +242,7 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
     return 'b-ok';
   }
 
-  function render(r, files, from) {
+  function render(r, files, from, sigs) {
     let html = '';
 
     // Where the bytes came from, said before anything is claimed about them. And what
@@ -182,12 +254,17 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
         got ? 'b-ok' : 'b-bad',
         dl(from.map(x => [x.name || 'unnamed',
                           x.error || `${x.bytes.toLocaleString()} bytes, from ${x.pdf}`])) +
-        `<p class="note">Everything below is about those bytes, checked against the manifest
-         sealed inside them — not about the PDF around them. <strong>The document's own
-         signature is not checked here.</strong> A qualified signature is what names a
-         person, and validating one needs a trust list and a certificate store this page
-         does not carry: open the signature panel of your PDF reader for that.</p>`);
+        `<p class="note">Everything below is about those bytes, checked against the
+         manifest sealed inside them — not about the PDF around them. ` +
+        ((sigs && sigs.length)
+          ? `The document is signed, and the next card says what that signature does and
+             does not establish.</p>`
+          : `<strong>This document carries no signature.</strong> Everything here is a
+             consistent record from an author you are taking on their word: nothing in a
+             package can name the person who made it.</p>`));
     }
+
+    for (const g of (sigs || [])) html += signatureCard(g);
 
     if (r.fatal) {
       out.innerHTML = card('Not a case folder', 'stop', 'b-bad',
@@ -243,9 +320,10 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
                proves the register is intact and was signed by the holder of that key — it
                does not prove whose key it is, because a key inside the package it signs
                cannot say that about itself. <strong>Who</strong> comes from a qualified
-               electronic signature on the document this record is attached to: open the
-               signature panel of the PDF. It also does not prove the register is complete:
-               no voluntary record can.</p>`));
+               electronic signature on the document this record is attached to` +
+               ((sigs && sigs.length) ? `, which is the card above.` : `: open the
+               signature panel of the PDF.`) + ` It also does not prove the register is
+               complete: no voluntary record can.</p>`));
       }
     } else {
       html += card('Signature', 'absent', 'b-dim',
@@ -339,8 +417,8 @@ iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
   async function handle(fileList) {
     out.innerHTML = card('Working', '', '', '<p class="note">Verifying locally…</p>');
     try {
-      const { files, from } = await collect(fileList);
-      render(verifyCase(files), files, from);
+      const { files, from, sigs } = await collect(fileList);
+      render(verifyCase(files), files, from, sigs);
     } catch (e) {
       out.innerHTML = card('Something went wrong', 'error', 'b-bad',
         `<p class="note">${esc(e.message)}</p>`);

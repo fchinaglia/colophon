@@ -13,7 +13,7 @@ verify.html   THE DELIVERABLE (generated — do not edit)
 ```
 
 ```bash
-node verifier/test.js          # 61 assertions
+node verifier/test.js          # 78 assertions
 python3 verifier/build.py      # rebuild verify.html and print its sha256
 ```
 
@@ -40,10 +40,28 @@ object number wins, which is what a revision means. Decompression is
 years. Where it is missing, the page says to use `pdfdetach` or Firefox rather than
 failing obscurely.
 
-**The document's signature is not checked**, and the page says so where it says everything
-else. A qualified signature is the one thing that names a person; validating it needs a
-trust list and a certificate store this page will never carry. It reads the attachment and
-tells the reader that the signature panel is elsewhere.
+## What it says about the signature over the document
+
+Four things, and the fourth is why the other three are worth computing:
+
+- **which bytes the signature covers**, from the `/ByteRange`, and that the gap between
+  its two runs is exactly the `/Contents` string — a signature cannot sign itself
+- **that the digest in the signed attributes is the digest of those bytes**
+- **that the signature verifies** against the public key in the signer's certificate —
+  `crypto.subtle`, RSA PKCS#1 v1.5 and ECDSA, offline; anything else is named and not
+  claimed — and who that certificate says the signer is
+- **whether the record it just read is inside the signed bytes**
+
+The last one is the question the method actually asks. `SKILL.md` says *embed, then sign,
+in that order*, and a document signed the other way round shows a perfectly valid
+signature over pages that do not include the evidence. `tests/fixtures/signed-pdf/` holds
+one of each; both verify, and only one has signed anything that matters.
+
+**None of this is a trust check, and the card says so in bold.** Whether the certificate
+is qualified, was valid on the day, or has been revoked needs the EU trusted list and a
+revocation service: network and policy, not arithmetic. A valid digest is not a valid
+identity, and a page that blurred the two would be doing the thing this project exists to
+stop.
 
 ## What it also shows
 

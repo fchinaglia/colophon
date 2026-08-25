@@ -166,6 +166,45 @@ if (fs.existsSync(pdf) && fs.existsSync(bundle)) {
        'pdf: the whole case verifies straight out of the document',
        JSON.stringify({ chain: r.chain.ok, sig: r.signature.ok }));
 
+    // ---- the signature over the document -----------------------------------------
+    // Two fixtures, signed in the two possible orders by a certificate that is worth
+    // nothing. Both show a valid signature to anything that only asks whether the
+    // signature verifies; only one of them has actually signed the evidence.
+    const FIX = path.join(REPO, 'tests', 'fixtures', 'signed-pdf');
+    for (const [file, covered] of [['embed-then-sign.pdf', true],
+                                   ['sign-then-embed.pdf', false]]) {
+      const f = path.join(FIX, file);
+      if (!fs.existsSync(f)) continue;
+      const r2 = fs.readFileSync(f);
+      const doc = new Uint8Array(r2.buffer, r2.byteOffset, r2.byteLength);
+
+      const found = C.pdfSignatures(doc);
+      ok(found.length === 1, `${file}: one signature found`, String(found.length));
+      const tars = (await C.pdfAttachments(doc)).filter(a => a.tar);
+      ok(tars.length >= 1, `${file}: the record is in there`, String(tars.length));
+
+      const v = await C.verifyPdfSignature(doc, found[0], tars[tars.length - 1].at);
+      ok(v.holeMatches, `${file}: the ByteRange gap is exactly the /Contents string`);
+      ok(v.digestAlg === 'SHA-256' && v.sigAlg === 'RSASSA-PKCS1-v1_5',
+         `${file}: algorithms read`, `${v.sigAlg} / ${v.digestAlg}`);
+      ok(v.digestMatches === true, `${file}: the signed digest is the digest of those bytes`,
+         JSON.stringify({ digestMatches: v.digestMatches, note: v.digestNote }));
+      ok(v.signatureValid === true, `${file}: the signature verifies against the certificate`,
+         JSON.stringify({ valid: v.signatureValid, note: v.cryptoNote }));
+      ok(/TEST, not a real certificate/.test(
+           (v.signer.subject.find(x => x[0] === 'CN') || [])[1] || ''),
+         `${file}: the signer is read from the certificate`,
+         JSON.stringify(v.signer && v.signer.subject));
+
+      // The one that matters. A signature can be perfectly valid and cover none of the
+      // evidence, which is the whole reason this is reported separately from "valid".
+      ok(v.attachmentSigned === covered,
+         `${file}: the attachment is ${covered ? 'inside' : 'outside'} the signed bytes`,
+         `attachmentSigned=${v.attachmentSigned}, bytesAfter=${v.bytesAfter}`);
+    }
+
+    ok(C.pdfSignatures(b).length === 0, 'pdf: an unsigned document reports no signature');
+
     // A PDF with nothing in it must come back empty rather than throwing: the page turns
     // that into "this document carries no attachment", which is a different sentence from
     // "something went wrong".
