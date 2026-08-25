@@ -1,0 +1,48 @@
+/* SPDX-License-Identifier: MIT
+   The verifier's own components: everything core.js emits — cards, badges,
+   notes, the tab strip, the report pane. Written against nine variables and
+   nothing else, so a shell supplies the palette and inherits the parts.
+
+   build.py inlines this into BOTH shells at /*__COMPONENTS__*/. It is one file
+   so that the served page and the one that travels in a bundle cannot drift in
+   what they show: they differ in chrome and in palette, never in components.
+
+   Required of a shell: --bg --fg --dim --line --card --mono --ok --bad --warn. */
+
+#drop { border:2px dashed var(--line); border-radius:12px; padding:2.5rem 1.5rem; text-align:center; transition:border-color .15s,background .15s; }
+#drop.over { border-color:var(--ok); background:var(--mono); }
+#drop p { margin:.4rem 0; color:var(--dim); font-size:.95rem; }
+.pickers { display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap; margin-top:1rem; }
+label.btn { display:inline-block; border:1px solid var(--line); background:var(--card); padding:.45rem .9rem; border-radius:7px; cursor:pointer; font-size:.9rem; }
+label.btn:hover { border-color:var(--dim); }
+input[type=file] { display:none; }
+
+section.card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:1.1rem 1.25rem; margin:1rem 0; }
+section.card h2 { margin:0 0 .6rem; font-size:1rem; font-weight:640; display:flex; align-items:center; gap:.5rem; }
+.badge { font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; padding:.15rem .5rem; border-radius:20px; border:1px solid currentColor; font-weight:600; }
+.b-ok { color:var(--ok); } .b-bad { color:var(--bad); } .b-warn { color:var(--warn); } .b-dim { color:var(--dim); }
+dl { display:grid; grid-template-columns:auto 1fr; gap:.3rem 1rem; margin:.5rem 0 0; font-size:.9rem; }
+dt { color:var(--dim); } dd { margin:0; word-break:break-all; }
+.note { color:var(--dim); font-size:.88rem; margin:.7rem 0 0; }
+pre.cmd { background:var(--mono); border-radius:7px; padding:.65rem .8rem; overflow-x:auto; font-size:.84rem; margin:.6rem 0 0; }
+ul.tight { margin:.4rem 0 0; padding-left:1.1rem; font-size:.9rem; }
+footer { margin-top:3rem; padding-top:1.2rem; border-top:1px solid var(--line); color:var(--dim); font-size:.85rem; }
+footer p { margin:.4rem 0; }
+
+#tabs { display:flex; gap:.15rem; border-bottom:1px solid var(--line); margin:1.6rem 0 0; }
+#tabs button { appearance:none; background:none; border:0; border-bottom:2px solid transparent;
+  margin-bottom:-1px; padding:.6rem .95rem; font:inherit; font-size:.92rem; color:var(--dim);
+  cursor:pointer; display:flex; align-items:center; gap:.45rem; }
+#tabs button:hover { color:var(--fg); }
+#tabs button[aria-selected="true"] { color:var(--fg); border-bottom-color:var(--fg); font-weight:620; }
+#tabs button:focus-visible { outline:2px solid var(--fg); outline-offset:-2px; border-radius:4px; }
+#tabs .dot { width:.45rem; height:.45rem; border-radius:50%; background:currentColor; }
+.pane[hidden] { display:none; }
+.rephead { display:flex; align-items:baseline; justify-content:space-between; gap:1rem;
+  margin:1.1rem 0 .7rem; flex-wrap:wrap; }
+.rephead p { margin:0; color:var(--dim); font-size:.88rem; max-width:33rem; }
+a.ghost { border:1px solid var(--line); background:var(--card); padding:.35rem .75rem;
+  border-radius:7px; font-size:.85rem; text-decoration:none; color:var(--fg); white-space:nowrap; }
+a.ghost:hover { border-color:var(--dim); }
+iframe.report { width:100%; height:calc(100vh - 11rem); min-height:32rem;
+  border:1px solid var(--line); border-radius:10px; background:var(--card); display:block; }
