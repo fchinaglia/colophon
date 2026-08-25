@@ -4,6 +4,47 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [3.1.1] — 2026-08-25
+
+A patch, and it is the one 3.1.0 made findable. Two documents were generated with the
+bundle nowhere inside them, and nothing said so.
+
+### Measured first
+
+The closing pipeline in `SKILL.md` ran to `build_bundle.py` and stopped. `render_pdf.py`
+appeared nowhere in it — only in the list of scripts to copy at the opening, and in the
+section about the qualified signature. So the model reached the last step of the sequence
+with the tar on disk and improvised the command that makes the document: a plain
+`render_pdf.py`, no `--embed`, no attachment.
+
+Underneath it, a worse one. `--attached` wrote the line; `--embed` put the file in;
+nothing tied them together. `render_pdf.py --attached` alone produced a document whose
+disclosure reads *verify offline: drop `colophon-<uid>.tar` on verify.html* and which
+carries nothing — to anyone forwarded the PDF alone, a route that leads nowhere. It is
+mistake #16 in a new costume, in the one artefact the method tells an author to hand over,
+and it was silent.
+
+**Both were found by dropping those PDFs on the verifier released an hour earlier**, which
+answered *this document carries no attachment*. The tool that diagnosed the fault shipped
+before the fix for it.
+
+### Fixed
+
+- **The closing pipeline runs to the rendering.** `python3 render_pdf.py --attached
+  --embed` is the last line of the block, so the step is not left to improvisation.
+- **`--attached` without `--embed` is refused**, naming both ways out. Not made a hard
+  rule: `enclosed` means *travels with the document*, and a PDF mailed together with its
+  tar is honestly described by it — so that case is now `--beside`, said out loud instead
+  of being what you get by forgetting a flag.
+- **`--embed` without `--attached` warns.** It under-claims rather than over-claims — the
+  document carries the record and its own line says it does not — so it is a warning.
+
+### Added
+
+- Two tests pinning the pair, and the sentence in the closing that tells the model to drop
+  the copy it is about to send on `verify.html` itself: the page opens the PDF and says
+  what is actually inside it.
+
 ## [3.1.0] — 2026-08-25
 
 The verifier stops being a page about a tar. It opens the document the record travels in,
