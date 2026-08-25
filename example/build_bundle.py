@@ -29,12 +29,22 @@ may name people who consented to nothing. Only the one version the manifest cove
 goes, because it is the text measure.py reconstructs. The register commits to the
 digests of the rest, so they stay attested without being revealed.
 
-Two things deliberately absent.
+What travels, and what its authority is.
+
+The public key travels — `colophon.pub`, put there by seal.sh. It has to: there is no
+address to fetch it from, and a reader with the bundle and no key can check the chain
+and the digests but not the signature. What it is worth is stated plainly here and in
+VERIFY.md, because a key inside the folder it signs is circular on its own: it proves
+the register was signed by whoever holds this key, and nothing about whose key that is.
+Two things make it more than that, and neither is inside the bundle. `case.json`
+declares the fingerprint and the manifest covers `case.json`, so the chain itself says
+which key this case expected — a substituted key changes the fingerprint and stops
+matching. And a qualified electronic signature over the PDF that carries this tar binds
+a natural person, identified by a supervised trust service, to the whole package.
 
 No CA travels in the bundle. A root certificate arriving inside the evidence it
-authenticates proves nothing — the same circularity as a public key published inside
-the folder it signs. verify.html checks that the timestamp commits to this register
-and stops there; validating who issued it is `openssl ts -verify` against the
+authenticates proves nothing. verify.html checks that the timestamp commits to this
+register and stops there; validating who issued it is `openssl ts -verify` against the
 reader's own store, which is why seal.sh times against a TSA whose root that store
 already has.
 
@@ -63,9 +73,10 @@ SEAL_PREFIX = "events.jsonl"
 # over; it stays named here because a case sealed before build_page.py took that name
 # carries an index.html that is prose about the case, outside its manifest, and that
 # file is still the door a reader arrives at. README.md is prose in every case.
-# allowed_signers is the ready-made form of the key a reader feeds to
-# `ssh-keygen -Y verify`, and it is there for reproduction, not for trust.
-READER = {"index.html", "README.md", "allowed_signers"}
+# colophon.pub is the key the signature is checked against and allowed_signers is the
+# same key in the form `ssh-keygen -Y verify` reads. seal.sh writes the first, after
+# the manifest, which is why neither can be covered by one.
+READER = {"index.html", "README.md", "colophon.pub", "allowed_signers"}
 # The attestation and its signature. Generated after the manifest — they carry the root,
 # which is the hash of the manifest event — so no manifest can cover them, and without
 # this they would be withheld as uncovered: the one file in the bundle that carries a
@@ -267,6 +278,14 @@ def main(argv=None):
         if verifier and VERIFIER not in keep:
             t.add(verifier, arcname=VERIFIER, filter=deterministic)
     os.replace(tmp, out)
+
+    if not ({"colophon.pub", "allowed_signers"} & set(keep)) and \
+            any(k.startswith(SEAL_PREFIX + ".sig") for k in keep):
+        print("\n  ! no colophon.pub in this bundle. The register is signed and the")
+        print("    reader has nothing to check the signature against except the key")
+        print("    inside the signature itself, which cannot be compared with the")
+        print("    fingerprint case.json declares. Re-run seal.sh, or copy the public")
+        print("    half of the key in as colophon.pub, and pack again.")
 
     print(f"\n  {out}")
     print(f"  {os.path.getsize(out):,} bytes")

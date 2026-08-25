@@ -6,11 +6,19 @@ colophon — set up an author.
 
     colophon setup                  once, before the first case
 
-One command, and it does one thing: make a signing key, and check that the place you
-say you publish it really serves it. Everything else a case needs is in the case
-folder, run from there, by the scripts the skill copies in.
+One command, and it does one thing: make a signing key. Everything else a case needs
+is in the case folder, run from there, by the scripts the skill copies in.
 
-`deposit` used to live here. It is gone with the instance it talked to: a case now
+IT TOUCHES NO NETWORK, and that is a property to keep. It used to fetch a published
+key and refuse to finish when the address did not serve it — so an author whose domain
+was down, or who had not published anything yet, could not get past setup at all. The
+key no longer lives at an address: `seal.sh` writes `colophon.pub` beside the register,
+`build_bundle.py` packs it, and the reader verifies the signature against the copy that
+travelled with the evidence. What that copy cannot do is say whose key it is — for that
+there is a qualified electronic signature over the PDF the bundle is attached to, which
+binds a natural person a supervised trust service has already identified.
+
+`deposit` used to live here too. It is gone with the instance it talked to: a case
 travels as a bundle its author packs — `build_bundle.py` in the case folder — and
 nothing has to stay online for a reader to check it. The reasoning is in
 docs/plan-local-first.md.
@@ -27,8 +35,6 @@ import json
 import os
 import subprocess
 import sys
-import urllib.error
-import urllib.request
 
 # --------------------------------------------------------------------------- paths
 
@@ -82,48 +88,17 @@ def fingerprint(pub_path):
     raise RuntimeError(f"no fingerprint in: {r.stdout.strip()}")
 
 
-def key_blob(pub_path):
-    """The base64 key material from a .pub line — what must match what is published."""
-    with open(pub_path, encoding="utf-8") as f:
-        parts = f.read().split()
-    for i, p in enumerate(parts):
-        if p.startswith("ssh-") and i + 1 < len(parts):
-            return parts[i + 1]
-    raise RuntimeError(f"{pub_path} does not look like a public key")
-
-
-# --------------------------------------------------------------------------- checks
-
-def fetch(url, timeout=15):
-    req = urllib.request.Request(url, headers={"User-Agent": "colophon-setup"})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read().decode("utf-8", "replace")
-
-
-def check_key_url(url, pub_path):
-    """Fetch the published key and compare the key material byte for byte.
-
-    One HTTP GET, and it is the most valuable check in the flow: it is the one nobody
-    performed for the first published case, whose key was published inside the very
-    repository it authenticates.
-    """
-    try:
-        body = fetch(url)
-    except urllib.error.HTTPError as e:
-        return f"the address answered HTTP {e.code}"
-    except Exception as e:                                     # noqa: BLE001
-        return f"could not fetch it: {e}"
-    return None if key_blob(pub_path) in body else \
-        "it is reachable, but the key published there is not this key"
-
-
 # --------------------------------------------------------------------------- setup
 
-KEY_URL_MENU = """  Where will the key be published? Strongest first:
-    1  https://<your-domain>/.well-known/colophon/keys   a domain you control
-    2  https://api.github.com/users/<you>/ssh_signing_keys   corroborating, mutable
-    3  a deposit instance                                 convenience copy, not an anchor
-    4  not yet"""
+WHERE_THE_KEY_GOES = """  The key is not published anywhere, and nothing here will try to fetch it.
+  seal.sh copies the public half into the case folder as colophon.pub, and
+  build_bundle.py packs it: a reader checks the signature against the copy that
+  arrived with the evidence, offline, with no domain to keep alive.
+
+  That copy proves the register was signed by whoever holds this key. It does not
+  say whose key it is — nothing inside a folder can say that about the folder. What
+  says it is a qualified electronic signature on the PDF the bundle is attached to:
+  it names a natural person, and it covers the attachment too."""
 
 
 def cmd_setup(a):
@@ -177,34 +152,11 @@ def cmd_setup(a):
     print("  and a register nobody can attribute is a register nobody has to believe.")
     print("  There is no cryptographic recovery, and there must not be.")
 
-    # -- key url
-    key_url = a.key_url or ""
-    if not a.batch:
-        print("\n" + KEY_URL_MENU)
-        key_url = prompt("key URL (blank = not yet)")
-    if key_url:
-        problem = check_key_url(key_url, pub_path)
-        if problem:
-            print(f"  ! {problem}")
-            if not a.allow_unverified:
-                print("    Publish the key there first, then re-run. A key nobody can")
-                print("    fetch is a key nobody can bind to you.", file=sys.stderr)
-                return 1
-            print("    continuing anyway (--allow-unverified)")
-            verified = None
-        else:
-            print("  key URL verified: the published key is this key")
-            verified = True
-    else:
-        print("  ! no key URL. A register signed by a key nobody can fetch proves that")
-        print("    the folder is consistent with itself, which anyone arranges in ten")
-        print("    seconds. Publish the key and re-run: it is once, not per case.")
-        verified = None
+    print("\n" + WHERE_THE_KEY_GOES)
 
     cfg = {
         "name": name, "contact": contact, "author_id": author_id or None,
         "key_path": key_path, "key_fingerprint": fp,
-        "key_url": key_url or None, "key_url_verified": verified,
     }
     save_config(cfg)
     print(f"\n  written: {config_path()}  (mode 600)")
@@ -243,9 +195,7 @@ def main(argv=None):
     s.add_argument("--force", action="store_true", help="replace an existing config")
     s.add_argument("--repo", help="repository root to tidy (.gitattributes, .nojekyll)")
     s.add_argument("--key", help="key path (default $COLOPHON_KEY or ~/.ssh/colophon)")
-    s.add_argument("--allow-unverified", action="store_true",
-                   help="accept a key URL that does not serve this key")
-    for f in ("name", "contact", "author-id", "key-url"):
+    for f in ("name", "contact", "author-id"):
         s.add_argument(f"--{f}")
     s.add_argument("--batch", action="store_true", help="no prompts; use the flags")
     s.set_defaults(func=cmd_setup)

@@ -9,6 +9,12 @@
 #   <file>.tsr   when  — RFC 3161 timestamp
 #   <file>.ots   when  — OpenTimestamps anchor on Bitcoin, free, redundant
 #
+# And it copies the public half of the key in as colophon.pub, so the signature can
+# be checked by whoever is holding the bundle, with no network and no address to keep
+# alive. That copy says the register was signed by whoever holds this key; it cannot
+# say whose key it is, and it does not pretend to. What says that is a qualified
+# electronic signature over the PDF the bundle is attached to.
+#
 # It does not produce a .p7m: wrapping the register would make it unreadable
 # without a specific toolchain, and a log lives by being inspectable.
 #
@@ -17,8 +23,7 @@
 # One-time setup:
 #   ssh-keygen -t ed25519 -f ~/.ssh/colophon      # a dedicated key
 #   pip install opentimestamps-client             # optional but recommended
-# then publish the public key (~/.ssh/colophon.pub) somewhere stable and
-# yours: your site, GitHub profile, LinkedIn page.
+# The public key needs publishing nowhere. It goes in the bundle, from here.
 
 # Works even when invoked with `sh`: pipefail is not POSIX.
 set -eu
@@ -68,6 +73,19 @@ else
   exit 1
 fi
 
+# The key travels with the evidence, because there is nowhere else for a reader to get
+# it. Without this the verifier falls back to the key embedded in the signature, which
+# verifies just as well and tells a reader even less: it cannot be compared with the
+# fingerprint case.json declares, and that comparison is inside the signed manifest.
+DIR="$(dirname "$FILE")"
+if [ -f "$KEY.pub" ]; then
+  cp "$KEY.pub" "$DIR/colophon.pub"
+  echo "   $DIR/colophon.pub  (the key a reader checks it against, offline)"
+else
+  echo "   ! no $KEY.pub — the bundle will carry no key and the reader will fall" >&2
+  echo "     back to the one inside the signature" >&2
+fi
+
 echo
 echo "== timestamp (RFC 3161) =="
 openssl ts -query -data "$FILE" -sha512 -no_nonce -cert -out "$FILE.tsq"
@@ -102,8 +120,8 @@ else
 fi
 
 echo
-echo "Done. Keep together: $FILE, .sig, .tsr, .ots, .sha256"
-echo "and publish VERIFY.md alongside, with your public key."
+echo "Done. Keep together: $FILE, .sig, .tsr, .ots, .sha256, colophon.pub"
+echo "and VERIFY.md alongside. build_bundle.py packs all of it into one tar."
 if [ -f "$FILE.ots" ]; then
   echo "The Bitcoin anchor is only submitted. Run 'ots upgrade $FILE.ots' before you"
   echo "publish anything that claims one."

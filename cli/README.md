@@ -4,7 +4,7 @@ One command, standard library only.
 
 ```bash
 python3 cli/colophon.py setup    # once, before the first case
-python3 cli/test_cli.py          # 12 assertions, in a throwaway HOME
+python3 cli/test_cli.py          # 16 assertions, in a throwaway HOME
 ```
 
 ## `setup`
@@ -13,15 +13,21 @@ Writes `~/.config/colophon/author.json`, mode 600. The config is a source of def
 never an authority: `case.json` stays the per-case record and the manifest covers it.
 
 It asks for a name and a contact — `VERIFY.md` and `allowed_signers` each need one —
-generates an Ed25519 key at `$COLOPHON_KEY` (default `~/.ssh/colophon`), and then does
-the one check nobody performed for the first published case: **it fetches the key URL
-and compares the published key material against the local one, byte for byte.** A key
-nobody can fetch is a key nobody can bind to you, and a key published inside the folder
-it authenticates proves only that the folder agrees with itself.
+and generates an Ed25519 key at `$COLOPHON_KEY` (default `~/.ssh/colophon`). That is all
+it does.
 
-With no domain, `https://api.github.com/users/<you>/ssh_signing_keys` works and is free.
-It is weaker than a name you control — GitHub can change what it serves — but it breaks
-the circle, which is the thing that matters.
+**It opens no network connection, and that is the property to keep.** It used to fetch a
+published key and refuse to finish when the address did not serve it, which meant a down
+domain — or simply not having published anything yet — stopped an author at the first
+step, before they had written a word. `test_cli.py` asserts the source imports no
+`urllib` and names no `.well-known`, because that failure came back the moment the check
+existed.
+
+The key is published nowhere now. `seal.sh` copies the public half into the case as
+`colophon.pub`, `build_bundle.py` packs it, and the reader checks the signature against
+the copy that travelled with the evidence. What that cannot say is whose key it is — for
+that there is a qualified electronic signature on the PDF the bundle is attached to, and
+`setup` says so on its way out rather than offering an address it no longer has.
 
 It also writes `cases/** -text` into `.gitattributes` and adds `.nojekyll`, the two
 absences that produce failures nobody diagnoses from the symptom.

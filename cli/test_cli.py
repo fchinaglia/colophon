@@ -80,10 +80,21 @@ ok(os.path.exists(os.path.join(repo_copy, ".nojekyll")), "wrote .nojekyll")
 r = run_cli("setup")
 ok("Already set up" in r.stdout, "a second setup refuses to clobber the first")
 
+ok("key_url" not in cfg and "key_url_verified" not in cfg,
+   "no key URL in the config: the key travels in the bundle, not at an address")
+
+# The one thing setup must never do. It used to fetch the published key and refuse to
+# finish when the address did not answer, so a down domain — or none yet — blocked an
+# author at the first step, before they had written anything.
+src = open(os.path.join(HERE, "colophon.py"), encoding="utf-8").read()
+ok("urllib" not in src and "socket" not in src,
+   "setup opens no network connection: nothing to hang on, nothing to fail on")
+ok(".well-known" not in src, "setup names no key address")
+
 r = run_cli("setup", "--batch", "--force", "--name", "T", "--contact", "t@e.com",
-            "--key", key, "--key-url", "https://example.invalid/nope", expect=1)
-ok("Publish the key there first" in r.stdout + r.stderr,
-   "a key URL that does not serve this key stops setup")
+            "--key", key)
+ok("qualified electronic signature" in r.stdout,
+   "setup says where identity actually comes from, having no address to offer")
 
 ok(oct(os.stat(os.path.dirname(cfg_path)).st_mode)[-3:] == "700",
    "the config directory is 0700, not only the file inside it",
