@@ -4,6 +4,81 @@ All notable changes to Colophon are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and the project uses [semantic versioning](https://semver.org/).
 
+## [3.1.0] — 2026-08-25
+
+The verifier stops being a page about a tar. It opens the document the record travels in,
+reads the record out of it, shows the case's own report beside the checks, and looks at
+the signature the method now ends by recommending.
+
+### Measured first
+
+3.0.0 made the enclosure the only route: a case travels as a file, attached to a PDF, and
+the closing offers a qualified signature over that PDF as the one thing that names a
+person. Three gaps followed from it on the same day, and none was a bug report.
+
+A reader handed that PDF still had to run `pdfdetach` before this page would look at
+anything — the manual step the enclosure exists to remove. A reader who did that got a
+verdict with no way to see what the verdict was *about*, because `index.html` sits inside
+the tar. And the signature the method had just made the anchor of identity was the one
+artefact nothing checked.
+
+### Added
+
+- **A second tab, holding the case's own page.** The checks keep the first. The strip
+  appears only when the files actually carry `index.html`, and the dot on the Verification
+  tab carries the worst finding, so the state stays visible while the report is in front —
+  a strip that always showed green would be a claim. The report goes into an iframe with
+  `sandbox="allow-scripts"` and **deliberately not** `allow-same-origin`: it needs its own
+  scripts for the words/ideas toggle, and it is content out of the package this page exists
+  to distrust. Both flags together undo the sandbox and would let a crafted bundle rewrite
+  the verdict around it.
+- **Drop the PDF itself.** `render_pdf.py --embed` writes the bundle in as an incremental
+  update, Flate-compressed; the page reads it back out with `DecompressionStream`, offline,
+  with nothing written to disk. A card names the attachment it opened before anything is
+  claimed about it. Where `DecompressionStream` is missing, the page names `pdfdetach` and
+  Firefox rather than failing obscurely.
+- **The signature over the document**, in four parts: which bytes the `/ByteRange` covers
+  and that the gap between its runs is exactly the `/Contents` string; that the digest in
+  the signed attributes is the digest of those bytes; that the signature verifies against
+  the key in the signer's certificate, through `crypto.subtle`, with the signer's name read
+  out of the certificate; and **whether the record just read is inside the signed bytes.**
+
+  The fourth is the one this project needs. `SKILL.md` says *embed, then sign, in that
+  order*, and a document signed the other way round shows a perfectly valid signature over
+  pages holding none of the evidence. `tests/fixtures/signed-pdf/` holds one of each. Both
+  verify. Only one has signed anything that matters.
+- **`tests/fixtures/signed-pdf/`** — the two orders, about 10 KB each, with the generator
+  beside them. The certificate is self-signed and says so in its own subject; no real
+  document or certificate is in the repository.
+
+### Fixed
+
+- **A `.pytest_cache` shipped inside `colophon.zip`** and `check_package.py` passed it: the
+  junk filter matched on the basename, and a pytest cache holds files called `README.md`
+  and `.gitignore`, while the folder walk ignored caches on both sides so the two agreed
+  about a directory neither should have carried. Caches are now tolerated in the working
+  folder and refused in the package, matched on the path, with a regression test.
+
+### What it still does not do, and says so
+
+**The signature check is not a trust check**, and the card states that in bold rather than
+in a footnote. Whether the certificate is qualified, was valid on the day, or has been
+revoked needs the EU trusted list and a revocation service: network and policy, not
+arithmetic. A valid digest is not a valid identity, and a page that let the first read as
+the second would be doing the exact thing this project exists to stop. RSA PKCS#1 v1.5 and
+ECDSA are verified; RSA-PSS is named and not claimed.
+
+Checked against a real qualified signature — ETSI.CAdES.detached, RSA with SHA-256, an
+ArubaPEC EU Qualified certificate — and the verdict agrees with poppler's `pdfsig`,
+including the DSS revision appended after signing, which this page names as long-term
+validation material instead of reporting a modified document.
+
+### Not done
+
+The published cases still carry their old address fields, unchanged since 3.0.0: they are
+sealed, and the gap between what the method says and what its two worked examples say
+closes only when a third case is sealed.
+
 ## [3.0.0] — 2026-08-25
 
 **Breaking, twice.** A case no longer has an address, and a key is no longer published at
