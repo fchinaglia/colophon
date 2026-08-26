@@ -6,7 +6,46 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.5.0] — 2026-08-26
+
+Recording an event stops arguing with the terminal. The command carried the sequence `{"`,
+which Claude Code's command analysis reads as obfuscation, and the script answered by
+printing the whole event back — a security warning and sixty-four characters of hash at
+every exchange, on the screen of somebody writing an article. Both are gone, and the fix
+is a space. Alongside it, the last of the repetition inside `SKILL.md` and a ceiling on
+the two sections that never had one. `verify.html` is untouched — still `2e8a461a…` in all
+four copies.
+
 ### Changed
+
+- **The rule about the key is said once.** `1. Opening` was the one section #27 never
+  audited, and the duplication in it is of a kind those five rows did not contain: it is
+  **internal**. The rule was in `SKILL.md` three times — `Before the first case`, which
+  says it at length and says it to the author; `The qualified signature`, which says the
+  second half at the closing; and `1. Opening`, which argued both from scratch in 133
+  words. It now records the field and why the fingerprint matters, in 55. The red list
+  paragraph loses its argument the ordinary way, to `redlist_path()` in `record.py`, the
+  script running at that moment.
+
+  **No per-section budget could have caught this.** Each of the three was inside its own;
+  the repetition was between them. The budgets have been the mechanism since 3.4.0 and
+  this is the drift they are blind to.
+
+  1,032 words to 939, budget 1,200 → 960. `SKILL.md` 6,221 → 6,128.
+
+- **`Line endings` keeps the instruction.** The CRLF rule was stated five times: at
+  `Before the first case`, here, in `cli/colophon.py` — which prints the argument almost
+  word for word *while writing the file* — in `test_line_endings_are_pinned`, and in the
+  Windows job in CI. 61 words to 31.
+
+  That is the last of it. Two mechanical passes over `SKILL.md` — phrases repeated
+  between sections, and concepts by keyword — turn up nothing else worth cutting. What
+  they do turn up is deliberate: *stop before the seal* appears twice because one place
+  points at the other, and *never offer an address* appears in three sections because it
+  is a prohibition nothing enforces, at three moments where it can be broken. Both passes
+  see only literal repetition; the rule about the key, which was in the file three times,
+  was found by reading. **What is left is what the author hears, the prohibitions no
+  script applies, and the order rules no other file knows.**
 
 - **A space after every opening brace, and `record.py` stops talking.** Closes #34.
   `record.py` took the event as a JSON object in single quotes, and a compact JSON object
