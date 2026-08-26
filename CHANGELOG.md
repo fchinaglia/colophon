@@ -6,6 +6,15 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.7.0] — 2026-08-26
+
+The method stops having a short-text mode. `SKILL.md` decided between light and full on a
+word count, and light gave a closing note whose percentages were declared estimates — a
+third state beside the two P1 admits, live in provenance and estimated in substance. There
+is one cycle now, at any length, and what it costs is stated rather than hidden: a short
+piece carries the whole annotation pass or it is not tracked. `verify.html` is untouched —
+still `2e8a461a…` in all four copies.
+
 ### Removed
 
 - **The two modes are one.** `SKILL.md` chose between them on a word count — under 800
