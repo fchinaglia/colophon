@@ -69,7 +69,7 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
     # already says about the technical line, in the file open at that moment. The
     # region covers everything from `4. Closing` to the annotation, so the two rows
     # still to come — `The closing manifest` and `The last read` — pay in here too.
-    ("### 4. Closing", "## The annotation", 2000),
+    ("### 4. Closing", "## The annotation", 1800),
     ("## What the author hears", "## Before the first case", 400),
     # 224 words after #27 moved the icon's craft to reference/disclosures.md — the
     # labels in English, the hundred-pixel floor and the taxonomy they come from, all
@@ -81,6 +81,12 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
     # its own docstring, verbatim in places, and refuses outright once the closing
     # manifest is recorded — the clause that section was protecting is code, not prose.
     ("### The last read", "### The closing manifest", 120),
+    # 388 words after #27. The three arguments that went are each written where they
+    # are enforced: build_*/render_* in both render scripts, the tar that cannot be
+    # covered by a manifest it contains in build_bundle.py. What stayed has no such
+    # home — the recipe, what the manifest covers, and the rule that it is computed
+    # last, which nothing checks and which cost three attempts in the validation case.
+    ("### The closing manifest", "### Line endings", 400),
     # 500 until #26. The rule that a key is made on a machine the author keeps, and
     # nowhere else, is what bought the extra 120 — a deliberate raise and not a drift,
     # which is the distinction this test exists to force. #27 relocates the paragraph on

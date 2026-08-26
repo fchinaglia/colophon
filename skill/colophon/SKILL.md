@@ -331,13 +331,13 @@ outright.
 
 ### The closing manifest
 
-`seal.sh` signs `events.jsonl` and nothing else. On its own, that is a signed register
-that does not commit the text it describes: the final version, the annotation, the
-measurement and the icon all sit outside the signature, and a reader who checks it has
-proved less than they think.
+`seal.sh` signs `events.jsonl` and nothing else. On its own that is a signed register which
+does not commit the text it describes: the final version, the annotation, the measurement
+and the icon all sit outside the signature, and a reader who checks it has proved less than
+they think.
 
-So the **last event of every case is a manifest**: the SHA-256 of each file the
-measurement depends on, and of each script a reader runs to check it.
+So the **last event of every case is a manifest**: the SHA-256 of each file the measurement
+depends on, and of each script a reader runs to check it.
 
 ```bash
 python3 record.py '{"type":"status","actor":"system","phase":"—","meta":true,"payload":{
@@ -345,53 +345,31 @@ python3 record.py '{"type":"status","actor":"system","phase":"—","meta":true,"
   "algorithm":"sha256","sha256":{ "…":"…" }}}'
 ```
 
-`review.py` is covered like the others: a reader who wants to know what the review looked
-at runs it themselves, over the register they were handed.
-
 **What it covers**: the source version, `annotation.json`, `kpi.json`, `spans.json`,
-`case.json`, `icon.svg`, `index.html` — the verification page — `verify.html`, and
-every script in the folder. Hashing
-those and finding them inside the signed register is what closes the chain from the
-signature to the published text.
+`case.json`, `icon.svg`, `index.html` — the verification page — `verify.html`, and every
+script in the folder, `review.py` included: a reader who wants to know what the review
+looked at runs it themselves, over the register they were handed.
 
 **What it leaves out, deliberately**: the renderings for publication — the article as
-markdown, HTML or PDF, and whatever script makes them — and any prose about the case, a
-README or a landing page.
-
-The rule is in the names, so it is not a judgement made file by file: **`build_*` is
-covered by the manifest, `render_*` is not.** A `build_` script produces something the
-measurement depends on and a reader re-runs to check it. A `render_` script produces the
-document a reader receives, which carries the root and therefore cannot exist before the
-seal. A rendering is derivable from what is covered and carries a technical
-line that can only be generated *after* the seal, so freezing it would forbid the very
-step the method requires. Freeze one and you will be reopening a sealed case to correct
-a rendering.
-
-**And the bundle, for a different reason.** `build_bundle.py` writes a tar that contains
-the manifest, so the manifest cannot contain the tar. That is not a gap: the tar is
-transport, not evidence. `verify.html` hashes each *file* inside it against the manifest,
-so tampering with anything the case depends on is caught, and tampering with the
-container only breaks extraction. Nobody should try to hash it.
+markdown, HTML or PDF, and whatever script makes them — any prose about the case, and the
+bundle. The rule is in the names, so it is not a judgement made file by file: **`build_*`
+is covered by the manifest, `render_*` is not.** Both render scripts say why in their own
+docstrings, and `build_bundle.py` says why the tar it writes cannot be covered by a
+manifest it contains.
 
 **Two rules of order, and the second is where people trip.**
 
 The manifest is computed **last**, when every file that is edited by hand is final —
 `VERIFY.md` above all, which the author fills in with a key URL and a contact. Filling it
-in *after* the manifest invalidates the manifest that covers it, and the verification
-page then fails its own check. In the validation case this was learned by redoing the
-manifest three times.
+in *after* the manifest invalidates the manifest that covers it, and the verification page
+then fails its own check. In the validation case this was learned by redoing the manifest
+three times. Nothing checks this for you.
 
-After the manifest, **the only permitted operation is the signature**. If anything else
-has to change, the case is reopened: a new event says why, before any file is touched, a
-new manifest supersedes the old one, and the register is signed again. The old seal is
-kept — rename it `events.jsonl.v1.*` — because it still proves what the register looked
-like on its own date, which no later signature can do.
-
-One consequence to declare rather than hide: **a rendering made before the seal carries
-the root of the event preceding the manifest**, not the sealed root. It cannot be
-otherwise — a document cannot contain the fingerprint of a chain that then fingerprints
-the document. Generate the renderings *after* sealing, with `build_note.py`, and the
-problem disappears; if one was made earlier, say so.
+After the manifest, **the only permitted operation is the signature**. If anything else has
+to change, the case is reopened: a new event says why, before any file is touched, a new
+manifest supersedes the old one, and the register is signed again. Renderings are made
+after sealing — one made earlier carries the root of the event before the manifest, which
+is not the sealed root, and if that happened it is said rather than hidden.
 
 ### Line endings
 
