@@ -60,6 +60,10 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
 
 @pytest.mark.parametrize("section,end,budget", [
     ("### 1. Opening", "### 2. While writing", 1200),
+    # 213 words after #27 removed the proof behind the float rule: `record.py` refuses
+    # the event, and `violations()` in that file carries the argument already. The rule
+    # stays here, the proof does not, and this number is what stops it coming back.
+    ("### 2. While writing", "### 3. Revision", 230),
     ("### 4. Closing", "## The annotation", 2300),
     ("## What the author hears", "## Before the first case", 400),
     # 500 until #26. The rule that a key is made on a machine the author keeps, and
