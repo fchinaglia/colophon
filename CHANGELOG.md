@@ -6,6 +6,66 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+The skill file gets smaller, and the reason it could is not the one #27 assumed.
+
+### Measured first
+
+`claude plugin details` puts a number on what 6,902 words cost: **~12.8k tokens on
+every invocation**, against ~62 always-on. The three files in `reference/` are 49,322
+characters to `SKILL.md`'s 40,203 and do not appear in that figure at all — if they were
+counted it would read ~28k. So a rule moved into a reference file does not cost less, it
+costs nothing until the file is opened. That is the premise the whole issue rests on, and
+until now it was an argument rather than a measurement.
+
+### Changed
+
+- **The float rule keeps its instruction and drops its proof** (148 words → 64). The
+  argument — `JSON.parse` collapsing `94.0` into `94`, the silent precision loss past
+  2⁵³, the append-only register that cannot be repaired afterwards — already stood in the
+  docstring of `violations()` in `record.py`, the function that enforces it, and measured
+  against Node in `spec/canonical.md` §4. The pointer names `violations()` and not the
+  spec: `colophon.zip` ships `skill/colophon` alone, so an install from the Claude apps
+  cannot reach `spec/`.
+- **The icon keeps what decides; the craft goes to `reference/disclosures.md`** (317 →
+  224), which is the file open when the block is composed. It already carried the
+  hundred-pixel floor twice, and it pointed *backwards* — *see The icon in SKILL.md for
+  why* — from the file that is open to the file that costs 12.2k. No back-pointer from
+  `reference/` into `SKILL.md` is left.
+- **Publication keeps its instructions** (404 → 241). `disclosures.md`, under *The
+  technical line*, already held the no-address argument, the four rules of order and what
+  `--attached` checks; `VERIFY.md` §2 holds the key argument for the reader it addresses.
+  What stayed is what has to be held before opening anything: one route and it is a file,
+  never offer an address, nothing is packed before the manifest, and check the copy you
+  are about to send on `verify.html` — the one thing no script can do for you.
+
+`SKILL.md` 6,902 → 6,562 words, **~12.8k → ~12.2k tokens**. The estimate in #27 was −625
+words for these three rows; the truth was −340, and the reason is the finding: **the file
+was not too long, it was restating in the third person what the files read at that moment
+already said in the first.** Two of the three destinations the issue named were wrong.
+
+### Added
+
+- **Budgets for `2. While writing` (230) and `The icon` (240)**, and `4. Closing` lowered
+  2,300 → 2,150. A relocation that does not lower a budget has not been paid for: the
+  words drift straight back, which is what
+  `test_a_section_of_the_skill_stays_within_its_budget` exists to stop. The closing
+  region had been standing at 2,299 of 2,300 — one word — and now has room for the two
+  rows still to come.
+- **`test_every_script_declares_its_licence`.** 53 source files of 63 carried the SPDX
+  line and nothing held it true; `tests/fixtures/signed-pdf/sign_pdf.py` had slipped. A
+  case folder is read far from this repository and keeps its own copies of the scripts,
+  so the licence has to be in the file.
+
+### Not done
+
+The second tier of #27 — `The closing manifest` and `The last read` — is untouched. It
+was classified high-risk because nothing but prose enforces those two, and `claude plugin
+eval`, which would test that, answers `plugin eval is currently in early access`. But
+three rows out of three turned out to be duplicates of a file read at that same moment,
+so the audit to run before that tier is not about risk appetite: it is whether those two
+are duplicates as well.
+
+
 ## [3.3.0] — 2026-08-25
 
 A signing key is made in one place and only on a machine the author keeps — the rule that
