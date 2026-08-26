@@ -93,6 +93,28 @@ def test_a_rewrite_moves_no_number_and_loses_no_date(case, tmp_path):
         "the measurement moved"
 
 
+def version_event(wd, name="post.md"):
+    """A saved draft, recorded the way `SKILL.md` asks for it — with the word count and
+    the SHA-256 of the file. The digest is a STRING, and that is the whole point: it is
+    the shape every real register carries at the moment the last read is offered, and no
+    test wrote one until this issue."""
+    return run(wd, "record.py", json.dumps(
+        {"type": "version", "actor": "system", "phase": "—",
+         "payload": {"file": f"versions/{name}", "words": 337,
+                     "sha256": "9f2c" + "0" * 60}}, ensure_ascii=False))
+
+
+def test_it_runs_when_the_last_event_is_a_draft(case, tmp_path):
+    """The last read sits after measure.py and before build_page.py, so the event before
+    it is almost always a version — and a version carries payload.sha256 as the digest of
+    the file it saved. A guard that asked only whether the key was present refused every
+    real case and sent the author to reopen one that had never been closed."""
+    assert version_event(case).returncode == 0
+    r = run(case, "review.py", env=cfg(tmp_path))
+    assert r.returncode == 0, r.stderr
+    assert "already recorded" not in r.stderr
+
+
 def test_it_refuses_once_the_manifest_is_recorded(case, tmp_path):
     """The manifest is the last event. Rebuilding after it changes the hash of the
     manifest event itself, and the seal after that attests bytes that are gone."""

@@ -200,7 +200,7 @@ def main(argv=None):
     if not os.path.exists(record.LOG):
         sys.exit(f"missing {record.LOG}")
     rows = record.read()
-    if any((r.get("payload") or {}).get("sha256") for r in rows[-1:]):
+    if rows and record.is_manifest(rows[-1]):
         print("! the closing manifest is already recorded. Rebuilding the chain now\n"
               "  would change the hash of the manifest event itself. Reopen the case\n"
               "  instead, or run this before the manifest.", file=sys.stderr)

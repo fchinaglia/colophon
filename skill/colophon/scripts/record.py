@@ -196,6 +196,20 @@ def last_hash() -> str:
     return rows[-1]["hash"] if rows else GENESIS
 
 
+def is_manifest(row: dict) -> bool:
+    """Is this event the closing manifest? The type of payload.sha256 is the whole
+    question, and getting it wrong is not theoretical.
+
+    A `version` event carries payload.sha256 too — the digest of the file it saved, as a
+    string. Four places look for the manifest, and the one that asked only whether the key
+    was there refused to run on every real case: review.py runs before the manifest, so
+    the event before it is almost always a version. The traversal differs by caller —
+    the last event, the last matching one, its index — but this question does not, so it
+    is answered here once.
+    """
+    return isinstance((row.get("payload") or {}).get("sha256"), dict)
+
+
 def append(event: dict) -> dict:
     bad = violations(event)
     if bad:

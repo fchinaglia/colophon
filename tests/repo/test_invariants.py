@@ -228,3 +228,39 @@ def test_the_readers_page_and_its_template_have_not_drifted():
     ref = open(os.path.join(ROOT, "skill", "colophon", "reference", "VERIFY.md"),
                encoding="utf-8").read()
     assert r.stdout == ref, "build_verify.py's template has drifted from reference/VERIFY.md"
+
+
+def test_a_draft_is_never_mistaken_for_the_closing_manifest():
+    """Four scripts ask whether an event is the manifest, and the question is the type of
+    `payload.sha256`: a table for the manifest, a string for the digest a `version` event
+    records. `review.py` asked only whether the key was there, and refused to run on every
+    real case — the last read sits before the manifest, so the event before it is almost
+    always a draft.
+
+    Three of the four were right by having been written together rather than by anything
+    holding them so. `record.is_manifest` is the answer for the one that imports it; the
+    other three stay standalone on purpose — `test_refuses_when_no_verifier_can_be_found`
+    runs `build_bundle.py` alone in an empty directory — so what binds them is this: none
+    of them may treat a string as a table.
+    """
+    draft = {"type": "version", "actor": "system", "phase": "—",
+             "payload": {"file": "versions/x.md", "words": 1, "sha256": "ab" * 32}}
+    manifest = {"type": "status", "actor": "system", "phase": "—", "meta": True,
+                "payload": {"closing": "MANIFEST", "sha256": {"x": "y"}}}
+
+    sys.path.insert(0, SCRIPTS)
+    try:
+        import record
+        assert record.is_manifest(manifest) is True
+        assert record.is_manifest(draft) is False
+    finally:
+        sys.path.remove(SCRIPTS)
+
+    # The three standalone scripts carry their own copy of the question. It must be the
+    # same question: a `payload.sha256` that is not a table is not a manifest.
+    for name in ("build_bundle.py", "render_md.py", "build_attestation.py"):
+        src = open(os.path.join(SCRIPTS, name), encoding="utf-8").read()
+        assert 'get("sha256")' in src, f"{name}: no manifest lookup found"
+        assert re.search(r'isinstance\(\s*d\s*,\s*dict\s*\)', src), \
+            f"{name} tests the presence of payload.sha256, not its type — a draft's " \
+            f"digest is a string and would be read as the closing manifest"
