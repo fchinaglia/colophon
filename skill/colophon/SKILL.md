@@ -190,24 +190,15 @@ Three variants a full name will not catch, and you ask for each rather than expl
 Two things it cannot reach, said once and not dwelt on: **initials and misspellings**.
 `M.R.` and `Rosi` are not findable. Do not describe substring matching to get there.
 
-You write the file, at `~/.config/colophon/redlists/<case_uid>.txt`, one entry per line.
-The path is not shown to the author and the list is never read back. `record.py` warns when
-an entry appears and records the event anyway; the warning comes back at the review before
-the seal. **Never in the case folder** — the case's short name is public, the file the
-reader receives is called after it, and a list of the names an author is protecting must
-not be committed.
+You write the file, one entry per line, at the path `redlist_path()` in `record.py`
+computes — **never in the case folder**, and that function says why. The path is not shown
+to the author and the list is never read back. `record.py` warns when an entry appears and
+records the event anyway; the warning comes back at the review before the seal.
 
-`case.json` also carries `key_fingerprint`: which key to expect, and it is the only
-key field there is. **There is no `key_url` and no address anywhere** — `seal.sh` copies
-the public half in as `colophon.pub` and `build_bundle.py` packs it, so the check runs
-offline against the copy that travelled with the evidence.
-
-The fingerprint is what stops that copy from being merely circular. `case.json` is
-covered by the closing manifest, so the sealed chain itself records which key this case
-expected: swap the key in the bundle and the fingerprint no longer matches something a
-signature already commits to. That is a real check, and it is still not identity. **Identity
-comes from one place: a qualified electronic signature on the PDF the bundle is attached
-to.** See *The qualified signature* at the closing.
+`case.json` also carries `key_fingerprint`, and it is the only key field there is: no
+`key_url`, no address, as *Before the first case* has already said. The manifest covers
+`case.json`, so the sealed chain itself records which key this case expected — which is
+what stops the copy in the bundle from being merely circular, and is still not identity.
 
 Among the known limits, always declare at least these: that capture happens through the conversation and not through an instrumented editor; that work done outside the conversation is not observed; that the user knows they are being observed and that this may change how they write.
 
