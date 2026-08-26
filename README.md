@@ -43,7 +43,16 @@ signature is for.
 /plugin install colophon@colophon
 ```
 
-That brings down the whole repository rather than the skill folder alone — the verifier, the worked example and the cases come with it, which for this project is the point and not the cost. `claude plugin update colophon` picks up later releases.
+That brings down the whole repository rather than the skill folder alone — the verifier, the worked example and the cases come with it, which for this project is the point and not the cost.
+
+Later versions take two commands, in this order:
+
+```
+claude plugin marketplace update colophon
+claude plugin update colophon
+```
+
+The first refreshes the local copy of this repository; the second compares what it now declares against what you have. Without the first, the second reads the manifest it already had and answers that you are up to date.
 
 To take the skill folder by itself, without the plugin machinery, copy it into your personal skills directory, available across all your projects:
 
