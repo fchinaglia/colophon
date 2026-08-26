@@ -6,6 +6,23 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **The rule about the key is said once.** `1. Opening` was the one section #27 never
+  audited, and the duplication in it is of a kind those five rows did not contain: it is
+  **internal**. The rule was in `SKILL.md` three times — `Before the first case`, which
+  says it at length and says it to the author; `The qualified signature`, which says the
+  second half at the closing; and `1. Opening`, which argued both from scratch in 133
+  words. It now records the field and why the fingerprint matters, in 55. The red list
+  paragraph loses its argument the ordinary way, to `redlist_path()` in `record.py`, the
+  script running at that moment.
+
+  **No per-section budget could have caught this.** Each of the three was inside its own;
+  the repetition was between them. The budgets have been the mechanism since 3.4.0 and
+  this is the drift they are blind to.
+
+  1,032 words to 939, budget 1,200 → 960. `SKILL.md` 6,221 → 6,128.
+
 ## [3.4.0] — 2026-08-26
 
 The reader's page stops being typed, and the skill file stops repeating what the files
