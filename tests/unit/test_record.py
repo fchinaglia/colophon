@@ -6,6 +6,12 @@ import os
 from conftest import SCRIPTS, run
 
 
+def spaced(obj):
+    """The event as the skill records it: a space after every opening brace, so
+    the command does not carry `{"` and is not read as obfuscation."""
+    return json.dumps(obj, ensure_ascii=False).replace('{"', '{ "')
+
+
 def test_chain_verifies_and_reports_the_root(workspace):
     wd = workspace("example", only={"record.py"})
     r = run(wd, "record.py", "--verify")
@@ -95,9 +101,12 @@ def test_the_warning_never_prints_what_matched(workspace, tmp_path):
     terminal and into whatever transcript is running."""
     wd = with_uid(workspace("example", only={"record.py"}))
     env = redlisted(wd, tmp_path, "Mario Rossi")
-    r = run(wd, "record.py", json.dumps({
+    # --json, because the row is what this asserts on: since #34 the default output is
+    # one line, so that an author writing an article is not handed an event and a hash
+    # at every exchange.
+    r = run(wd, "record.py", "--json", spaced({
         "type": "register_note", "actor": "ai", "phase": "—",
-        "payload": {"note": "parlato con Mario Rossi"}}, ensure_ascii=False), env=env)
+        "payload": {"note": "parlato con Mario Rossi"}}), env=env)
     assert r.returncode == 0
     assert "Mario Rossi" not in r.stderr
     assert "Mario Rossi" in r.stdout, "the recorded row is unchanged, and goes to stdout"
@@ -140,10 +149,10 @@ def test_one_line_however_many_fields_matched(workspace, tmp_path):
     is an interruption in a conversation where somebody is writing an article."""
     wd = with_uid(workspace("example", only={"record.py"}))
     env = redlisted(wd, tmp_path, "quattro", "cinque", "sei")
-    r = run(wd, "record.py", json.dumps({
+    r = run(wd, "record.py", spaced({
         "type": "editorial_decision", "actor": "ai", "phase": "—",
         "payload": {"change": "Z01", "a": "quattro elementi", "b": "cinque cose",
-                    "c": "sei dettagli", "d": "nulla"}}, ensure_ascii=False), env=env)
+                    "c": "sei dettagli", "d": "nulla"}}), env=env)
     assert r.returncode == 0
     assert r.stderr.count("on your list") == 1
     assert len(r.stderr.strip().splitlines()) == 3

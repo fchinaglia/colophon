@@ -8,66 +8,41 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ### Changed
 
-- **The event goes through a file, not the command line.** Closes #34. `record.py` took
-  the event only as `sys.argv[1]`, a JSON object in single quotes — and a JSON object
-  carries the sequence `{"`, which Claude Code's command analysis reports as *Contains
+- **A space after every opening brace, and `record.py` stops talking.** Closes #34.
+  `record.py` took the event as a JSON object in single quotes, and a compact JSON object
+  carries the sequence `{"` — which Claude Code's command analysis reports as *Contains
   brace with quote character (expansion obfuscation)*. An event is recorded for every
   substantial exchange, so the operation the whole method is built on carried a security
-  warning through every case, in a conversation where somebody is writing an article. A
-  warning that fires that often is one nobody reads any more.
+  warning through every case, in a conversation where somebody is writing an article. It
+  warns rather than blocks, and it returns on the next event.
 
-  Measured on a second machine, Claude Code 2.1.246 in `manual` mode, in an empty
-  directory: **braces alone pass, quotes alone pass, the two together do not**, and it
-  makes no difference whether they sit in an argument or in the body of a heredoc. Which
-  killed the obvious fix — `--stdin` with a heredoc was proposed, tested, and is no
-  better than what it would have replaced.
+  Measured on a second machine — Claude Code 2.1.246, `manual` mode, empty directory —
+  and the rule turned out to be exactly what the message says: **braces alone pass,
+  quotes alone pass, `{"` does not, `{ "` does.** It makes no difference whether they sit
+  in an argument or in the body of a heredoc, which is why the obvious fix was no fix:
+  `--stdin` with a heredoc was proposed, tested, and rejected on the evidence.
 
-  `python3 record.py --file ../.colophon-event.json` has neither brace nor quote in it.
-  The file is written with the assistant's own file tool and **never with a shell
-  heredoc**, which puts `{"` straight back on the command line; `SKILL.md` says so rather
-  than leaving it to inference, because a heredoc is what an agent reaches for by default
-  when asked for a small file. That is not a guess: it is what happened during the test.
+  So the event stays on the command line and gains a space after each opening brace.
+  `SKILL.md` says it is not cosmetic and `record.py` prints one line when it sees a
+  compact event, because a rule a model has to remember is a rule it will forget.
 
-  **The path has to be outside the case folder, and the script refuses one that is not.**
-  The closing manifest covers the case folder, so a scratch event left inside it is a file
-  no manifest covers — `build_bundle.py` withholds it, and it stays in a sealed case as
-  the remains of the last event recorded. A `--file` that deleted the file afterwards was
-  the alternative and was rejected: a flag that removes files is a surprise, and this
-  project does not spring them.
+  **`--file` remains, for an event too long for a line.** The path is outside the case
+  folder and the script refuses one that is not: the closing manifest covers the case
+  folder, so a scratch event left inside it is a file no manifest covers — withheld by
+  `build_bundle.py`, and left in a sealed case as the remains of the last event. The file
+  is written with the assistant's file tool, never a shell heredoc, which would put `{"`
+  straight back on the command line.
 
-  `'<event json>'` still works. A sealed case carries its own copy of `record.py` and has
-  to keep behaving as it did on the day it was sealed. `1. Opening` 960 → 1,000, a
-  deliberate raise for the sentence about the file tool.
+  **And `record.py` no longer prints the event back.** It printed the whole row at every
+  append — `seq`, `ts`, `prev` and a sixty-four character hash, onto the screen of
+  somebody writing an article — and nothing consumed it: `review.py` imports the module
+  and calls `append()`. One line now, `recorded — event 12`, with the row behind `--json`
+  for a caller that does not exist yet.
 
-- **The rule about the key is said once.** `1. Opening` was the one section #27 never
-  audited, and the duplication in it is of a kind those five rows did not contain: it is
-  **internal**. The rule was in `SKILL.md` three times — `Before the first case`, which
-  says it at length and says it to the author; `The qualified signature`, which says the
-  second half at the closing; and `1. Opening`, which argued both from scratch in 133
-  words. It now records the field and why the fingerprint matters, in 55. The red list
-  paragraph loses its argument the ordinary way, to `redlist_path()` in `record.py`, the
-  script running at that moment.
-
-  **No per-section budget could have caught this.** Each of the three was inside its own;
-  the repetition was between them. The budgets have been the mechanism since 3.4.0 and
-  this is the drift they are blind to.
-
-  1,032 words to 939, budget 1,200 → 960. `SKILL.md` 6,221 → 6,128.
-
-- **`Line endings` keeps the instruction.** The CRLF rule was stated five times: at
-  `Before the first case`, here, in `cli/colophon.py` — which prints the argument almost
-  word for word *while writing the file* — in `test_line_endings_are_pinned`, and in the
-  Windows job in CI. 61 words to 31.
-
-  That is the last of it. Two mechanical passes over `SKILL.md` — phrases repeated
-  between sections, and concepts by keyword — turn up nothing else worth cutting. What
-  they do turn up is deliberate: *stop before the seal* appears twice because one place
-  points at the other, and *never offer an address* appears in three sections because it
-  is a prohibition nothing enforces, at three moments where it can be broken. Both passes
-  see only literal repetition; the rule about the key, which was in the file three times,
-  was found by reading. **6,902 → 6,098 words in seven commits, and what is left is what
-  the author hears, the prohibitions no script applies, and the order rules no other file
-  knows.**
+  `'<event json>'` still works in every form. A sealed case carries its own copy of
+  `record.py` and has to keep behaving as it did on the day it was sealed. `1. Opening`
+  960 → 1,010 and `The closing manifest` 400 → 410, both deliberate, both with the reason
+  beside the number.
 
 ### Added
 

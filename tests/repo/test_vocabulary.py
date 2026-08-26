@@ -63,12 +63,13 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
     # times — here, at `Before the first case` where it is said to the author, and at
     # the closing — which no per-section budget can catch: each section was inside its
     # own. `Before the first case` is where it is said once now.
-    # 960 until #34. The event now goes through a file — a JSON object on a command
-    # line carries the sequence `{"`, which Claude Code's command analysis rejects as
-    # expansion obfuscation, on every event of every case. Saying that the file is
-    # written with a file tool and never a shell heredoc bought the extra 40, and it
-    # cannot be left to inference: a heredoc is what an agent reaches for by default.
-    ("### 1. Opening", "### 2. While writing", 1000),
+    # 960 until #34, then 1000, now 1010. The rule that bought both raises is the space
+    # after an opening brace: `{"` is what Claude Code's command analysis reads as
+    # obfuscation, `{ "` is not, and an event is recorded for every substantial
+    # exchange. It is stated rather than left to inference because a model composing
+    # JSON will tidy a space away, and the failure is silent until somebody complains
+    # about the warnings.
+    ("### 1. Opening", "### 2. While writing", 1010),
     # 213 words after #27 removed the proof behind the float rule: `record.py` refuses
     # the event, and `violations()` in that file carries the argument already. The rule
     # stays here, the proof does not, and this number is what stops it coming back.
@@ -95,7 +96,10 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
     # covered by a manifest it contains in build_bundle.py. What stayed has no such
     # home — the recipe, what the manifest covers, and the rule that it is computed
     # last, which nothing checks and which cost three attempts in the validation case.
-    ("### The closing manifest", "### Line endings", 400),
+    # 400 until the same rule reached the manifest example: spacing the JSON in it
+    # costs ten words and is the difference between an example that can be copied
+    # and one that reintroduces the warning wherever it is used.
+    ("### The closing manifest", "### Line endings", 410),
     # The two largest sections in the file had no ceiling at all, and neither is going
     # anywhere: `4. Closing` is the words said to the author, and `When something stops`
     # is what is said when something breaks, which is the moment nobody opens a
