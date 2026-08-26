@@ -64,7 +64,12 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
     # the event, and `violations()` in that file carries the argument already. The rule
     # stays here, the proof does not, and this number is what stops it coming back.
     ("### 2. While writing", "### 3. Revision", 230),
-    ("### 4. Closing", "## The annotation", 2300),
+    # 2300 until #27, and standing at 2299 of it — one word. `Publication` gave back
+    # 163 by keeping its instructions and dropping what reference/disclosures.md
+    # already says about the technical line, in the file open at that moment. The
+    # region covers everything from `4. Closing` to the annotation, so the two rows
+    # still to come — `The closing manifest` and `The last read` — pay in here too.
+    ("### 4. Closing", "## The annotation", 2150),
     ("## What the author hears", "## Before the first case", 400),
     # 224 words after #27 moved the icon's craft to reference/disclosures.md — the
     # labels in English, the hundred-pixel floor and the taxonomy they come from, all
