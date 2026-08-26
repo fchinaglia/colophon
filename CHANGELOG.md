@@ -6,6 +6,15 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.6.0] — 2026-08-26
+
+Opening a case stops asking about a problem most cases do not have. `1. Opening` carried
+591 words of machinery for a piece with someone to protect, and every case paid for it —
+including the ones where the author is writing about their own work. The machinery moves
+to `reference/people.md`, read at the moment the default turns out to be wrong, and that
+moment announces itself: it is the author naming somebody. `verify.html` is untouched —
+still `2e8a461a…` in all four copies.
+
 ### Changed
 
 - **Opening a case assumes nobody has to be kept out.** `1. Opening` was 1,003 words and
