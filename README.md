@@ -211,12 +211,3 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for how, and for the open problems the me
 
 MIT — see [LICENSE](LICENSE). Use it, change it, redistribute it. A standard that cannot be reused is not a standard.
 
----
-
-## Provenance of this repository
-
-Consistently with what it argues, this repository declares its own.
-
-The method was born of joint work between the author and a language model, documented in the register of the validation case. The research survey was carried out by the model within a scope defined by the author. The paper and this README were drafted by the model from that material. The three original categories in the protocol emerged from observing the author's interventions.
-
-Neither the paper nor this README has been annotated span by span. The percentages quoted refer to the article of the validation case.
