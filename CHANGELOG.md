@@ -12,6 +12,8 @@ The reader's page stops being typed, and the skill file stops repeating what the
 beside it already say. Two pieces of the same finding: a rule written twice is a rule that
 can be obeyed in one place and forgotten in the other. `verify.html` is untouched — still
 `2e8a461a…`, the same in all four copies — so nothing that travels in a case moves.
+`SKILL.md` ships at 6,221 words: the 6,208 #27 brought it to, and thirteen back for the
+step that generates the page.
 
 The skill file gets smaller, and the reason it could is not the one #27 assumed. Five
 sections, both tiers of that issue, and in every one of them most of what was to be
