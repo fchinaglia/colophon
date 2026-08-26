@@ -66,6 +66,12 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
     ("### 2. While writing", "### 3. Revision", 230),
     ("### 4. Closing", "## The annotation", 2300),
     ("## What the author hears", "## Before the first case", 400),
+    # 224 words after #27 moved the icon's craft to reference/disclosures.md — the
+    # labels in English, the hundred-pixel floor and the taxonomy they come from, all
+    # read at the moment the block is composed and not before. What stayed is what
+    # decides something: the four names, generated never by hand, and the point rather
+    # than the category alone.
+    ("## The icon", "## What the method does not prove", 240),
     # 500 until #26. The rule that a key is made on a machine the author keeps, and
     # nowhere else, is what bought the extra 120 — a deliberate raise and not a drift,
     # which is the distinction this test exists to force. #27 relocates the paragraph on

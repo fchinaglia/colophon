@@ -574,15 +574,11 @@ Then fix it, in this order:
 | **author's words** | `human written` | `human edited` |
 | **AI's words** | `machine polished` | `machine generated` |
 
-Three of the names come from the classes of LLM-DetectAIve (EMNLP 2024); `human edited` replaces their fourth class, which describes a different case.
-
-**The labels stay in English, whatever language the text is in.** The four names are the classes of a published taxonomy: translated, they stop pointing at it, and two people reading two icons in two languages would no longer be reading the same scale. An Italian article with an Italian note and an English quadrant is the intended result, not an oversight — the icon is a mark, and marks are not translated. The script has no language option for this reason.
+**The labels stay in English and the icon is never shrunk below a hundred pixels a side.** reference/disclosures.md says why, and it is the file open when the block is composed.
 
 **Never generate it by hand and never touch it up.** It comes from the measurement file, so it cannot diverge from the declared number: that is what makes it useful.
 
 **Publish it with the point, not with the name of the category alone.** The classification rounds at 50% on both axes. The script warns when the point is less than five points from an edge: in that case the name on its own is a stronger claim than the data.
-
-Below a hundred pixels a side the four labels become illegible. It is a document mark, not a favicon.
 
 It is not a judgment of quality, and `human written` does not mean "no AI": in the validation case that cell contains a text whose words are 47% the AI's.
 

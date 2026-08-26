@@ -88,7 +88,7 @@ It is the weakest of the three, because responsibility is the thing that survive
 
 ### The same texts in Italian
 
-The wording below is the one published with case 002, not a translation made for this document. Use `build_note.py --lang it` for the technical line that follows the note. The quadrant stays in English in any language: see *The icon* in SKILL.md for why.
+The wording below is the one published with case 002, not a translation made for this document. Use `build_note.py --lang it` for the technical line that follows the note. **The quadrant stays in English in any language.** Three of the four names are the classes of LLM-DetectAIve (EMNLP 2024) — `human edited` replaces their fourth, which describes a different case — and a published taxonomy is what they are: translated, they stop pointing at it, and two people reading two icons in two languages would no longer be reading the same scale. An Italian article with an Italian note and an English quadrant is the intended result, not an oversight — the icon is a mark, and marks are not translated. `build_icon.py` has no language option for this reason.
 
 Marker, level 1:
 
@@ -332,7 +332,9 @@ table is duller and more predictable, and this block must be predictable.
 
 On a narrow column, stack the three parts instead: icon, then note, then technical
 line, in the same order. Do not shrink the icon below a hundred pixels a side to
-keep them side by side.
+keep them side by side: below that the four labels stop being readable, and a
+quadrant nobody can read is a mark that claims something without saying it. It is
+a document mark, not a favicon.
 
 When the disclosure travels as a single image — a social card, a slide — the same
 order applies, and the note may be shortened, but **the technical line is never
