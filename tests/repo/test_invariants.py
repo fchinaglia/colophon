@@ -23,7 +23,8 @@ DOCS = ["skill/colophon/SKILL.md",
 @pytest.mark.parametrize("name", ["record.py", "measure.py", "build_page.py",
                                   "build_icon.py", "build_note.py",
                                   "build_block.py", "build_bundle.py", "build_attestation.py",
-                                  "render_md.py", "render_pdf.py", "review.py"])
+                                  "render_md.py", "render_pdf.py", "review.py",
+                                  "build_verify.py"])
 def test_the_example_has_not_forked_from_the_skill(name):
     """example/ is the worked case a reader runs. If it drifts, the golden tests are
     measuring a copy nobody ships."""
@@ -54,7 +55,7 @@ def test_every_documented_flag_exists():
     for script in ("record.py", "measure.py", "build_page.py", "build_icon.py",
                    "build_note.py", "build_block.py", "build_bundle.py",
                    "build_attestation.py", "render_md.py", "render_pdf.py",
-                   "review.py"):
+                   "review.py", "build_verify.py"):
         r = subprocess.run([sys.executable, os.path.join(SCRIPTS, script), "--help"],
                            capture_output=True, text=True, stdin=subprocess.DEVNULL)
         helps[script] = r.stdout + r.stderr
@@ -212,3 +213,17 @@ def test_every_script_declares_its_licence():
         if "SPDX-License-Identifier: MIT" not in head:
             missing.append(name)
     assert not missing, f"no licence line: {missing}"
+
+
+def test_the_readers_page_and_its_template_have_not_drifted():
+    """`build_verify.py` carries the text of VERIFY.md because reference/ does not travel
+    in a case folder and a case has to stay reproducible from its own scripts. Two copies
+    of two thousand words are two things that drift, and the one that would drift silently
+    is the one a reader receives."""
+    r = subprocess.run([sys.executable, os.path.join(SCRIPTS, "build_verify.py"),
+                        "--template"], capture_output=True, text=True,
+                       stdin=subprocess.DEVNULL)
+    assert r.returncode == 0, r.stderr
+    ref = open(os.path.join(ROOT, "skill", "colophon", "reference", "VERIFY.md"),
+               encoding="utf-8").read()
+    assert r.stdout == ref, "build_verify.py's template has drifted from reference/VERIFY.md"

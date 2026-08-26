@@ -84,7 +84,9 @@ cases/001-my-article/
 ├── kpi.json            the measurement
 ├── index.html          the verification page, read from inside the bundle
 ├── icon.svg            the quadrant, generated from kpi.json
-└── record.py measure.py build_page.py build_icon.py build_note.py seal.sh
+├── VERIFY.md           how to check it, generated from case.json
+└── record.py measure.py build_page.py build_icon.py build_note.py
+    build_verify.py seal.sh
 ```
 
 The scripts live **inside** the case folder, not only in the skill: a case stays reproducible even after the skill changes.

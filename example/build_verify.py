@@ -1,0 +1,407 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Fabio Chinaglia
+"""
+The page that tells a reader how to check this case, generated from case.json.
+
+Every other thing a reader receives is generated: the icon from the measurement, the
+note and the technical line from the register, the verification page from the spans.
+This file was the exception, and it is the exception that failed. It is covered by
+the closing manifest, and two of the four holes an author fills in — the title, the
+name of the tar — look like things that only exist at the end, so the natural order
+is the wrong one: manifest, then fill in VERIFY.md, then seal. The digest recorded in
+the manifest goes stale at the middle step and nothing says so. seal.sh signs, the
+timestamp arrives, the bundle builds, every step reports success, and the reader who
+drops the tar on verify.html is told one digest does not match — the file explaining
+how to check being the file that fails the check. From outside, a mismatched digest
+is indistinguishable from tampering. It is not repairable either: the register is
+append-only, so it takes reopening a sealed case.
+
+Generating it removes the order from the problem. Nothing is left to edit by hand
+after the manifest, and the input — case.json — is itself covered by it.
+
+    python3 build_verify.py               VERIFY.md, from case.json
+    python3 build_verify.py -o FILE       somewhere else
+    python3 build_verify.py --template    the template, holes unfilled
+
+RUN IT BEFORE THE MANIFEST, like everything else the manifest covers. Running it after
+invalidates the manifest that covers it, which is the failure this script exists to
+remove rather than to reproduce.
+
+WHAT IT FILLS, AND FROM WHERE. The title and case_uid come from case.json. The contact
+address comes from case.json too, and falls back to ~/.config/colophon/author.json,
+where `colophon setup` put it once — a source of defaults, never an authority. When it
+falls back, it writes what it used into case.json, because the manifest covers case.json
+and does not cover the config file: a generated file whose input is outside the manifest
+is only half covered.
+
+The same address fills the signer identity in `ssh-keygen -Y verify -I …` and the line
+that says where to write. One value, asked once, at setup.
+
+WHAT IT DOES NOT FILL. [YYYYMMDD] is the date the register was sealed and the reader
+takes it from the .tsr; [file] and the trusted-list bundle belong to the commands a
+reader runs. Those are the reader's to supply and they stay as they are.
+
+ENGLISH ONLY, for now. The Italian text is not a translation of this one — reader-facing
+wording in this method is authored, not translated on demand, which is the rule
+reference/disclosures.md states about the Italian disclosure notes. Adding a language
+here is adding a text to TEMPLATES and nothing else.
+"""
+import argparse
+import json
+import os
+import sys
+
+# The template is the exact text of reference/VERIFY.md. It lives here rather than being
+# read from there because reference/ does not travel in a case folder, and a case has to
+# stay reproducible from its own scripts after the skill has moved on. The two copies
+# cannot drift: `--template` prints this one, and a repository test compares it with the
+# file, byte for byte.
+TEMPLATES = {"en": r"""# How to verify this register
+
+*Template to publish next to the register. Replace the parts in square brackets.*
+
+---
+
+The file `events.jsonl` contains the register of the interventions made while writing
+[title]. Each line is an event; each event contains the fingerprint of the previous one,
+so the sequence is a chain: **altering a past event invalidates every hash that follows
+it**.
+
+Next to the register you will find three files that let you verify it without taking my
+word for anything.
+
+## 0. The fastest check, if `attestation.txt` is here
+
+```bash
+grep -E '^[0-9a-f]{64}  ' attestation.txt | shasum -a 256 -c -
+```
+
+Every file the register closes over, in one command, with no PDF, no PKI and no browser.
+The file is deliberately unsigned: its bytes are the ones those digests describe. If you
+have only a copy extracted from a `.p7m`, normalise it first — signing rewrites line
+endings and `shasum` will then look for `kpi.json\r`:
+
+```bash
+tr -d '\r' < extracted.txt | grep -E '^[0-9a-f]{64}  ' | shasum -a 256 -c -
+```
+
+**If it arrived inside a PDF**, the simplest route is to drop the PDF itself on
+`verify.html`: it reads the attachment out and checks the case inside it, with no network
+and nothing saved to disk. It also reads the signature over the document — who the
+certificate names, whether the signature verifies, and **whether the record is inside the
+bytes it covers**, which a signature applied before the record was attached is not. What
+it cannot say is whether that certificate is trusted or qualified; §2b below is that
+question, and your PDF reader is where it is answered. To get the file out instead, Firefox opens the attachments
+panel and downloads it; `pdfdetach -saveall file.pdf` does the same from a terminal.
+**Adobe Reader may show the attachment and refuse to save it** — measured on Adobe Reader
+2026.001.21789 on macOS, on every file tried, including ones written by other tools
+entirely. If that happens, nothing is wrong with the document: use Firefox or `pdfdetach`,
+both of which read the same files without complaint.
+
+**If this arrived as a bundle** — `colophon-[uid].tar` — everything below is already in
+it, and so is `verify.html`. Open that file in a browser with the network off and drop
+the tar on it: it checks the chain, the signature, every digest the manifest covers and
+the timestamp's imprint, in one action. A second tab there holds this case's own page —
+the two percentages, the phase breakdown, the text span by span — so the report and the
+checks on it sit side by side, with nothing extracted to disk. The commands below are the same checks by hand,
+and they are what you use if you would rather not run my copy of the verifier — which is
+the sensible instinct, since it arrived in the package it is meant to check. Its digest
+is published with each release; compare it, or fetch your own copy.
+
+**A bundle is a snapshot at its date.** It verifies perfectly and it cannot tell you that
+the case was reopened afterwards, because a copy in your hands has no way back to me. The
+root printed in the document is what makes that visible: two copies with two different
+roots are two different states of the same case.
+
+**And that the copy you were handed is the one the signature attests.** `seal.sh` writes
+`events.jsonl.sha256`, so comparing it against the register beside it is the whole check,
+and it needs no network:
+
+```bash
+shasum -a 256 events.jsonl
+cat events.jsonl.sha256
+```
+
+The same digest — the second column differs, the hash is the whole comparison — means
+these are the bytes that were signed. A different one means the copy has been altered
+since, whatever anything printed on its way out.
+
+## 1. The chain has not been altered
+
+```bash
+python3 record.py --verify
+```
+
+It recomputes the whole chain and reports the first broken link. It must answer
+`chain intact`, with the current root.
+
+## 2. The register was signed, and by which key
+
+The signature is Ed25519, detached, in the `.sig` file. The public key is here, as
+`colophon.pub`, and it needs to be: this record travels as a file, with no address to
+fetch anything from. Check the signature against it:
+
+```bash
+awk '{print "[your-email] " $1 " " $2}' colophon.pub > allowed_signers
+ssh-keygen -Y verify -f allowed_signers -I [your-email] -n colophon \
+           -Overify-time=[YYYYMMDD] -s events.jsonl.sig < events.jsonl
+```
+
+It must answer `Good "colophon" signature`. Use the date the register was sealed — the
+`.tsr` states it — rather than today's: asking whether the key was valid when the
+timestamp says the signature existed is a stronger question than whether it is valid now.
+
+**Then check it is the key this case declared.** `case.json` records `key_fingerprint`,
+and `case.json` is covered by the closing manifest, so the sealed chain itself says which
+key to expect:
+
+```bash
+ssh-keygen -lf colophon.pub          # compare with key_fingerprint in case.json
+```
+
+A substituted key changes that fingerprint and stops matching something a signature
+already commits to. That is a real check and it is worth running.
+
+**What it still does not tell you.** A key inside the folder it signs cannot say whose
+key it is: whoever could fabricate this folder could fabricate a key to sign it with, in
+about ten seconds. Everything above proves the record is intact, internally consistent
+and unchanged since it was sealed. None of it proves who made it.
+
+**So why is it signed at all?** Four reasons, and the first is the one that applies most
+often.
+
+A qualified signature covers the *document* this record arrived in. **This record also
+travels on its own** — the bundle is published beside the case, and it can be forwarded,
+archived or extracted alone. At that point there is no document and no qualified
+signature, and this key is the only one left in the package.
+
+The same key seals every case its author closes, and `key_fingerprint` is inside each
+sealed manifest. That makes a body of work one body, rather than a series of folders that
+merely resemble each other — and it is a claim no signature on any single document can
+make.
+
+If the author ever publishes that key, **every case sealed with it gains an anchor
+retroactively**. An unsigned register can never do that: the door closes at the seal.
+
+And when a case is reopened, the old seal is kept beside the new one — renamed
+`events.jsonl.v1.*`. The history of a case's states is carried by these files.
+
+None of that is identity. For identity, read on.
+
+## 2b. Signed by a named person — the only step that says who
+
+The Ed25519 signature above proves that a key signed. A qualified electronic signature
+moves that to a natural person, because a supervised trust service identified them before
+issuing the certificate. **This is where identity comes from in this method, and there is
+no other source of it** — no published key, no domain, no profile page. If the author
+signed the PDF that carries this record as an attachment, the signature covers the
+document and the evidence together, in one act.
+
+**What is signed is whatever the author handed you** — the PDF, or the bundle
+`colophon-[uid].tar` — not `attestation.txt`, which travels unsigned on purpose. Its
+digest lines are the checkfile in §0 above, and signing a text file rewrites its line
+endings, which breaks that.
+
+For a signed bundle or any `.p7m`:
+
+```bash
+openssl cms -verify -in [file].p7m -inform DER -binary -out [file] \
+            -CAfile [the EU trusted-list bundle, or your own]
+openssl cms -verify -in [file].p7m -inform DER -noverify -signer signer.pem \
+  && openssl x509 -in signer.pem -noout -subject -dates
+```
+
+The `-binary` matters on the reading side too: without it OpenSSL canonicalises the
+content, and a tar comes back out mangled even though the signature verifies. The second command prints who signed and until when the certificate was
+valid. For a signed PDF, open it in a reader that shows the signature panel.
+
+**And read what it claims carefully.** A qualified signature says *this file came from
+this person, on this date, and has not changed since*. It does not say the measurement is
+correct: that is what the register is for, and checking it is §0 to §4 here. Two claims,
+one file — do not let the signature panel answer a question it was not asked.
+
+**If there is no `.p7m` and no signed PDF**, nobody has been named, and the honest
+reading of everything above is: a consistent, sealed, timestamped record, from an author
+you are taking on their word.
+
+For a full check against the European Trusted Lists, upload the file to the EU DSS
+validator (`ec.europa.eu/digital-building-blocks/DSS/webapp-demo/validation`), which
+resolves the trust anchors for you.
+
+**Look at the signature level**, and this is the part nobody mentions. A `CAdES-B` or
+`PAdES-B` signature carries no revocation evidence: once the certificate expires — Italian
+qualified certificates run about three years — Italian law (CAD art. 24 c. 4-bis) treats
+the signature as **not made at all**, silently. A signature at level **LT** or **LTA**
+embeds the revocation data and stays checkable afterwards. The validator reports the level.
+
+Two things this signature does not say. It does not say the register is complete. And it
+does not say that the text of the document is the text that was measured — §4 below is
+what checks that, and a signature panel showing a legal name is not a substitute for it.
+
+One thing it stops saying the moment you unpack. A signature over a bundle covers the
+bundle; extract it and hand the folder to someone else, and the legal name does not go
+with it. What travels is the Ed25519 signature and the key at §2.
+
+## 3. The register already existed on that date
+
+Two independent timestamps, so as not to depend on a single guarantor.
+
+**RFC 3161** — `events.jsonl.tsr`. The second command is the one that verifies; the first
+only prints what the token claims.
+
+```bash
+openssl ts -reply -in events.jsonl.tsr -text | grep "Time stamp"
+openssl ts -verify -data events.jsonl -in events.jsonl.tsr \
+           -CAfile "$(openssl version -d | sed 's/.*"\(.*\)"/\1/')/cert.pem"
+```
+
+It must answer `Verification: OK`. That `-CAfile` is **your own system's** certificate
+bundle, and the command above finds it for you — `seal.sh` times against an authority
+that chains to it precisely so there is nothing to download.
+
+No CA certificate travels in the bundle, and that is deliberate: a root certificate
+arriving inside the evidence it authenticates proves nothing, for the same reason the
+enclosed `colophon.pub` proves nothing about whose key it is. If a case was stamped by
+an authority your system does not carry, the check fails here and the case has to name
+where you can fetch that CA — from the authority, not from me.
+
+The browser verifier does less than this command, on purpose: it reads the imprint and
+the time from the token and stops there. It tells you the timestamp commits to *this*
+register; it does not tell you who issued it. That is what the command above is for.
+
+**OpenTimestamps** — `events.jsonl.ots`, submitted for anchoring in the Bitcoin blockchain:
+
+```bash
+pip install opentimestamps-client
+ots upgrade events.jsonl.ots && ots verify events.jsonl.ots
+```
+
+Two honest qualifications, because this seal is the one most easily overstated. A `.ots`
+file means the register was *submitted*; the calendars batch submissions into a Bitcoin
+transaction and have been observed to accept one and never anchor it, so `ots upgrade` is
+what turns a submission into evidence. And verifying the result needs a Bitcoin node, or a
+block explorer you decide to believe: it depends on no *authority*, which is not the same
+as depending on nothing.
+
+## 4. The text matches the annotation
+
+```bash
+python3 measure.py
+```
+
+It must say `reconstruction: OK`. That means that the annotated spans, concatenated,
+reproduce the published text exactly: no step has been attributed to a piece of text
+that does not exist, and no piece of text has been left without an attribution.
+
+---
+
+## What all this proves, and what it does not
+
+**It proves** that the register existed in that form on that date, that it has not been
+altered since, and that it was signed by the holder of the key enclosed as
+`colophon.pub`, whose fingerprint the sealed manifest commits to. That is internal
+consistency, and internal consistency is not identity: it says the record hangs together,
+not who assembled it. **Identity comes from exactly one place** — a valid qualified
+signature over the document that carries this record. With one, the holder of that key is
+a named natural person, for as long as you hold the file. Without one, everything above
+is a consistent record from an author you are taking on their word.
+
+**It does not prove that this document is the text that was measured.** A signature over
+a file says the file has not changed since it was signed; §4 is the only check that ties
+the words you are reading to the numbers in the note.
+
+**It does not prove** that the register is **complete**. No voluntary system can prove
+that: I can record everything faithfully, or I can leave things out, and cryptography
+does not tell the two cases apart. The register is, moreover, compiled by the language
+model about itself.
+
+I say it first because it is the soundest criticism that can be made of a voluntary
+disclosure, and it is a fair one: **the value of this register does not lie in the proof,
+it lies in the responsibility I take on by publishing it and in the fact that it can be
+inspected.**
+
+If you find an inconsistency, write to me: **[contact]**
+
+---
+
+*MIT License — Copyright (c) 2026 Fabio Chinaglia. See the LICENSE file.*
+"""}
+
+# Only these. The rest of the square brackets in the template are the reader's.
+HOLES = ("[title]", "[uid]", "[your-email]", "[contact]")
+
+
+def config_contact():
+    """~/.config/colophon/author.json, written once by `colophon setup`."""
+    base = os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config")
+    try:
+        with open(os.path.join(base, "colophon", "author.json"), encoding="utf-8") as f:
+            return (json.load(f).get("contact") or "").strip()
+    except (OSError, ValueError):
+        return ""
+
+
+def fill(case, contact, lang="en"):
+    title, uid = case.get("title", "").strip(), case.get("case_uid", "").strip()
+    missing = [n for n, v in (("title", title), ("case_uid", uid)) if not v]
+    if missing:
+        raise SystemExit(f"case.json has no {' and no '.join(missing)}: "
+                         "the reader's page cannot name a case that has no name")
+    if not contact:
+        raise SystemExit(
+            "no contact address. It is what a reader writes to when a digest does not\n"
+            "match, and it is the signer identity the verify command checks against.\n"
+            "Run `colophon setup`, or put \"contact\" in case.json.")
+    text = TEMPLATES[lang]
+    for hole, value in (("[title]", title), ("[uid]", uid),
+                        ("[your-email]", contact), ("[contact]", contact)):
+        text = text.replace(hole, value)
+    return text
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(
+        description="Generate VERIFY.md, the reader's page, from case.json.",
+        epilog="Run it before the closing manifest: the manifest covers this file.")
+    p.add_argument("-o", "--out", default="VERIFY.md",
+                   help="where to write it (default: VERIFY.md)")
+    p.add_argument("--case", default="case.json",
+                   help="the case file to read (default: case.json)")
+    p.add_argument("--template", action="store_true",
+                   help="print the template with its holes unfilled, and stop")
+    a = p.parse_args(argv)
+
+    if a.template:
+        sys.stdout.write(TEMPLATES["en"])
+        return 0
+
+    if not os.path.exists(a.case):
+        raise SystemExit(f"missing {a.case}")
+    with open(a.case, encoding="utf-8") as f:
+        case = json.load(f)
+
+    contact = (case.get("contact") or "").strip()
+    borrowed = ""
+    if not contact:
+        contact = borrowed = config_contact()
+
+    text = fill(case, contact)
+    with open(a.out, "w", encoding="utf-8") as f:
+        f.write(text)
+
+    # What the manifest covers has to hold what was used. author.json is outside it.
+    if borrowed:
+        case["contact"] = borrowed
+        with open(a.case, "w", encoding="utf-8") as f:
+            json.dump(case, f, indent=1, ensure_ascii=False)
+            f.write("\n")
+        print(f"{a.case} — contact taken from your setup and recorded here, "
+              "so the manifest covers it")
+
+    print(f"{a.out} — for {contact}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

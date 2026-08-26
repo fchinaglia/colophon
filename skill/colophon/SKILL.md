@@ -131,7 +131,7 @@ drive it from a shell — or in ten years, when no conversation survives.
 
 ### 1. Opening
 
-Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_block.py`, `build_attestation.py`, `build_bundle.py`, `render_md.py`, `render_pdf.py`, `review.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
+Create `cases/NNN-<slug>/` with `versions/` inside it, and copy **all** of the skill's scripts in there: `record.py`, `measure.py`, `build_page.py`, `build_icon.py`, `build_note.py`, `build_block.py`, `build_attestation.py`, `build_bundle.py`, `render_md.py`, `render_pdf.py`, `review.py`, `build_verify.py`, `seal.sh` — and `verify.html`, which is not a script but is the tool the reader runs, so it belongs to the case for the same reason. A case folder has to remain verifiable on its own even if the skill changes — and there is exactly one copy per folder: two copies of `measure.py` in the same case have already produced two different numbers. Then record two events: the opening of the case (with the mode, the capture method and the known limits) and the user's brief (subject, format, where it will be published, the process they say they intend to follow).
 
 Create `case.json` too, from `case_example.json`: title, author, date, whether the register is reconstructed. It carries no address for the case, and there is nowhere to put one: the record travels with the document, as one file, and the technical line says so. See *Publication*.
 
@@ -303,6 +303,7 @@ python3 measure.py          # integrity check + computes the two axes
 python3 review.py           # the last read: what the register says about other people
 python3 build_page.py       # HTML verification page
 python3 build_icon.py       # quadrant icon, from kpi.json
+python3 build_verify.py     # VERIFY.md, the reader's page, from case.json
                             # then the closing manifest — see below
 bash seal.sh events.jsonl   # Ed25519 signature + timestamp + anchoring
 python3 build_note.py       # the technical line of the note
@@ -359,11 +360,11 @@ manifest it contains.
 
 **Two rules of order, and the second is where people trip.**
 
-The manifest is computed **last**, when every file that is edited by hand is final —
-`VERIFY.md` above all, which the author fills in with a key URL and a contact. Filling it
-in *after* the manifest invalidates the manifest that covers it, and the verification page
-then fails its own check. In the validation case this was learned by redoing the manifest
-three times. Nothing checks this for you.
+The manifest is computed **last**, when every file it covers is final. Nothing it covers is
+typed by hand any more: `build_verify.py` writes `VERIFY.md` from `case.json`, the way the
+icon and the verification page are written from the measurement. Regenerate anything after
+the manifest and the manifest that covers it is invalid, and the verification page fails
+its own check. In the validation case that was learned by redoing the manifest three times.
 
 After the manifest, **the only permitted operation is the signature**. If anything else has
 to change, the case is reopened: a new event says why, before any file is touched, a new

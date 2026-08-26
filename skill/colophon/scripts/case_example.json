@@ -3,6 +3,7 @@
  "author": "Your name",
  "date": "2026-08",
  "reconstructed": false,
+ "contact": "you@example.org",
  "case_uid": "a-short-stable-name-you-fix-now-and-never-change",
  "key_fingerprint": "SHA256:...",
  "extra_notes": "Anything a reader needs to know that the register does not say."

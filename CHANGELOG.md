@@ -73,14 +73,50 @@ were wrong, and one row it called high-risk turned out to be enforced in code.
   case folder is read far from this repository and keeps its own copies of the scripts,
   so the licence has to be in the file.
 
+### Added
+
+- **`build_verify.py`, and `VERIFY.md` stops being typed.** Closes #28. The reader's page
+  is the last artefact a reader receives that an author filled in by hand, and it is
+  covered by the closing manifest. Two of its four holes — the title, the name of the tar
+  — look like things that only exist at the end, so the natural order is the wrong one:
+  manifest, then fill it in, then seal. The digest goes stale at the middle step and
+  **nothing says so**. `seal.sh` signs, the timestamp arrives, the bundle builds, every
+  step reports success, and the failure surfaces on the reader's machine —
+  `checkManifest()` in `verifier/core.js` reports one digest that does not match, which
+  from outside is indistinguishable from tampering, on the file that explains how to
+  check. Append-only, so the repair is reopening a sealed case. It cost three attempts in
+  the validation case.
+
+  The script generates it from `case.json`, the way the icon comes from the measurement
+  and the page from the spans. There is no ordering rule left to obey, because there is
+  nothing left to edit after the manifest.
+
+  **No field had to be added and no question had to be asked.** `colophon setup` already
+  collects the contact address — it refuses without it, in terms that name this file —
+  and `case_uid` is already required to be fixed at the opening because the bundle is
+  named after it. What was missing was a script reading them. The address defaults from
+  `~/.config/colophon/author.json` and is then written into `case.json`, because the
+  manifest covers `case.json` and does not cover the config: a generated file whose input
+  sits outside the manifest is only half covered.
+
+  The template lives in the script, not in `reference/` — `reference/` does not travel in
+  a case folder, and a case has to stay reproducible from its own scripts. Two copies of
+  2,300 words are two things that drift, so `--template` prints the one in the script and
+  `test_the_readers_page_and_its_template_have_not_drifted` compares it with
+  `reference/VERIFY.md` byte for byte. Six unit tests cover the rest: the four holes the
+  author owns are filled, the two the reader owns — `[YYYYMMDD]` from the `.tsr`, `[file]`
+  in the commands they run — are left alone, `case.json` wins over the config, and a case
+  with no name or no address stops rather than shipping a page that names nobody.
+
 ### Not done
 
-**The rule that the manifest is computed last is still only prose.** It is the one point in
-the method where getting it wrong means reopening a sealed case, and the only rule in these
-five sections with no authority anywhere else. Saying *nothing checks this for you* is an
-admission, not a fix. The fix is a gate — compare the `VERIFY.md` digest in the manifest
-against the file on disk, the way `measure.py` became a gate for coverage — and it belongs
-to its own issue.
+**`VERIFY.md` is English only.** The Italian text is not a translation of it: reader-facing
+wording here is authored, which is the rule `reference/disclosures.md` states about the
+Italian disclosure notes — *the wording below is the one published with case 002, not a
+translation made for this document*. No Italian template existed before this change either
+— case 001's `VERIFICA.md` was written by hand and is a shorter, older text — so nothing
+regresses, and every script already handles either name. Adding the language is adding a
+text to `TEMPLATES`, and the text has to be written rather than generated.
 
 `claude plugin eval`, which would test whether relocation changes what the model does,
 answers `plugin eval is currently in early access`. It was never needed here: five rows out
