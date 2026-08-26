@@ -202,8 +202,12 @@ what stops the copy in the bundle from being merely circular, and is still not i
 
 Among the known limits, always declare at least these: that capture happens through the conversation and not through an instrumented editor; that work done outside the conversation is not observed; that the user knows they are being observed and that this may change how they write.
 
+**Every event goes through a file**, written with your own file tool and never with a
+shell heredoc, beside the case folder and never inside it. `record.py --file` refuses one
+inside, and says why.
+
 ```bash
-python3 record.py '{"type":"case_open","actor":"system","phase":"—","payload":{...}}'
+python3 record.py --file ../.colophon-event.json
 python3 record.py --verify
 ```
 
@@ -331,10 +335,12 @@ they think.
 So the **last event of every case is a manifest**: the SHA-256 of each file the measurement
 depends on, and of each script a reader runs to check it.
 
-```bash
-python3 record.py '{"type":"status","actor":"system","phase":"—","meta":true,"payload":{
+The event, into `../.colophon-event.json`, then `record.py --file` as always:
+
+```json
+{"type":"status","actor":"system","phase":"—","meta":true,"payload":{
   "closing":"MANIFEST — final event. The next operation on this case is the signature.",
-  "algorithm":"sha256","sha256":{ "…":"…" }}}'
+  "algorithm":"sha256","sha256":{ "…":"…" }}}
 ```
 
 **What it covers**: the source version, `annotation.json`, `kpi.json`, `spans.json`,

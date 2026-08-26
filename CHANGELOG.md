@@ -8,6 +8,37 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ### Changed
 
+- **The event goes through a file, not the command line.** Closes #34. `record.py` took
+  the event only as `sys.argv[1]`, a JSON object in single quotes — and a JSON object
+  carries the sequence `{"`, which Claude Code's command analysis reports as *Contains
+  brace with quote character (expansion obfuscation)*. An event is recorded for every
+  substantial exchange, so the operation the whole method is built on carried a security
+  warning through every case, in a conversation where somebody is writing an article. A
+  warning that fires that often is one nobody reads any more.
+
+  Measured on a second machine, Claude Code 2.1.246 in `manual` mode, in an empty
+  directory: **braces alone pass, quotes alone pass, the two together do not**, and it
+  makes no difference whether they sit in an argument or in the body of a heredoc. Which
+  killed the obvious fix — `--stdin` with a heredoc was proposed, tested, and is no
+  better than what it would have replaced.
+
+  `python3 record.py --file ../.colophon-event.json` has neither brace nor quote in it.
+  The file is written with the assistant's own file tool and **never with a shell
+  heredoc**, which puts `{"` straight back on the command line; `SKILL.md` says so rather
+  than leaving it to inference, because a heredoc is what an agent reaches for by default
+  when asked for a small file. That is not a guess: it is what happened during the test.
+
+  **The path has to be outside the case folder, and the script refuses one that is not.**
+  The closing manifest covers the case folder, so a scratch event left inside it is a file
+  no manifest covers — `build_bundle.py` withholds it, and it stays in a sealed case as
+  the remains of the last event recorded. A `--file` that deleted the file afterwards was
+  the alternative and was rejected: a flag that removes files is a surprise, and this
+  project does not spring them.
+
+  `'<event json>'` still works. A sealed case carries its own copy of `record.py` and has
+  to keep behaving as it did on the day it was sealed. `1. Opening` 960 → 1,000, a
+  deliberate raise for the sentence about the file tool.
+
 - **The rule about the key is said once.** `1. Opening` was the one section #27 never
   audited, and the duplication in it is of a kind those five rows did not contain: it is
   **internal**. The rule was in `SKILL.md` three times — `Before the first case`, which

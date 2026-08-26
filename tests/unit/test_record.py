@@ -147,3 +147,45 @@ def test_one_line_however_many_fields_matched(workspace, tmp_path):
     assert r.returncode == 0
     assert r.stderr.count("on your list") == 1
     assert len(r.stderr.strip().splitlines()) == 3
+
+
+def test_an_event_can_come_from_a_file_outside_the_case(workspace, tmp_path):
+    """A JSON object on a command line carries the sequence `{"`, which Claude Code's
+    command analysis rejects as expansion obfuscation — on every event of every case, in
+    a conversation where somebody is writing an article. Measured: braces alone pass,
+    quotes alone pass, the two together do not, and it makes no difference whether they
+    sit in an argument or in the body of a heredoc. `--file` is the shape with neither."""
+    wd = workspace("example", only={"record.py"})
+    before = len((wd / "events.jsonl").read_text(encoding="utf-8").splitlines())
+    src = tmp_path / "outside.json"
+    src.write_text(json.dumps({"type": "status", "actor": "system", "phase": "—",
+                               "payload": {"note": "from a file"}}), encoding="utf-8")
+    r = run(wd, "record.py", "--file", str(src))
+    assert r.returncode == 0, r.stderr
+    rows = (wd / "events.jsonl").read_text(encoding="utf-8").splitlines()
+    assert len(rows) == before + 1
+    assert json.loads(rows[-1])["payload"]["note"] == "from a file"
+    assert run(wd, "record.py", "--verify").returncode == 0
+
+
+def test_a_file_inside_the_case_is_refused(workspace):
+    """The closing manifest covers the case folder. A scratch event left inside it is a
+    file no manifest covers: `build_bundle.py` withholds it, and it stays in the sealed
+    case as the remains of the last event recorded."""
+    wd = workspace("example", only={"record.py"})
+    src = wd / "event.json"
+    src.write_text('{"type": "status", "actor": "system", "phase": "—"}', encoding="utf-8")
+    r = run(wd, "record.py", "--file", "event.json")
+    assert r.returncode != 0
+    assert "inside the case folder" in r.stderr
+    assert "manifest" in r.stderr
+
+
+def test_the_command_line_form_still_records(workspace):
+    """A sealed case carries its own copy of this script and has to keep behaving as it
+    did on the day it was sealed."""
+    wd = workspace("example", only={"record.py"})
+    r = run(wd, "record.py",
+            '{"type": "status", "actor": "system", "phase": "—", "payload": {}}')
+    assert r.returncode == 0, r.stderr
+    assert run(wd, "record.py", "--verify").returncode == 0

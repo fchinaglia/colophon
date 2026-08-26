@@ -19,8 +19,29 @@ machine-local — it depends on a file outside the case — so it lives outside
 violations(), which spec/canonical.md §4 makes normative and a second implementation
 has to reproduce exactly.
 
+THE EVENT COMES FROM A FILE, and the file is written by the assistant's own file
+tool — never by a shell heredoc. A JSON object on a command line puts the sequence
+`{"` in it, and Claude Code's command analysis rejects that shape as `Contains brace
+with quote character (expansion obfuscation)`. Measured: braces alone pass, quotes
+alone pass, the two together do not, and it makes no difference whether they sit in
+an argument or in the body of a heredoc. An event is recorded for every substantial
+exchange, so the form that puts JSON on the command line earns a security warning
+for every event of every case — and a warning that fires that often is one nobody
+reads any more.
+
+    python3 record.py --file ../.colophon-event.json
+
+The path is outside the case folder, and this refuses one that is not. The closing
+manifest covers the case folder: a scratch file left inside it is a file no manifest
+covers, which `build_bundle.py` then withholds, and which sits in a sealed case as
+the remains of the last event recorded.
+
+`'<event json>'` still works. A sealed case carries its own copy of this script and
+must keep behaving as it did on the day it was sealed.
+
 Usage:
-    python3 record.py '<event json>'
+    python3 record.py --file <path>      the event, from a file outside the case
+    python3 record.py '<event json>'     the same, on the command line
     python3 record.py --verify
     python3 record.py --root
 """
@@ -208,8 +229,29 @@ if __name__ == "__main__":
     if sys.argv[1] == "--root":
         print(last_hash())
         sys.exit(0)
+    if sys.argv[1] == "--file":
+        if len(sys.argv) < 3:
+            sys.exit("usage: python3 record.py --file <path outside the case folder>")
+        src = os.path.abspath(sys.argv[2])
+        try:
+            inside = os.path.commonpath([src, BASE]) == BASE
+        except ValueError:          # different drives on Windows: not inside
+            inside = False
+        if inside:
+            sys.exit(f"not recorded — {sys.argv[2]} is inside the case folder, which "
+                     "the closing manifest covers.\nA scratch file left there is a file "
+                     "no manifest covers: build_bundle.py withholds\nit, and it stays in "
+                     "the sealed case as the remains of the last event.\nWrite it beside "
+                     "the folder instead — ../.colophon-event.json.")
+        try:
+            with open(src, encoding="utf-8") as f:
+                event = json.load(f)
+        except (OSError, ValueError) as exc:
+            sys.exit(f"not recorded — {exc}")
+    else:
+        event = sys.argv[1]
     try:
-        row = append(json.loads(sys.argv[1]))
+        row = append(json.loads(event) if isinstance(event, str) else event)
     except ValueError as exc:
         print(f"not recorded — {exc}", file=sys.stderr)
         sys.exit(1)
