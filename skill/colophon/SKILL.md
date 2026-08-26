@@ -318,28 +318,16 @@ alongside.
 
 ### The last read
 
-`review.py` shows three lists and nothing else: where the red list matched and the event
-was recorded anyway, every `human_contribution` event whole, and every payload string that
-reproduces thirty characters of a draft. A register holds five to six hundred strings and
-nobody reads that; these are forty lines and a person does.
+`review.py` shows the author three lists — red-list hits recorded anyway, every
+`human_contribution` event whole, every payload string that repeats thirty characters of a
+draft — and it is the last moment at which anything in the register can be taken back for
+free. `--set` rewrites a value and rebuilds the chain: **values are rewritten, events are
+never deleted**, and nothing that is measured moves. Then `review.py --done`, **always,
+whether or not anything changed**.
 
-The author says what should not travel. `review.py --set` rewrites the value and rebuilds
-the chain from that event on. **Values are rewritten; events are never deleted** — the
-count of events is printed into a page the manifest covers. Every original timestamp
-survives, and the measurement does not move: `measure.py` reads `payload.change` from the
-register and nothing else.
-
-Then `review.py --done`, which records **one event, always, whether or not anything
-changed** — that the author read what the register says about other people, and whether
-something was removed. Never which events, never how many. Naming them would tell a reader
-where to dig, and a review that only appears when something was found is itself the
-disclosure. If it were conditional, its presence would be the leak.
-
-**It runs after `measure.py` passes and before `build_page.py`.** Not earlier: a stopped
-measurement sends you back to the register and makes any earlier read stale. Not later:
-the verification page prints the root, and the manifest covers the page. Not after the
-manifest, which is the last event — rebuilding then changes the hash of the manifest
-itself. Not after the seal: the signature can be remade, the timestamp cannot.
+**It runs after `measure.py` passes and before `build_page.py`.** The docstring at the head
+of `review.py` says why, clause by clause; after the closing manifest the script refuses
+outright.
 
 ### The closing manifest
 
