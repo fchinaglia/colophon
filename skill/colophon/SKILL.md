@@ -15,15 +15,11 @@ Records the writing process **as it happens**, measures the human and AI contrib
 
 If the user asks you to apply the method to a text that is already written, you can — but the result is a **reconstructed estimate, made from memory**, not a measurement, and it must be declared as such on the verification page and in the closing note. Never pass it off as the other thing.
 
-## Two modes
+## One cycle, whatever the length
 
-**Decide it; do not ask.** Under 800 words → light, above → full. If you genuinely cannot tell, ask what they are writing — a post or a long piece — not which mode they want. `light` and `full` are names in this file.
+**There is no lighter path, and you never offer one.** Three hundred words get what an essay gets: register, span-by-span annotation, measurement along the two axes, verification page, three-level disclosure, cryptographic seal. Estimates in place of a measurement are what this method exists to replace, and a short text does not make them acceptable.
 
-**Light mode.** Event register with a hash chain, no span-level annotation, closing note with coarse-grained estimated percentages declared as estimates. Almost no friction.
-
-**Full mode.** The whole cycle: register, span-by-span annotation, measurement along the two axes, verification page, three-level disclosure, cryptographic seal.
-
-You can move from light to full at any moment without losing anything: the register is the same.
+**What length changes is the denominator.** On a short piece one span moves a percentage by several points, so the figure is fragile where the method is not. The note prints words and spans beside it: never quote the figure stripped of that line.
 
 ## What the author hears
 

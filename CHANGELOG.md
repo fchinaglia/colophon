@@ -6,6 +6,48 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Removed
+
+- **The two modes are one.** `SKILL.md` chose between them on a word count — under 800
+  words light, above full — and light mode gave a register with its chain, no span
+  annotation, and a closing note carrying coarse percentages **declared as estimates**.
+  It is gone, and the reason is P1 of the paper. That principle admits two states, a
+  measurement made during and a reconstruction made after, and requires that they never
+  be confused. Light mode was a third: live in provenance, estimated in substance, and
+  nothing in the published note told a reader which of the two it stood closer to.
+
+  **What this costs is real and is not hidden.** A short piece now carries the whole
+  annotation pass or it is not tracked at all. The 800-word threshold goes with it, and
+  so does the decision it never made well — the piece sitting at 790 words.
+
+  The light-mode disclosure texts leave `reference/disclosures.md`, English and Italian.
+  **The variant for retroactive application stays**: it is the one declaration of an
+  estimate the method still admits, and P1 is what admits it.
+
+### Changed
+
+- **`SKILL.md` says what length does change, which is the denominator.** On a short piece
+  one span moves a percentage by several points, so the figure is fragile where the method
+  is not. P3 asks for the denominator and the note already prints it — `337 words · 18
+  spans` — so the rule is that the figure is never quoted stripped of that line.
+  `Two modes` 107 words → `One cycle, whatever the length` 104. `SKILL.md` 5,843 → 5,840.
+
+- **Eval 21 is inverted, not deleted.** It tested that the model does not over-serve a
+  short piece: annotation and seal where friction was the point. It now tests the opposite
+  and stays P0 — given three hundred words, the model must not improvise an abridged path.
+  A rule that says *always* fails in the mirror image of the way the rule that said
+  *sometimes* did, and the eval that guarded one is the eval that guards the other.
+
+- **§8 of the paper records the withdrawal rather than losing it**, naming P1 and stating
+  the cost. `README.md` drops the two-mode table for one sentence, and
+  `docs/service-and-onboarding.md` stops calling the closing "full mode".
+
+- **The opening line of *Why* names AI.** "There are two ways to say how a text was made"
+  described the subject only by implication; it is now "two ways to tell how AI was used
+  in a text". `README.md` and `docs/colophon-onepager.html` carry the same sentence.
+  `docs/colophon-a4.html` keeps the old wording for now — its PDF has no build script, so
+  changing the source there means a reprint whose settings are written down nowhere.
+
 ## [3.6.0] — 2026-08-26
 
 Opening a case stops asking about a problem most cases do not have. `1. Opening` carried

@@ -137,7 +137,7 @@ per-case record and stays manifest-covered; setup only stops the author retyping
 
 **"I don't have a URL yet."** Allowed, but as a *declared* state:
 `"key_url": null, "deferred": true`. The mechanism that makes it safe is at closing, not
-at setup: **full mode refuses to seal without an address**, with an explicit
+at setup: **the closing refuses to seal without an address**, with an explicit
 `--unpublished` override that writes an event into the register saying so. Today
 `build_note.py` only warns on stderr — and a stderr warning is precisely how `cases/002`
 ended up pointing its key at `cases/001`. **Escalate warn to refuse.** No silent gaps.

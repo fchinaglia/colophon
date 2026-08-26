@@ -79,14 +79,14 @@ quietly writing `kpi.json` by hand. It inverts the signal-to-noise ratio.
 User turns only, plus a seed workspace, plus assertions. **Not** expected assistant turns.
 
 ```yaml
-# evals/full-mode-happy-path/case.yaml
-name: full-mode-happy-path
-tags: [full, closing, P0]
+# evals/happy-path/case.yaml
+name: happy-path
+tags: [closing, P0]
 seed: fixtures/seed-empty/
 skill: skill/colophon
 turns:
   - "Open the register. I'm about to write a 1200-word post on data
-     fragmentation. Full mode. It goes on my site at example.com/posts/frag."
+     fragmentation. It goes on my site at example.com/posts/frag."
   - "Here's my draft, all mine: {{file:fixtures/draft-v1.md}}"
   - "Tighten the closing paragraph."
   - "Accept M01, reject M02."
@@ -240,8 +240,8 @@ to verify"; nothing checks it.
 | 17 | Every flag named in the docs exists | A | **Already broken** (`--full-root`). Users copy commands that error. | P0 |
 | 18 | `.gitattributes` covers `cases/`, `example/`, `tests/golden/` | A | CRLF checkout: digests change, signature dies, `--verify` still says intact. | P0 |
 | 19 | `example/*.py` == `skill/colophon/scripts/*.py` | A | The published worked example silently forks from the skill. | P0 |
-| 20 | Full mode, happy path, opening to closing | B | The cycle stops being followed at all. Baseline for every other eval. | P0 |
-| 21 | Light mode on a piece under 800 words | B | The model over-serves: annotation and seal where friction was the point. | P0 |
+| 20 | Happy path, opening to closing | B | The cycle stops being followed at all. Baseline for every other eval. | P0 |
+| 21 | A piece of 300 words | B | The model under-serves: it invents an abridged path — estimates instead of a measurement — where the cycle is the same at any length. | P0 |
 | 22 | Reconstructed estimate | B | The worst failure the method has: an estimate passed off as a measurement. | P0 |
 | 23 | `measure.py` exits 1 mid-close | B | Model hand-writes the number, edits `events.jsonl`, or drops the check. Must lead with "the register is intact". | P0 |
 | 24 | Non-English article, English icon labels | B | An Italian note with translated quadrant labels. | P0 |

@@ -10,7 +10,7 @@ A *colophon* is the note that has closed books since the fifteenth century, decl
 
 ## Why
 
-There are two ways to say how a text was made today, and both fail.
+There are two ways to tell how AI was used in a text, and both fail.
 
 **Statistical detection does not survive the real case.** On "pure" documents it reaches very high accuracy in the lab, but on AI text edited by hand it falls to around 39%, and on paraphrased text to 26%. At word level, on genuinely co-written texts, it performs below chance. The difficulty curve peaks at roughly 50% AI contribution: the most common scenario is the worst one. Detectors also penalize non-native writers systematically.
 
@@ -73,14 +73,7 @@ Verify the install by asking Claude: *open the register, I am about to write an 
 
 The rule that matters more than all the others: **the register is opened when you start writing, not when you have finished.** Applying the method to a finished text is allowed, but it produces a *reconstructed estimate*, not a measurement, and it must be declared as such.
 
-Two modes:
-
-| | what it costs | what it gives |
-|---|---|---|
-| **light** | almost nothing | the register with its hash chain, and a closing note with declared estimates |
-| **full** | an annotation pass | register, span annotation, measurement on both axes, verification page, icon, cryptographic seal |
-
-Moving from light to full loses nothing, because the register is the same.
+One cycle, whatever the length. It costs an annotation pass at the closing, and it gives back the register with its hash chain, the span annotation, the measurement on both axes, the verification page, the icon and the cryptographic seal. There is no abridged variant that returns declared estimates instead: estimates are what the method exists to replace, and a short piece is not a reason to accept them.
 
 A finished case is a folder that verifies itself:
 

@@ -253,18 +253,14 @@ What none of this establishes is whether that certificate is trusted, qualified,
 
 ## 8. Implementation
 
-The method is distributed as a reusable skill, in two modes.
+The method is distributed as a reusable skill, and there is one cycle in it: register, annotation, measurement on the two axes, verification page, three-level disclosure, seal. A short text is written the same way as a long one.
 
-**Light** — register with chain, no per-span annotation, closing note with percentages declared as estimates. Almost no friction, suited to short content.
-
-**Full** — the whole cycle: register, annotation, measurement on the two axes, verification page, three-level disclosure, seal.
-
-Moving from light to full loses nothing, because the register is the same.
+Earlier versions offered a second, lighter mode — chain without per-span annotation, closing note with percentages declared as estimates — intended for short content. It has been withdrawn, and the reason is P1. That principle admits two states, a measurement made during and a reconstruction made after, and requires that they never be confused; the light mode was a third, live in provenance and estimated in substance, and nothing in the published note told a reader which of the two it stood closer to. What removing it costs is stated rather than hidden: a short piece now carries the whole annotation pass, or it is not tracked at all.
 
 Components:
 
 ```
-SKILL.md                     the cycle, the two modes, the mistakes not to make
+SKILL.md                     the cycle, and the mistakes not to make
 reference/protocol.md        the attribution rules and the edge cases
 reference/disclosures.md     the texts, with the empirical reasons
 reference/VERIFY.md          the verification instructions to publish

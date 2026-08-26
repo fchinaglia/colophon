@@ -78,10 +78,6 @@ For a square card, a slide, a newsletter footer — anywhere the five lines will
 
 It is the weakest of the three, because responsibility is the thing that survives only if it is said. Use it when the alternative is not disclosing at all.
 
-### Variant for light mode
-
-> *I wrote this piece with the assistance of a language model. As a rough estimate, the content is about X% mine and the text about Y% mine; the AI came in mostly at [phases]. These are declared estimates, not measurements: the process was recorded, but not annotated step by step. I stand behind every statement in it.*
-
 ### Variant for retroactive application
 
 > *This text was written with the assistance of a language model. The percentages given are a reconstruction made after the fact, not a record of the process: read them as orders of magnitude declared in good faith.*
@@ -107,10 +103,6 @@ The first line is the category as `build_icon.py` names it, in English: the four
 Note, level 2, the full form:
 
 > *Ho scritto questo articolo con l'assistenza di un modello linguistico, e ogni intervento è stato registrato mentre accadeva con il metodo Colophon. Contenuto: X% mio, Y% dell'AI. Testo: Z% mio, W% dell'AI. I due numeri misurano cose diverse — il primo le idee, il secondo le parole che le esprimono — e la differenza è la parte interessante: l'AI ha scritto più parole di quante idee abbia portato, perché è intervenuta soprattutto in [fasi]. Nella prima stesura le idee sono mie al K% e le parole al J%. Il quadrante qui accanto colloca il testo sui due assi. Di ogni affermazione rispondo io.*
-
-Light mode:
-
-> *Ho scritto questo pezzo con l'assistenza di un modello linguistico. A stima, il contenuto è mio per circa X% e il testo per circa Y%; l'AI è intervenuta soprattutto in [fasi]. Sono stime dichiarate, non misure: il processo è stato registrato, ma non annotato passo per passo. Di ogni affermazione rispondo io.*
 
 Retroactive application:
 
