@@ -196,3 +196,19 @@ def test_the_travelling_verifier_names_no_website():
     shell is where such links belong."""
     text = open(os.path.join(ROOT, "verifier", "verify.html"), encoding="utf-8").read()
     assert "colophonmethod.com" not in text
+
+
+def test_every_script_declares_its_licence():
+    """A case folder carries its own copies of the scripts, and a published case is
+    read far from this repository: a file that travels alone and says nothing about
+    its licence is a file nobody may reuse. One line, checked here so it cannot be
+    forgotten on the next script added."""
+    listing = subprocess.run(["git", "ls-files", "*.py", "*.sh"], cwd=ROOT,
+                             capture_output=True, text=True)
+    assert listing.returncode == 0, listing.stderr
+    missing = []
+    for name in listing.stdout.split():
+        head = open(os.path.join(ROOT, name), encoding="utf-8").read(400)
+        if "SPDX-License-Identifier: MIT" not in head:
+            missing.append(name)
+    assert not missing, f"no licence line: {missing}"

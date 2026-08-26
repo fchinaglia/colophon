@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2026 Fabio Chinaglia
 """Sign a PDF with a detached CMS, as an incremental update. Test fixtures only.
 
 This is deliberately not part of the method: colophon does not sign PDFs, a qualified
