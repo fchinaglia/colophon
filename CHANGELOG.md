@@ -6,6 +6,13 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.4.0] — 2026-08-26
+
+The reader's page stops being typed, and the skill file stops repeating what the files
+beside it already say. Two pieces of the same finding: a rule written twice is a rule that
+can be obeyed in one place and forgotten in the other. `verify.html` is untouched — still
+`2e8a461a…`, the same in all four copies — so nothing that travels in a case moves.
+
 The skill file gets smaller, and the reason it could is not the one #27 assumed. Five
 sections, both tiers of that issue, and in every one of them most of what was to be
 moved was already written somewhere the rule is enforced.
@@ -62,19 +69,6 @@ were wrong, and one row it called high-risk turned out to be enforced in code.
 
 ### Added
 
-- **Four budgets** — `2. While writing` (230), `The icon` (240), `The last read` (120),
-  `The closing manifest` (400) — and `4. Closing` lowered **2,300 → 1,800** in three
-  steps. A relocation that does not lower a budget has not been paid for: the words
-  drift straight back, which is what
-  `test_a_section_of_the_skill_stays_within_its_budget` exists to stop. That region had
-  been standing at 2,299 of 2,300 — one word — for as long as the budget existed.
-- **`test_every_script_declares_its_licence`.** 53 source files of 63 carried the SPDX
-  line and nothing held it true; `tests/fixtures/signed-pdf/sign_pdf.py` had slipped. A
-  case folder is read far from this repository and keeps its own copies of the scripts,
-  so the licence has to be in the file.
-
-### Added
-
 - **`build_verify.py`, and `VERIFY.md` stops being typed.** Closes #28. The reader's page
   is the last artefact a reader receives that an author filled in by hand, and it is
   covered by the closing manifest. Two of its four holes — the title, the name of the tar
@@ -107,6 +101,17 @@ were wrong, and one row it called high-risk turned out to be enforced in code.
   author owns are filled, the two the reader owns — `[YYYYMMDD]` from the `.tsr`, `[file]`
   in the commands they run — are left alone, `case.json` wins over the config, and a case
   with no name or no address stops rather than shipping a page that names nobody.
+
+- **Four budgets** — `2. While writing` (230), `The icon` (240), `The last read` (120),
+  `The closing manifest` (400) — and `4. Closing` lowered **2,300 → 1,800** in three
+  steps. A relocation that does not lower a budget has not been paid for: the words
+  drift straight back, which is what
+  `test_a_section_of_the_skill_stays_within_its_budget` exists to stop. That region had
+  been standing at 2,299 of 2,300 — one word — for as long as the budget existed.
+- **`test_every_script_declares_its_licence`.** 53 source files of 63 carried the SPDX
+  line and nothing held it true; `tests/fixtures/signed-pdf/sign_pdf.py` had slipped. A
+  case folder is read far from this repository and keeps its own copies of the scripts,
+  so the licence has to be in the file.
 
 ### Not done
 
