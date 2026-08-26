@@ -16,6 +16,7 @@ from conftest import ROOT, SCRIPTS
 
 DOCS = ["skill/colophon/SKILL.md",
         "skill/colophon/reference/disclosures.md",
+        "skill/colophon/reference/people.md",
         "skill/colophon/reference/protocol.md",
         "skill/colophon/reference/VERIFY.md"]
 

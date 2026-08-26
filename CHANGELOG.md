@@ -6,6 +6,36 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Opening a case assumes nobody has to be kept out.** `1. Opening` was 1,003 words and
+  **591 of them were the machinery for a case with someone to protect** — the consent
+  question, the two regimes, what `confidential` does not mean, and how to get the names
+  out of the author in the forms a list can catch. Every case carried all of it, including
+  the ones where the author is writing about their own work and there is nobody to keep
+  out, which is most of them. A case that opens with an interrogation about privacy makes
+  a problem out of its absence.
+
+  The default is now stated, and what is asked is one line — *if there's anyone who must
+  not appear in the record, tell me now and I'll keep them out*. The two sentences about
+  what the record is and that nothing in it gets deleted stay: they are said before any of
+  this is known.
+
+  **The machinery goes to `reference/people.md`**, read at the moment the default turns
+  out to be wrong — which is a moment that announces itself, because it is the author
+  saying so. It carries the two regimes and the question that decides between them, what
+  `confidential` does not mean, the elicitation and its three variants, the two things a
+  list cannot reach, and where the file goes.
+
+  `1. Opening` 1,003 → 670, budget 1,010 → 700. `SKILL.md` 6,176 → 5,843 words — the
+  largest single reduction since the file was first measured, larger than the whole of
+  #27.
+
+  **The one thing this changes and does not merely move**: the regime is no longer
+  established by a question every case answers. `people.md` keeps the rule that anything
+  short of a clear yes is `confidential`, and it is now reached by the author mentioning
+  someone rather than by asking everyone.
+
 ## [3.5.0] — 2026-08-26
 
 Recording an event stops arguing with the terminal. The command carried the sequence `{"`,

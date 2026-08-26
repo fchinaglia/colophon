@@ -69,7 +69,13 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
     # exchange. It is stated rather than left to inference because a model composing
     # JSON will tidy a space away, and the failure is silent until somebody complains
     # about the warnings.
-    ("### 1. Opening", "### 2. While writing", 1010),
+    # 1,010 until the consent question and the red list moved to reference/people.md.
+    # 591 of this section's 1,003 words were machinery for a case with someone to
+    # protect, carried by every case that has nobody. The default is now that nobody
+    # has to be kept out, said in one line, and the file is read when that turns out
+    # to be wrong — which is the moment it can be read, because it is the moment the
+    # author says so.
+    ("### 1. Opening", "### 2. While writing", 700),
     # 213 words after #27 removed the proof behind the float rule: `record.py` refuses
     # the event, and `violations()` in that file carries the argument already. The rule
     # stays here, the proof does not, and this number is what stops it coming back.

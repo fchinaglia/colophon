@@ -140,60 +140,28 @@ never changed. The bundle is named after it, so it is the only thing that says w
 a file belongs to once that file is on its own — and it has to exist before the manifest,
 which covers `case.json`. `reference/protocol.md` has the rest.
 
-**What you say at the opening, and in what order.** Four things, then start. The folder,
-the scripts, `case.json` and the case's short name are yours and are never mentioned.
+**What you say at the opening.** Two sentences, then start. The folder, the scripts,
+`case.json` and the case's short name are yours and are never mentioned.
 
-1. The question below, about who else is in this.
-2. If there is anyone to protect, build the list. If there is not, skip it and say nothing.
-3. *"I'm keeping a record of how this gets written from here. It only sees this
-   conversation: anything you write elsewhere it won't know about, and knowing you're
-   being recorded may change how you write. Both of those go in as limits."*
-4. *"Nothing in the record gets deleted. Before I seal it, wording can be replaced; after,
-   not even that — it takes a new entry saying what changed and why."*
+> *"I'm keeping a record of how this gets written from here. It only sees this
+> conversation: anything you write elsewhere it won't know about, and knowing you're
+> being recorded may change how you write. Both of those go in as limits."*
 
-**Ask one question before recording the brief, and record the answer.** *May what you
-tell me be quoted in a record that is handed to other people?* The register travels whole
-inside the bundle; a copy in a reader's hands cannot be withdrawn, corrected, or told it
-has been superseded. For commissioned work the answer is usually no, and it is cheaper to
-know now than after the signature.
+> *"Nothing in the record gets deleted. Before I seal it, wording can be replaced; after,
+> not even that — it takes a new entry saying what changed and why."*
 
-One question, one answer. **The author never meets the two words.** You map what they say
-onto one of them and record it as a `constraint` event before the brief:
+**And one line more, which is the whole of what you ask.** The default is that nothing has
+to be kept out — most pieces are the author writing about their own work, and a case that
+opens with an interrogation about privacy makes a problem out of its absence:
 
-    open           the author's instructions may be quoted, and the quotations travel
-    confidential   they are recorded as what they required, never as what they said
+> *"If there's anyone who must not appear in the record — not just in the article, in the
+> record — tell me now and I'll keep them out."*
 
-**Anything that is not a clear no is `confidential`.** Being wrong that way costs a page
-that explains itself; being wrong the other way cannot be undone.
-
-`confidential` does not mean the case records less of the work. Every event, every
-editorial decision, every attribution and every change is still recorded; what changes is
-that the author's own words are not reproduced. Under it, quote nothing — anywhere, for
-the whole case. The brief is not the only place a register quotes: in the validation case
-002, three of the four events that had to be redacted were `editorial_decision` events
-documenting the removal of the very details they quoted.
-
-**If there is anyone to protect, get the list out of the author by asking about people,
-not about matching.**
-
-> *"Are there people or companies in this that must not appear in the record — not just in
-> the article, in the record? Give me the names the way they'd actually turn up: the
-> surname on its own, the way you'd say it in passing, the company without its legal
-> form."*
-
-Three variants a full name will not catch, and you ask for each rather than explaining why:
-
-- the surname alone, and with an article — `Mario Rossi` does not match `il Rossi`
-- the short form of a company — `Rossi & Figli S.r.l.` does not match `Rossi & Figli`
-- anything they habitually call the person that is not their name
-
-Two things it cannot reach, said once and not dwelt on: **initials and misspellings**.
-`M.R.` and `Rosi` are not findable. Do not describe substring matching to get there.
-
-You write the file, one entry per line, at the path `redlist_path()` in `record.py`
-computes — **never in the case folder**, and that function says why. The path is not shown
-to the author and the list is never read back. `record.py` warns when an entry appears and
-records the event anyway; the warning comes back at the review before the seal.
+If they name someone, or if the piece turns out to be about other people, **stop and read
+reference/people.md before recording the brief**: the two regimes, the question that
+decides which one applies, and how to get the names out of the author in the forms that a
+list can actually catch. Nothing there can be improvised, and the register travels whole:
+a copy in a reader's hands cannot be withdrawn or told it has been superseded.
 
 `case.json` also carries `key_fingerprint`, and it is the only key field there is: no
 `key_url`, no address, as *Before the first case* has already said. The manifest covers
