@@ -365,11 +365,8 @@ is not the sealed root, and if that happened it is said rather than hidden.
 
 ### Line endings
 
-Put `cases/** -text` in the repository's `.gitattributes` before publishing a case. Without
-it a checkout on Windows rewrites every line ending, every digest changes and the signature
-stops verifying — while `record.py --verify` still answers `chain intact`, so the first
-check passes, the second fails, and an honest reader concludes the signature is forged.
-reference/VERIFY.md has the rest.
+`cases/** -text` has to be in the repository's `.gitattributes` before a case is published.
+`colophon setup` writes it and prints why while it does; reference/VERIFY.md has the rest.
 
 ### Publication
 

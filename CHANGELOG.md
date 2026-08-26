@@ -23,6 +23,30 @@ and the project uses [semantic versioning](https://semver.org/).
 
   1,032 words to 939, budget 1,200 → 960. `SKILL.md` 6,221 → 6,128.
 
+- **`Line endings` keeps the instruction.** The CRLF rule was stated five times: at
+  `Before the first case`, here, in `cli/colophon.py` — which prints the argument almost
+  word for word *while writing the file* — in `test_line_endings_are_pinned`, and in the
+  Windows job in CI. 61 words to 31.
+
+  That is the last of it. Two mechanical passes over `SKILL.md` — phrases repeated
+  between sections, and concepts by keyword — turn up nothing else worth cutting. What
+  they do turn up is deliberate: *stop before the seal* appears twice because one place
+  points at the other, and *never offer an address* appears in three sections because it
+  is a prohibition nothing enforces, at three moments where it can be broken. Both passes
+  see only literal repetition; the rule about the key, which was in the file three times,
+  was found by reading. **6,902 → 6,098 words in seven commits, and what is left is what
+  the author hears, the prohibitions no script applies, and the order rules no other file
+  knows.**
+
+### Added
+
+- **Budgets for `4. Closing` (850) and `When something stops` (830)**, the two largest
+  sections in the file and the only ones that had no ceiling. Neither moves: the first is
+  the words said to the author, the second is what is said when something breaks, which is
+  the moment nobody opens a reference file. The budget moves neither — it catches what
+  happened to the second, which grew by 290 words between #27 being written and being
+  closed, without anyone deciding to let it.
+
 ## [3.4.0] — 2026-08-26
 
 The reader's page stops being typed, and the skill file stops repeating what the files

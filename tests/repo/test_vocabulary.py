@@ -91,6 +91,14 @@ def test_the_red_list_warning_is_three_lines_and_names_no_path():
     # home — the recipe, what the manifest covers, and the rule that it is computed
     # last, which nothing checks and which cost three attempts in the validation case.
     ("### The closing manifest", "### Line endings", 400),
+    # The two largest sections in the file had no ceiling at all, and neither is going
+    # anywhere: `4. Closing` is the words said to the author, and `When something stops`
+    # is what is said when something breaks, which is the moment nobody opens a
+    # reference file. A budget moves neither. It catches what happened to the second
+    # one, which grew by 290 words between #27 being written and being closed, without
+    # anyone deciding to let it.
+    ("### 4. Closing", "### The last read", 850),
+    ("## When something stops", "## The icon", 830),
     # 500 until #26. The rule that a key is made on a machine the author keeps, and
     # nowhere else, is what bought the extra 120 — a deliberate raise and not a drift,
     # which is the distinction this test exists to force. #27 relocates the paragraph on
