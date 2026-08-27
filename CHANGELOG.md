@@ -6,26 +6,13 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Added
+### Changed
 
-- **`docs/app-requirements.md`** — what the first version of the writing application has to do, and the
-  rules it may not trade. It is the consolidation of a design pass that produced a working mockup, and it
-  carries the decisions that pass turned up rather than the mockup itself.
-
-  **The one that governs the rest**: the measurement is a property of a finished text whose every recorded
-  change is accounted for, so it does not exist continuously and cannot be shown continuously. What moves
-  on a live screen is everything *except* a share — counts, coverage, drift — and the quadrant carries a
-  circle whose size is what is still in play and whose centre is the measured share over the part that has
-  settled. It shrinks to the published point and never guesses at it.
-
-  Four decisions worth naming because they are refusals: the application never renders a verdict of its
-  own on a case, it opens the verifier that travelled inside the bundle; it never installs the skill,
-  which is a second host and not a plug-in; it writes no case data inside the plugin cache, which is swept
-  and would take sealed evidence with it; and it reports missing prerequisites at launch rather than
-  discovering them at the seal, which is issue #30's resolution.
-
-  It depends on #30, #33, #36 and #37, and says in §11 which section changes if each lands differently.
-  Nothing under `skill/` changes, so the plugin version does not move.
+- **The writing application's requirements are being written outside this repository**, and will land
+  here when there is a first version to land with them. They were committed and pushed on 27 August 2026
+  and taken out of the tree the same day, for a reason that is about accuracy rather than secrecy: a
+  specification drifts hardest while it is being implemented, and a document in `docs/` is read as
+  current. The commit stays in the history, because nothing here is removed quietly.
 
 ## [3.7.0] — 2026-08-26
 
