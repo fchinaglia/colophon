@@ -6,6 +6,18 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.8.0] — 2026-08-27
+
+Three checks that compared text where they meant a fact, and the one that mattered failed in a reader's
+hands. `seal.sh` signed with a key the configuration did not name, so an author who set themselves up with
+`--key` published a fingerprint belonging to a key that had not signed — and the comparison
+reference/VERIFY.md sends the reader to is the one that failed, on an honest case, in the shape of a
+forgery. It signs with the configured key now, and refuses before writing anything when a case declares a
+fingerprint that key would not produce. Alongside it, `find_chrome()` stops answering a question about the
+machine with a look at the working directory and learns the name Google's own Linux packages install, and
+`tidy()` asks git whether the rule is in force instead of counting spaces. `verify.html` is untouched —
+still `2e8a461a…` in all four copies.
+
 ### Fixed
 
 - **`find_chrome()` asks a path question of paths and a name question of the PATH.** Issue #39. Every

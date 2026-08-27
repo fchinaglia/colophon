@@ -10,7 +10,7 @@
       "name": "colophon",
       "source": "./",
       "description": "Record, measure and disclose the human and AI contribution while writing. Seals each case with an Ed25519 key that stays on your machine — only its public half travels — and timestamps the digest, never the text, at an RFC 3161 authority.",
-      "version": "3.7.0",
+      "version": "3.8.0",
       "license": "MIT",
       "category": "productivity",
       "homepage": "https://colophonmethod.com",
