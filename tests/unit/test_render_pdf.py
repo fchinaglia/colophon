@@ -394,3 +394,36 @@ def test_nothing_is_dropped_when_the_annotation_excludes_nothing(manifested):
     r = run(manifested, "render_pdf.py", "--html-only")
     assert r.returncode == 0, r.stdout + r.stderr
     assert "dropped" not in r.stdout
+
+
+def test_a_bare_name_is_never_answered_by_the_working_directory(tmp_path, monkeypatch):
+    """Issue #39. Every candidate used to be tried with os.path.exists() first, and for a
+    bare name that asks about the current directory: a file called `google-chrome` beside
+    a case was handed to subprocess.run as a browser."""
+    m = load("render_pdf")
+    (tmp_path / "google-chrome").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    (tmp_path / "chromium").write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(m, "CHROME_PATHS", ())
+    monkeypatch.setattr(shutil, "which", lambda *a, **k: None)
+    assert m.find_chrome() is None, "a decoy in the working directory was returned"
+
+
+def test_googles_own_linux_package_name_is_looked_for(tmp_path, monkeypatch):
+    """`google-chrome-stable` is what Google's .deb and .rpm install. Without it a Linux
+    machine with Chrome reported having none, at the last step of a sealed case."""
+    m = load("render_pdf")
+    assert "google-chrome-stable" in m.CHROME_NAMES
+    monkeypatch.setattr(m, "CHROME_PATHS", ())
+    monkeypatch.setattr(shutil, "which",
+                        lambda n, *a, **k: "/usr/bin/" + n if n == "google-chrome-stable" else None)
+    assert m.find_chrome() == "/usr/bin/google-chrome-stable"
+
+
+def test_the_snap_and_flatpak_launchers_are_paths_not_names():
+    """They live where a PATH lookup will not reach, so they belong in the path list."""
+    m = load("render_pdf")
+    joined = " ".join(m.CHROME_PATHS)
+    assert "/snap/bin/chromium" in joined and "flatpak" in joined
+    assert not any(os.sep not in c for c in m.CHROME_PATHS), \
+        "a bare name in the path list is the fault this split exists to remove"

@@ -33,6 +33,7 @@ manifest covers.
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -166,11 +167,37 @@ def cmd_setup(a):
     return tidy(a.repo) if a.repo else 0
 
 
+def already_unset(repo, ga):
+    """Whether cases/ is already out of line-ending normalisation.
+
+    Issue #40: this used to be `"cases/** -text" in contents`, one space, while the file
+    it reads writes the rule column-aligned. So it never found the line that was there,
+    appended a duplicate on every run, and printed `added` about a protection that had
+    been in place all along — a false sentence about the one file whose absence makes an
+    honest signature look forged.
+
+    Ask git, which answers about the rule rather than about the spacing, and which is the
+    same probe the Windows job in CI uses. Where git is not there, a whitespace-tolerant
+    match on the file, because the question is still not about spaces.
+    """
+    try:
+        r = subprocess.run(["git", "check-attr", "text", "--", "cases/x"], cwd=repo,
+                           capture_output=True, text=True)
+        if r.returncode == 0 and r.stdout.strip().endswith("text: unset"):
+            return True
+    except (OSError, ValueError):
+        pass
+    if not os.path.exists(ga):
+        return False
+    body = open(ga, encoding="utf-8").read()
+    return re.search(r"^\s*cases/\*\*\s+-text\s*$", body, re.M) is not None
+
+
 def tidy(repo):
     """The two files whose absence produces a failure nobody diagnoses."""
     ga = os.path.join(repo, ".gitattributes")
     line = "cases/** -text"
-    have = os.path.exists(ga) and line in open(ga, encoding="utf-8").read()
+    have = already_unset(repo, ga)
     if not have:
         with open(ga, "a", encoding="utf-8") as f:
             f.write(("" if not os.path.exists(ga) or open(ga, encoding="utf-8")

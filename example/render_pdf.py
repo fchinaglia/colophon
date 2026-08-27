@@ -61,9 +61,29 @@ import build_icon
 import build_note
 import render_md
 
-CHROMES = ("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-           "/Applications/Chromium.app/Contents/MacOS/Chromium",
-           "google-chrome", "chromium", "chromium-browser")
+# Two lists, because they answer two different questions and one of them used to be
+# asked wrongly. Issue #39: every entry was tried with os.path.exists() first, and for a
+# bare name that is a question about the working directory — a file called
+# `google-chrome` beside a case was handed to subprocess.run as a browser.
+#
+# Absolute paths, for the installs the PATH does not reach: macOS keeps its browsers in
+# /Applications, snap and flatpak put a launcher where a shell will not find it either.
+CHROME_PATHS = (
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    "/snap/bin/chromium",
+    "/var/lib/flatpak/exports/bin/org.chromium.Chromium",
+    os.path.expanduser("~/.local/share/flatpak/exports/bin/org.chromium.Chromium"),
+)
+# Names to look for on the PATH. `google-chrome-stable` is what Google's own .deb and
+# .rpm install; `google-chrome` is usually a symlink beside it and is not always there,
+# which is how a Linux machine with Chrome installed reported having none — at the last
+# step of a case whose register was already sealed.
+CHROME_NAMES = ("google-chrome", "google-chrome-stable",
+                "chromium", "chromium-browser")
+
+# Kept as the flat sequence it always was: other code reads it.
+CHROMES = CHROME_PATHS + CHROME_NAMES
 
 # Constructs the converter does not implement. Refused by line number rather than
 # rendered approximately: a mangled table under a signature is worse than a stop.
@@ -459,10 +479,13 @@ def _runs(nums):
 
 
 def find_chrome():
-    for c in CHROMES:
-        if os.path.exists(c):
+    """A path is checked as a path and a name is looked up on the PATH — each with the
+    question it was written for. See the note on CHROME_PATHS."""
+    for c in CHROME_PATHS:
+        if os.path.isfile(c):
             return c
-        w = shutil.which(c)
+    for name in CHROME_NAMES:
+        w = shutil.which(name)
         if w:
             return w
     return None

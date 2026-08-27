@@ -8,6 +8,29 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ### Fixed
 
+- **`find_chrome()` asks a path question of paths and a name question of the PATH.** Issue #39. Every
+  candidate was tried with `os.path.exists()` first, and for a bare name that is a question about the
+  working directory: a file called `google-chrome` beside a case was handed to `subprocess.run` as a
+  browser. The list is now two lists, each probed the way it was meant to be.
+
+  It also gained the names that were missing. `google-chrome-stable` is what Google's own `.deb` and
+  `.rpm` install — `google-chrome` is usually a symlink beside it and is not always there — and the snap
+  and flatpak launchers live where a PATH lookup does not reach. **A Linux machine with Chrome installed
+  reported having none**, at the last step of a case whose register was already sealed, which is #30's
+  territory. `CHROMES` survives as the flat sequence other code reads.
+
+- **`tidy()` recognises the line that is already there.** Issue #40. It looked for `cases/** -text` with
+  one space while the file it reads writes it column-aligned, so it never found the rule that was in
+  force, appended a duplicate on every `setup --repo`, and printed **`added`** about a protection that had
+  been in place all along — a false sentence about the one file whose absence makes an honest signature
+  look forged.
+
+  It now asks `git check-attr`, which answers about the rule rather than about the spacing and is the same
+  probe the Windows job in CI already uses, and falls back to a whitespace-tolerant match where git is not
+  there. The sentence it prints is true again.
+
+  All three of today's fixes are the same fault: **a comparison of text where a fact was meant.**
+
 - **`seal.sh` signs with the key the configuration names, and refuses a case that declares another one.**
   Issue #38. `cli/colophon.py` wrote `key_path` and its fingerprint into `author.json`; `seal.sh` read
   `${COLOPHON_KEY:-$HOME/.ssh/colophon}` and never opened that file. An author who set up with `--key`

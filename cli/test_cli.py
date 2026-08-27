@@ -100,6 +100,25 @@ ok(oct(os.stat(os.path.dirname(cfg_path)).st_mode)[-3:] == "700",
    "the config directory is 0700, not only the file inside it",
    oct(os.stat(os.path.dirname(cfg_path)).st_mode))
 
+head("tidy() recognises the line that is already there  (#40)")
+ga_repo = tempfile.mkdtemp()
+subprocess.run(["git", "init", "-q", ga_repo], check=True)
+ga = os.path.join(ga_repo, ".gitattributes")
+with open(ga, "w", encoding="utf-8") as f:
+    f.write("cases/**   -text\nexample/** -text\n")     # aligned, as this repo writes it
+before = open(ga, encoding="utf-8").read()
+ok(C.already_unset(ga_repo, ga) is True,
+   "the column-aligned line is recognised through git")
+C.tidy(ga_repo)
+ok(open(ga, encoding="utf-8").read() == before,
+   "setup appended a line the file already had",
+   open(ga, encoding="utf-8").read())
+
+shutil.rmtree(os.path.join(ga_repo, ".git"), ignore_errors=True)
+ok(C.already_unset(ga_repo, ga) is True,
+   "without git, the whitespace-tolerant match still recognises it")
+shutil.rmtree(ga_repo, ignore_errors=True)
+
 shutil.rmtree(home, ignore_errors=True)
 print(f"\n{passed} passed, {failed} failed")
 sys.exit(1 if failed else 0)
