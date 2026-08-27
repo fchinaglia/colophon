@@ -53,10 +53,23 @@ def find(block, marker):
         if norm(block[:i + 1]) and len(norm(block[:i + 1])) > pos:
             break
         i += 1
+    # The walk above already answers the question: `i` is where the occurrence the
+    # ambiguity check approved begins. The regex only snaps it to a word boundary, since
+    # the walk can land a character off wherever normalisation changed a length.
+    #
+    # It used to search the whole block from zero and return the first thing that looked
+    # similar — and "similar" is four words, while the check upstream tests the whole
+    # marker. So a marker that occurs once could still be positioned at a different
+    # occurrence that merely starts the same way, and the span was cut in the wrong
+    # place. Both gates stayed green: the spans still rebuilt the text, the change was
+    # still carried, and the published percentage was wrong. Issue #42.
+    #
+    # It searches from just before `i` now, and refuses a match that is not there: the
+    # regex may correct the walk by a character, never relocate it.
     words = marker.split()[:4]
     pat = r"\s+".join(re.escape(w).replace("'", "['’]") for w in words)
-    m = re.search(pat, block, re.IGNORECASE)
-    return m.start() if m else i
+    m = re.compile(pat, re.IGNORECASE).search(block, max(0, i - 4))
+    return m.start() if m and abs(m.start() - i) <= 4 else i
 
 
 def main():
@@ -64,7 +77,16 @@ def main():
         sys.exit(f"missing {ANN_FILE}")
     ann = json.load(open(ANN_FILE, encoding="utf-8"))
     src = ann["source"]
-    excluded = set(ann.get("excluded", []))
+    # Cast the way `blocks` is cast below. This file is written by hand, and
+    # `"excluded": ["0"]` used to exclude nothing at all: the string never equalled the
+    # integer block index, so the block stayed in the count and no one was told. A
+    # silent no-op on the field whose job is to keep the disclosure out of its own
+    # measurement is the wrong kind of quiet.
+    try:
+        excluded = {int(x) for x in (ann.get("excluded") or [])}
+    except (TypeError, ValueError):
+        sys.exit(f"{ANN_FILE}: `excluded` holds something that is not a block number: "
+                 f"{ann.get('excluded')!r}")
     # Declared exceptions to the coverage check: {"R12": "superseded by R19"}. A
     # legitimate orphan is common — the protocol tells you to record a diffuse
     # intervention as an event and leave the attributions alone, which produces one by
@@ -112,6 +134,14 @@ def main():
                 if seg:
                     pieces.append((seg, a[k]))
         for seg, meta in pieces:
+            # Named rather than raised. A KeyError traceback here says the file is
+            # broken without saying where, at the one step this script is otherwise
+            # careful to explain — and the file it is about is hand-written.
+            missing = [k for k in ("lex", "idea", "phase") if k not in meta]
+            if missing:
+                errors.append(f"block {i}: a span has no "
+                              f"{' and no '.join(missing)}: {seg[:40]}")
+                continue
             spans.append({
                 "block": i, "text": seg, "words": len(seg.split()),
                 "lex": meta["lex"], "idea": meta["idea"], "phase": meta["phase"],

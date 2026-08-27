@@ -6,6 +6,41 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.9.0] — 2026-08-27
+
+A span could be cut at the wrong place while both checks stayed green. `find()` positioned the cut with
+the marker's **first four words** while the ambiguity check tested the **whole** marker, so a marker that
+occurs once could still be positioned at a different occurrence that merely started the same way — the
+spans still rebuilt the text, the change was still carried, and the published percentage was wrong. That
+is the failure `measure.py` exists to prevent, arriving through the one function nothing was checking.
+No published measurement moves: `example/` is byte-identical and case 001 recomputes to 46.0 / 0.0 over
+eighteen passages, exactly what it declares. `verify.html` is untouched — still `2e8a461a…` in all four
+copies.
+
+### Fixed
+
+- **`find()` returns the occurrence the ambiguity check approved.** Issue #42. The walk above it already
+  answers the question — it maps the normalised offset of the whole marker onto the raw text — and the
+  function then threw that answer away for a regex that searched the block from zero and took the first
+  thing that looked similar. *Similar* is four words; the check upstream tests the whole marker.
+
+  The regex is still there, because `norm()` changes lengths and the walk can land a character off a word
+  boundary. It searches from just before the computed position now and is refused if it lands anywhere
+  else: **it may correct the walk by a character, never relocate it.**
+
+  Two tests, and the first is the reproduction — a block where the whole marker occurs once and its first
+  four words occur twice, asserting the cut lands where the check approved. The second holds the property
+  the regex was written for: a marker still found across accents and typographic apostrophes.
+
+- **`excluded` is cast the way `blocks` is cast.** `"excluded": ["0"]` excluded nothing at all and said
+  nothing about it: the string never equalled the integer block index, so the block stayed in the count.
+  A silent no-op on the field whose job is to keep the disclosure out of its own measurement. Anything
+  there that is not a block number is now named and refused.
+
+- **A span with no `lex`, `idea` or `phase` is named rather than raised.** It exited with a `KeyError`
+  traceback, which says the file is broken without saying where — at the one step this script is otherwise
+  careful to explain, about a file that is written by hand.
+
 ## [3.8.0] — 2026-08-27
 
 Three checks that compared text where they meant a fact, and the one that mattered failed in a reader's
