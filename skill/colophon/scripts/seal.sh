@@ -35,7 +35,32 @@ set -eu
 (set -o pipefail) 2>/dev/null && set -o pipefail || true
 
 FILE="${1:?usage: bash seal.sh <file>}"
-KEY="${COLOPHON_KEY:-$HOME/.ssh/colophon}"
+
+# WHICH KEY SIGNS, and why this is more than a default.
+#
+# COLOPHON_KEY wins, as it always has. Then whatever `colophon setup` recorded, and that
+# clause is the fix for a fault that reached the reader: setup writes key_path and the
+# fingerprint of that key into author.json, case.json carries the fingerprint from there,
+# and reference/VERIFY.md tells the reader to compare it against colophon.pub — which
+# this script copies from the key that actually signed. An author who set up with a key
+# elsewhere published a fingerprint naming a key that did not sign, and the reader's own
+# check failed on an honest case. A failed check of that shape reads as forgery.
+#
+# python3 reads the config, because a regex over JSON is a comparison of text where a
+# fact is meant, and that is the mistake this repository keeps filing bugs about. Where
+# there is no python3 nothing is lost: the default stands, exactly as before, and the
+# fingerprint guard below still catches a divergence rather than shipping it.
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}/colophon/author.json"
+CONFIGURED=""
+if [ -z "${COLOPHON_KEY:-}" ] && [ -f "$CONFIG" ] && command -v python3 >/dev/null 2>&1; then
+  CONFIGURED="$(python3 -c 'import json, sys
+try:
+    v = json.load(open(sys.argv[1], encoding="utf-8")).get("key_path")
+except Exception:
+    v = None
+print(v if isinstance(v, str) else "")' "$CONFIG" 2>/dev/null || true)"
+fi
+KEY="${COLOPHON_KEY:-${CONFIGURED:-$HOME/.ssh/colophon}}"
 # Free, no account needed, and — the part that matters — its chain verifies against the
 # certificate bundle a reader already has, so `openssl ts -verify` works with no setup.
 # freetsa.org also grants tokens, but nothing verifies one without first hunting down its
@@ -63,6 +88,43 @@ if [ ! -f "$KEY" ]; then
   echo "   ! any earlier signature has been removed: it did not cover this register" >&2
   exit 1
 fi
+# THE COMPARISON THE READER IS TOLD TO MAKE, MADE HERE INSTEAD OF IN THEIR HANDS.
+# reference/VERIFY.md sends them to `ssh-keygen -lf colophon.pub` and case.json's
+# key_fingerprint. This script copies colophon.pub from the key that signs, so a case
+# declaring a different one fails that check after publication, in front of somebody who
+# has no way to ask what happened. Refuse before signing instead: nothing is written, and
+# the register and the measurement are untouched.
+CASE=""
+for c in "$(dirname "$FILE")/case.json" "$(dirname "$FILE")/caso.json"; do
+  [ -f "$c" ] && CASE="$c" && break
+done
+if [ -n "$CASE" ] && [ -f "$KEY.pub" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    DECLARED="$(python3 -c 'import json, sys
+try:
+    v = json.load(open(sys.argv[1], encoding="utf-8")).get("key_fingerprint")
+except Exception:
+    v = None
+print(v if isinstance(v, str) else "")' "$CASE" 2>/dev/null || true)"
+    SIGNING="$(ssh-keygen -lf "$KEY.pub" 2>/dev/null | awk "{print \$2}")"
+    if [ -n "$DECLARED" ] && [ -n "$SIGNING" ] && [ "$DECLARED" != "$SIGNING" ]; then
+      echo "   ! $(basename "$CASE") declares a key this signature would not match:" >&2
+      echo "       declared  $DECLARED" >&2
+      echo "       signing   $SIGNING   ($KEY)" >&2
+      echo "   ! a reader is told to compare those two, and theirs is the check that" >&2
+      echo "     would fail. Either seal with the declared key, or correct the case —" >&2
+      echo "     and if the case is already sealed, that correction is a reopening." >&2
+      echo "   ! nothing has been written: the register and the measurement are as they" >&2
+      echo "     were, and any earlier signature has been removed because it did not" >&2
+      echo "     cover this register" >&2
+      exit 1
+    fi
+  else
+    echo "   no python3: cannot compare the fingerprint this case declares with the key" >&2
+    echo "   about to sign. Check it by hand before publishing." >&2
+  fi
+fi
+
 # A passphrase-protected key makes ssh-keygen prompt, and a prompt in a script that is
 # not attached to a terminal simply hangs. Say so before it happens.
 if ! ssh-keygen -y -P "" -f "$KEY" >/dev/null 2>&1 && ! ssh-add -l 2>/dev/null | grep -q .; then

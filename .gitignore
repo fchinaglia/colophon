@@ -10,3 +10,4 @@ desktop.ini
 __pycache__/
 node_modules/
 *.tsq
+.gstack/

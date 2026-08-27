@@ -6,6 +6,30 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`seal.sh` signs with the key the configuration names, and refuses a case that declares another one.**
+  Issue #38. `cli/colophon.py` wrote `key_path` and its fingerprint into `author.json`; `seal.sh` read
+  `${COLOPHON_KEY:-$HOME/.ssh/colophon}` and never opened that file. An author who set up with `--key`
+  therefore published a fingerprint naming a key that had not signed.
+
+  **The check that failed was the reader's.** `case.json` carries `key_fingerprint` from the config, and
+  reference/VERIFY.md — inside the bundle — tells the reader to compare it against `colophon.pub`, which
+  `seal.sh` copies from the key that actually signed. On an honest case the two disagreed, and a failed
+  comparison of that shape reads as forgery. It is the same shape as the CRLF hazard the Windows job
+  exists for: the first check passes, the second fails, and the reasonable conclusion is the wrong one.
+
+  Precedence is now `COLOPHON_KEY`, then `key_path` from the config, then the default. The environment
+  still wins, because a config is a default and an export is a decision taken now. `python3` reads the
+  config rather than a regex: parsing JSON with a pattern is a comparison of text where a fact is meant,
+  which is the fault behind #39 and #40 as well. Where there is no `python3` the default stands exactly as
+  before.
+
+  **And the comparison a reader is sent to make is now made before signing.** A `case.json` declaring a
+  fingerprint the key would not produce stops the seal, names both values, and writes nothing — the
+  register and the measurement are untouched, and the stale signature is removed as it always was. The
+  ordinary case is unaffected; four tests cover both.
+
 ### Changed
 
 - **The writing application's requirements are being written outside this repository**, and will land
