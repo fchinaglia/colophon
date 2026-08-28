@@ -85,6 +85,15 @@ CHROME_NAMES = ("google-chrome", "google-chrome-stable",
 # Kept as the flat sequence it always was: other code reads it.
 CHROMES = CHROME_PATHS + CHROME_NAMES
 
+# How long the rendering may take before it is treated as stalled rather than slow.
+# Headless Chrome does not always exit — a stale profile lock, a crashpad handler that is
+# never reaped — and `subprocess.run` with no deadline waits for it forever. That wait
+# lands in the middle of closing a case, where the author sees a program that printed its
+# progress and then stopped, with nothing to tell a hopeless wait from a slow one. Nine
+# minutes is generous for a real render on unknown hardware and short enough that a stall
+# is answered rather than sat through.
+CHROME_SECONDS = 540
+
 # Constructs the converter does not implement. Refused by line number rather than
 # rendered approximately: a mangled table under a signature is worse than a stop.
 UNSUPPORTED = [
@@ -608,9 +617,29 @@ def main(argv=None):
               "    yourself, or pass --html-only to stop here without this warning.",
               file=sys.stderr)
         return 1
-    subprocess.run([chrome, "--headless", "--disable-gpu", "--no-pdf-header-footer",
-                    f"--print-to-pdf={os.path.abspath(out_pdf)}",
-                    os.path.abspath(out_html)], check=True, capture_output=True)
+    try:
+        subprocess.run([chrome, "--headless", "--disable-gpu", "--no-pdf-header-footer",
+                        f"--print-to-pdf={os.path.abspath(out_pdf)}",
+                        os.path.abspath(out_html)],
+                       check=True, capture_output=True, timeout=CHROME_SECONDS)
+    except subprocess.TimeoutExpired:
+        # `run` kills the child on expiry, so the stalled Chrome does not outlive this.
+        # The half-written PDF has to go with it: a truncated file sitting beside a
+        # finished HTML is the one that gets picked up later and believed.
+        partial = ""
+        if os.path.exists(out_pdf):
+            try:
+                os.remove(out_pdf)
+                partial = ("\n    A partly written %s was removed, so nothing "
+                           "incomplete is left behind." % out_pdf)
+            except OSError:
+                partial = ("\n    ! %s may be partly written and could not be removed. "
+                           "Delete it before using it." % out_pdf)
+        print("  ! the rendering did not finish within %d seconds and was stopped.\n"
+              "    Chrome does not always exit on its own. The HTML above is complete "
+              "and\n    unaffected: print it yourself, or pass --html-only to stop "
+              "there deliberately.%s" % (CHROME_SECONDS, partial), file=sys.stderr)
+        return 1
     print(f"  {out_pdf}  {os.path.getsize(out_pdf):,} bytes")
 
     if a.embed is not None:

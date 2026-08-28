@@ -6,6 +6,32 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **`render_pdf.py` waits on Chrome with a deadline, and says so when it hits one.** Issue #44. The call
+  that turns the HTML into the published PDF was `subprocess.run(...)` with no `timeout=`. Headless Chrome
+  does not always exit — a stale profile lock, a crashpad handler that is never reaped — and when it does
+  not, that call waits forever. Observed, not theorised: the same stall stopped a full test run three times
+  on an idle machine, one Chrome alive for sixteen minutes at 0.0% CPU, and killing that one process let
+  the run continue immediately.
+
+  **The wait lands in the middle of closing a case**, which is what makes it worth a release. What an
+  author sees is a program that printed its progress up to the HTML and then stopped, with no line saying
+  what it is waiting for and nothing to tell a hopeless wait from a slow render. The honest response is to
+  keep waiting, and the honest response is the wrong one.
+
+  `CHROME_SECONDS` is nine minutes — generous for a real render on unknown hardware, short enough that a
+  stall is answered rather than sat through — and it is a named constant because it is the kind of value
+  somebody on a slow machine will need to raise. On expiry `run` kills the child, so the stalled Chrome
+  does not outlive the refusal, and **a partly written PDF is removed**: a truncated file beside a finished
+  HTML is the one that gets picked up later and believed, and a signature over it would say *this file is
+  unaltered* about a document that stops mid-sentence. The refusal names the deadline and leaves somewhere
+  to go — the HTML is complete and printable by hand, or `--html-only` stops there deliberately.
+
+  Four tests, each verified against the unfixed call. One of them asserts the **clock**, not the message:
+  a test that checked only the wording would pass against the unbounded call too, because the wording
+  would arrive eventually. Unfixed it takes sixty seconds and fails; fixed, three, and passes.
+
 ## [3.9.0] — 2026-08-27
 
 A span could be cut at the wrong place while both checks stayed green. `find()` positioned the cut with

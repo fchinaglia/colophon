@@ -14,6 +14,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 
 import pytest
 
@@ -427,3 +428,89 @@ def test_the_snap_and_flatpak_launchers_are_paths_not_names():
     assert "/snap/bin/chromium" in joined and "flatpak" in joined
     assert not any(os.sep not in c for c in m.CHROME_PATHS), \
         "a bare name in the path list is the fault this split exists to remove"
+
+
+# --------------------------------------------------- issue #44: a stall is not a slow render
+
+def stub_chrome(tmp_path, name, body):
+    """A stand-in that behaves the way a stalled Chrome behaves: it never exits.
+
+    A real stall cannot be provoked on demand — it depends on a profile lock or a
+    crashpad handler — so the stall is supplied and the question asked of `render_pdf.py`
+    is the one that matters either way: what does it do while a Chrome does not come back.
+    """
+    path = os.path.join(str(tmp_path), name)
+    with open(path, "w") as f:
+        f.write(body)
+    os.chmod(path, 0o755)
+    return path
+
+
+def stalled(monkeypatch, manifested, tmp_path, body, seconds=3):
+    rp = load("render_pdf")
+    monkeypatch.setattr(rp, "find_chrome",
+                        lambda: stub_chrome(tmp_path, "chrome-stub", body))
+    monkeypatch.setattr(rp, "CHROME_SECONDS", seconds)
+    monkeypatch.chdir(manifested)
+    return rp, rp.main(["-o", "out.pdf"])
+
+
+def test_a_chrome_that_never_exits_is_stopped_rather_than_waited_on(
+        monkeypatch, manifested, tmp_path, capsys):
+    """Issue #44. `subprocess.run` with no `timeout=` waits forever, and this call runs
+    during closing — so an author sees a program that printed its progress and stopped,
+    with nothing to tell a hopeless wait from a slow one.
+
+    The deadline is asserted by the clock as well as the return code: a test that only
+    checked the message would pass just as well against the unbounded call, since the
+    message would arrive eventually. What is being fixed is *when*."""
+    started = time.time()
+    _, code = stalled(monkeypatch, manifested, tmp_path, "#!/bin/sh\nsleep 60\n")
+    spent = time.time() - started
+    assert code == 1, "a stalled rendering has to fail, not return success"
+    assert spent < 30, (
+        "issue #44: the call waited %.0fs on a Chrome that never exits; the deadline is "
+        "what the fix is" % spent)
+    said = capsys.readouterr().err
+    assert "did not finish within 3 seconds" in said, said
+    assert "--html-only" in said, (
+        "the refusal has to leave the author somewhere to go: the HTML is complete and "
+        "printable by hand. It said: %r" % said)
+
+
+def test_the_html_survives_a_stalled_rendering(monkeypatch, manifested, tmp_path):
+    """The rendering is not lost when Chrome is. The HTML is written before Chrome is
+    ever started, and the refusal says so — which is only worth saying if it is true."""
+    stalled(monkeypatch, manifested, tmp_path, "#!/bin/sh\nsleep 60\n")
+    html = os.path.join(manifested, "out.html")
+    assert os.path.exists(html) and os.path.getsize(html) > 0
+    assert "<html" in open(html, encoding="utf-8").read().lower()
+
+
+def test_a_half_written_pdf_does_not_outlive_the_stall(
+        monkeypatch, manifested, tmp_path, capsys):
+    """The one that matters most. Chrome may create the file and then stall part-way
+    through it, and a truncated PDF sitting beside a finished HTML is the artefact that
+    gets picked up later and believed — a signature over it would say *this file is
+    unaltered* about a document that stops mid-sentence."""
+    body = ('#!/bin/sh\n'
+            'printf "%%PDF-1.4 truncated" > "${4#--print-to-pdf=}"\n'
+            'sleep 60\n')
+    _, code = stalled(monkeypatch, manifested, tmp_path, body)
+    assert code == 1
+    pdf = os.path.join(manifested, "out.pdf")
+    assert not os.path.exists(pdf), (
+        "issue #44: a partly written %r was left behind" % pdf)
+    assert "was removed" in capsys.readouterr().err
+
+
+def test_the_deadline_is_named_where_it_is_spent():
+    """`CHROME_SECONDS` is a named constant and the call carries it. A number written
+    inline at the call site is a number nobody finds when a slow machine needs it
+    raised, and this is the kind of value someone will need to raise."""
+    rp = load("render_pdf")
+    assert isinstance(rp.CHROME_SECONDS, int) and rp.CHROME_SECONDS > 0
+    src = open(os.path.join(SCRIPTS, "render_pdf.py"), encoding="utf-8").read()
+    call = src[src.index('"--print-to-pdf='):]
+    assert "timeout=CHROME_SECONDS" in call[:400], (
+        "issue #44: the Chrome call does not carry the deadline")
