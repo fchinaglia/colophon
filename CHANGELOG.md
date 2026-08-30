@@ -8,6 +8,31 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ### Fixed
 
+- **`review.py` said the brief lived in the second list, and it never did.** Issue #32. The docstring at
+  the head of the file described `supplied` as *"where a brief and a real case live"*. The filter is
+  `type == "human_contribution"` and a brief is its own event type, so it has never been in that list and
+  the line has been wrong since it was written. What was reported as a hole in the last read is a hole in
+  its own description of itself.
+
+  **The line is corrected and the filter is not widened**, and the docstring now carries the reasons rather
+  than leaving the next reader to reopen this. The brief is not invisible to the review: the lists either
+  side of `supplied` run over **every** non-meta event, so a red-list match or a repeated draft passage
+  inside a brief is raised exactly like any other. What `supplied` is for is the material that arrives one
+  exchange at a time, once the case is under way and nobody is thinking about disclosure any more — and the
+  brief is the opposite of that, recorded at the one moment the question has just been put.
+
+  The issue's own argument turns out to run the other way. It reasons from a `confidential` case, where the
+  brief is *"the place the sentence that must not travel is kept"* — but `reference/people.md` §1 and §2
+  say that under `confidential` the author's words are **not quoted anywhere in the case at all**. There is
+  no verbatim brief there to reread, and a sentence sitting in one is a failure upstream of the last read,
+  which the review is the wrong place to repair. Under `open` the words travel by a decision the author
+  made minutes before the brief was written down.
+
+  And the cost is real: the brief is usually the longest single string in a register, and `supplied`'s
+  whole value is being short enough that a person reads it. Thirty lines that get read beat a hundred that
+  do not.
+
+
 - **`render_pdf.py` waits on Chrome with a deadline, and says so when it hits one.** Issue #44. The call
   that turns the HTML into the published PDF was `subprocess.run(...)` with no `timeout=`. Headless Chrome
   does not always exit — a stale profile lock, a crashpad handler that is never reaped — and when it does

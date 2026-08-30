@@ -13,14 +13,33 @@ It shows three lists, and they are not the same kind of thing:
 
   told        places the red list matched and the event was recorded anyway. Not
               "worth a look": things the author was already told about once.
-  supplied    every human_contribution event, whole. protocol.md marks the author's
-              primary material U/U, and it is where a brief and a real case live.
+  supplied    every human_contribution event, whole, and only that type. protocol.md
+              marks the author's primary material U/U.
   repeated    every payload string that reproduces 30 or more characters of a draft.
               This is the register preserving what the text removed, and it is where
               three of the four events case 002 had to redact actually were.
 
 Nothing else. A register carries five to six hundred strings and nobody reads that;
 these three are thirty to forty-five lines and a person does.
+
+NOT THE BRIEF, AND THAT IS A DECISION. This said for a long time that the second list
+was "where a brief and a real case live", and it never was: the filter is on the event
+type and a brief is its own type. The line is corrected rather than the filter widened,
+and the reasons are worth having in one place.
+
+The brief is not invisible here. The lists either side of it run over every non-meta
+event, so a red-list match or a repeated draft passage inside a brief is raised exactly
+like any other — only the "what you told me" list skips it.
+
+What that list is for is the material that arrives one exchange at a time, once the case
+is under way and nobody is deciding anything about disclosure any more. The brief is the
+opposite: it is recorded at the one moment the question has just been put. Under
+confidential nothing the author said is quoted anywhere in the case at all
+(reference/people.md 1 and 2), so there is no verbatim brief to reread; under open the
+words travel by a decision the author made minutes before it was written down. And it is
+usually the longest single string in the register — putting it in the one list whose
+whole value is being short enough to read is how thirty lines become a hundred and stop
+being read at all.
 
     python3 review.py                       the three lists
     python3 review.py --set 37 payload.rimossi[0] "4 identifying details, removed"
