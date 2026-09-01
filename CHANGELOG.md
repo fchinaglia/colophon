@@ -6,6 +6,8 @@ and the project uses [semantic versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.10.0] — 2026-09-01
+
 ### Fixed
 
 - **`review.py` said the brief lived in the second list, and it never did.** Issue #32. The docstring at
